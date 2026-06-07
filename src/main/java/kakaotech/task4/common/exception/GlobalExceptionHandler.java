@@ -9,6 +9,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.servlet.NoHandlerFoundException;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -42,6 +43,13 @@ public class GlobalExceptionHandler {
         log.warn("[Validation] hasMissing={}, fields={}", hasMissing, fields);
         ExceptionCode error = hasMissing ? GlobalExceptionCode.BAD_REQUEST : GlobalExceptionCode.VALIDATION_ERROR;
         return toErrorResponse(error, fields);
+    }
+
+    @ExceptionHandler(NoHandlerFoundException.class)
+    protected ResponseEntity<?> handleNoHandlerFound(final NoHandlerFoundException e) {
+        log.warn("[NoHandlerFound] {}", e.getMessage());
+        ExceptionCode error = GlobalExceptionCode.NOT_FOUND;
+        return toErrorResponse(error);
     }
 
     @ExceptionHandler(Exception.class)

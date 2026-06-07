@@ -1,9 +1,10 @@
-package kakaotech.task4.auth.controller;
+package kakaotech.task4.domain.auth.controller;
 
 import jakarta.validation.Valid;
-import kakaotech.task4.auth.api.AuthApi;
-import kakaotech.task4.auth.dto.SignUpRequest;
-import kakaotech.task4.auth.service.AuthService;
+import kakaotech.task4.common.response.SuccessRes;
+import kakaotech.task4.domain.auth.api.AuthApi;
+import kakaotech.task4.domain.auth.dto.SignUpRequest;
+import kakaotech.task4.domain.auth.service.AuthService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -20,7 +21,8 @@ public class AuthController implements AuthApi {
     @PostMapping("/sign-up")
     @Override
     public ResponseEntity<?> signUp(@Valid @RequestBody SignUpRequest request) {
-
-        return null;
+        authService.signUp(request);
+        SuccessRes body = SuccessRes.from()
+        return ResponseEntity.status(body.status()).body(body);
     }
 }

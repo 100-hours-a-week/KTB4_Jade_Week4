@@ -1,4 +1,4 @@
-package kakaotech.task4.auth.dto;
+package kakaotech.task4.domain.auth.dto;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
@@ -28,4 +28,9 @@ public record SignUpRequest(
 
         @NotBlank(message = "프로필 사진을 추가해주세요.")
         String profileImageUrl
-) {}
+) {
+        public boolean validatePasswordMatch() {
+                return password.equals(checkPassword);
+        }
+
+}

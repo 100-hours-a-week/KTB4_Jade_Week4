@@ -1,4 +1,4 @@
-package kakaotech.task4.global.config;
+package kakaotech.task4.common.config;
 
 import io.swagger.v3.oas.models.info.Info;
 import io.swagger.v3.oas.models.OpenAPI;

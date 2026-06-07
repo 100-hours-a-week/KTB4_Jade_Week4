@@ -1,4 +1,4 @@
-package kakaotech.task4.auth.api;
+package kakaotech.task4.domain.auth.api;
 
 public final class AuthSwaggerSuccessExamples {
     private AuthSwaggerSuccessExamples() {}

@@ -1,7 +1,8 @@
-package kakaotech.task4.global;
+package kakaotech.task4.common.exception;
 
-import kakaotech.task4.global.ExceptionCode.ExceptionCode;
-import kakaotech.task4.global.ExceptionCode.GlobalExceptionCode;
+import kakaotech.task4.common.exception.ExceptionCode.ExceptionCode;
+import kakaotech.task4.common.exception.ExceptionCode.GlobalExceptionCode;
+import kakaotech.task4.common.response.ExceptionRes;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

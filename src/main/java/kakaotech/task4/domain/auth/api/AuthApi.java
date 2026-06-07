@@ -1,4 +1,4 @@
-package kakaotech.task4.auth.api;
+package kakaotech.task4.domain.auth.api;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -7,7 +7,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-import kakaotech.task4.auth.dto.SignUpRequest;
+import kakaotech.task4.domain.auth.dto.SignUpRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestBody;
 
@@ -30,6 +30,5 @@ public interface AuthApi {
                             examples = @ExampleObject(value = AuthSwaggerErrorExamples.SIGN_UP_422)))
     })
     ResponseEntity<?> signUp(@Valid @RequestBody SignUpRequest request);
-
 
 }

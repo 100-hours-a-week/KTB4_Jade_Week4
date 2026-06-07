@@ -1,7 +1,7 @@
-package kakaotech.task4.global;
+package kakaotech.task4.common.response;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import kakaotech.task4.global.ExceptionCode.ExceptionCode;
+import kakaotech.task4.common.exception.ExceptionCode.ExceptionCode;
 import lombok.Builder;
 import org.springframework.http.HttpStatus;
 

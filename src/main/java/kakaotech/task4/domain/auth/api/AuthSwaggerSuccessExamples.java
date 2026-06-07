@@ -9,4 +9,12 @@ public final class AuthSwaggerSuccessExamples {
               "message": "회원가입이 완료되었습니다."
             }
             """;
+
+    public static final String SIGN_IN_200 = """
+        {
+            "expiredAt": "2025-11-18T15:42:45Z",
+            "accessToken": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJI..",
+            "profileImageUrl": "url"
+        }
+        """;
 }

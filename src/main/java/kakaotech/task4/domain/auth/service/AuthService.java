@@ -2,7 +2,10 @@ package kakaotech.task4.domain.auth.service;
 
 import kakaotech.task4.common.exception.CustomException;
 import kakaotech.task4.domain.auth.code.AuthExceptionCode;
-import kakaotech.task4.domain.auth.dto.SignUpRequest;
+import kakaotech.task4.domain.auth.dto.req.SignInRequest;
+import kakaotech.task4.domain.auth.dto.req.SignUpRequest;
+import kakaotech.task4.domain.auth.dto.res.SignInResponse;
+import kakaotech.task4.domain.user.entity.User;
 import kakaotech.task4.domain.user.service.UserService;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -45,4 +48,21 @@ public class AuthService {
         }
     }
 
+    public SignInResponse signIn(SignInRequest request) {
+        User user = getAuthenticatedUser(request);
+        return SignInResponse.from(user.getProfileImageUrl());
+    }
+
+    private User getAuthenticatedUser(SignInRequest request) {
+        User user = userService.findByEmail(request.email())
+                .orElseThrow(() -> new CustomException(AuthExceptionCode.INVALID_CREDENTIALS));
+        validatePassword(user, request.password());
+        return user;
+    }
+
+    private void validatePassword(User user, String password) {
+        if (!user.getPassword().equals(password)) {
+            throw new CustomException(AuthExceptionCode.INVALID_CREDENTIALS);
+        }
+    }
 }

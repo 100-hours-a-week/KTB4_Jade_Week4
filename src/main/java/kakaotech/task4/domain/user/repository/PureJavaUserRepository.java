@@ -5,6 +5,7 @@ import org.springframework.stereotype.Repository;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 
 @Repository
@@ -28,6 +29,13 @@ public class PureJavaUserRepository implements UserRepository {
     public boolean existsByNickname(String nickname) {
         return users.stream()
                 .anyMatch(user -> user.getNickname().equals(nickname));
+    }
+
+    @Override
+    public Optional<User> findByEmail(String email) {
+        return users.stream()
+                .filter(user -> user.getEmail().equals(email))
+                .findFirst();
     }
 
 }

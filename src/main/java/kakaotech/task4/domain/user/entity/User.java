@@ -1,7 +1,7 @@
 package kakaotech.task4.domain.user.entity;
 
 import jakarta.validation.constraints.NotNull;
-import kakaotech.task4.domain.auth.dto.SignUpRequest;
+import kakaotech.task4.domain.auth.dto.req.SignUpRequest;
 import lombok.*;
 
 @Getter

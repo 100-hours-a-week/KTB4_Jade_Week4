@@ -1,0 +1,16 @@
+spring:
+  application:
+    name: task
+
+  web:
+    resources:
+      add-mappings: false
+
+logging:
+  level:
+    org:
+      hibernate:
+        SQL: debug
+        type:
+          descriptor:
+            sql: trace

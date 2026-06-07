@@ -6,12 +6,12 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 
 public record SignUpRequest(
-        @Schema(description = "이메일", example = "test@naver.com")
+        @Schema(description = "이메일", example = "jade@kakaotech.com")
         @NotBlank(message = "이메일을 입력해주세요.")
         @Email(message = "올바른 이메일 주소 형식을 입력해주세요.")
         String email,
 
-        @Schema(description = "비밀번호", example = "Password123!")
+        @Schema(description = "비밀번호", example = "JadeHello1234!")
         @NotBlank(message = "비밀번호를 입력해주세요.")
         @Pattern(
                 regexp = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[\\W_]).{8,20}$",
@@ -19,7 +19,7 @@ public record SignUpRequest(
         )
         String password,
 
-        @Schema(description = "비밀번호 확인", example = "Password123!")
+        @Schema(description = "비밀번호 확인", example = "JadeHello1234!")
         @NotBlank(message = "비밀번호를 입력해주세요.")
         String checkPassword,
 

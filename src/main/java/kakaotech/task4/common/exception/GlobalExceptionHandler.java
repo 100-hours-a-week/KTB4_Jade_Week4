@@ -17,6 +17,18 @@ import java.util.Map;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
+    //todo : 삼항 연산자로 필드 있고 없고 분리 중. 더 좋은 방법 없나?
+    @ExceptionHandler(CustomException.class)
+    protected ResponseEntity<?> handleCustomException(final CustomException e) {
+        log.warn("[CustomException] {}", e.getMessage());
+        ExceptionCode error = e.getExceptionCode();
+        Map<String, Object> fields = e.getFields();
+
+        return fields.isEmpty()
+                ? toErrorResponse(error)
+                : toErrorResponse(error, fields);
+    }
+
     //todo : 삼항 연산자로 400과 422분리 중. 더 좋은 방법 없을까?
     @ExceptionHandler(MethodArgumentNotValidException.class)
     protected ResponseEntity<?> handleMethodArgumentNotValid(final MethodArgumentNotValidException e) {

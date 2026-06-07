@@ -3,6 +3,7 @@ package kakaotech.task4.domain.auth.controller;
 import jakarta.validation.Valid;
 import kakaotech.task4.common.response.SuccessRes;
 import kakaotech.task4.domain.auth.api.AuthApi;
+import kakaotech.task4.domain.auth.code.AuthSuccessCode;
 import kakaotech.task4.domain.auth.dto.SignUpRequest;
 import kakaotech.task4.domain.auth.service.AuthService;
 import lombok.RequiredArgsConstructor;
@@ -22,7 +23,7 @@ public class AuthController implements AuthApi {
     @Override
     public ResponseEntity<?> signUp(@Valid @RequestBody SignUpRequest request) {
         authService.signUp(request);
-        SuccessRes body = SuccessRes.from()
-        return ResponseEntity.status(body.status()).body(body);
+        SuccessRes body = SuccessRes.from(AuthSuccessCode.SIGN_UP_SUCCESS.getStatus(), AuthSuccessCode.SIGN_UP_SUCCESS.getMessage());
+        return ResponseEntity.status(AuthSuccessCode.SIGN_UP_SUCCESS.getStatus()).body(body);
     }
 }

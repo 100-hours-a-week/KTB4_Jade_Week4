@@ -6,5 +6,6 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface UserRepository {
     void save(User user);
-    User findById(int id);
+    boolean existsByEmail(String email);
+    boolean existsByNickname(String nickname);
 }

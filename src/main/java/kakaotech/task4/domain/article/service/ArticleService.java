@@ -19,14 +19,13 @@ public class ArticleService {
     private final ArticleRepository articleRepository;
     private final UserService userService;
 
-    public CreateArticleResponse createArticle(CreateArticleRequest request) {
-        User user = validateAuthenticated(request.userUuid());
+    public CreateArticleResponse createArticle(String userUuid, CreateArticleRequest request) {
+        User user = validateAuthenticated(userUuid);
 
         String articleUuid = UuidCreator.create(UuidPrefix.ARTICLE);
 
         Article article = Article.of(articleUuid, user, request);
         articleRepository.save(article);
-
         return CreateArticleResponse.from(articleUuid);
     }
 

@@ -8,12 +8,10 @@ import kakaotech.task4.domain.article.service.ArticleService;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestHeader;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
-@RestController("/articles")
+@RestController
+@RequestMapping("/articles")
 @AllArgsConstructor
 public class ArticleController implements ArticleApi {
     private final ArticleService articleService;
@@ -22,7 +20,7 @@ public class ArticleController implements ArticleApi {
     @Override
     public ResponseEntity<?> createArticle(@RequestHeader("Authorization") String userUuid,
                                            @Valid @RequestBody CreateArticleRequest request) {
-        CreateArticleResponse response = articleService.createArticle(request);
+        CreateArticleResponse response = articleService.createArticle(userUuid, request);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 }

@@ -17,4 +17,9 @@ public class PureJavaArticleRepository implements ArticleRepository {
         article.setArticleId(sequence.getAndIncrement());
         articles.add(article);
     }
+
+    @Override
+    public void addAll(List<Article> articles) {
+        this.articles.addAll(articles);
+    }
 }

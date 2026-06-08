@@ -45,4 +45,9 @@ public class PureJavaUserRepository implements UserRepository {
                 .findFirst();
     }
 
+    @Override
+    public void addAll(List<User> users) {
+        this.users.addAll(users);
+    }
+
 }

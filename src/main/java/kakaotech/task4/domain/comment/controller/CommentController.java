@@ -2,8 +2,9 @@ package kakaotech.task4.domain.comment.controller;
 
 import jakarta.validation.Valid;
 import kakaotech.task4.domain.comment.api.CommentApi;
-import kakaotech.task4.domain.comment.dto.CreateCommentRequest;
-import kakaotech.task4.domain.comment.dto.CreateCommentResponse;
+import kakaotech.task4.domain.comment.dto.req.CreateCommentRequest;
+import kakaotech.task4.domain.comment.dto.req.UpdateCommentRequest;
+import kakaotech.task4.domain.comment.dto.res.CreateCommentResponse;
 import kakaotech.task4.domain.comment.service.CommentService;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -24,5 +25,16 @@ public class CommentController implements CommentApi {
             @Valid @RequestBody CreateCommentRequest request) {
         CreateCommentResponse response = commentService.createComment(userUuid, articleUuid, request);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
+
+    @PutMapping("/{comment-uuid}")
+    @Override
+    public ResponseEntity<?> updateComment(
+            @RequestHeader("Authorization") String userUuid,
+            @PathVariable("article-uuid") String articleUuid,
+            @PathVariable("comment-uuid") String commentUuid,
+            @Valid @RequestBody UpdateCommentRequest request) {
+        commentService.updateComment(userUuid, articleUuid, commentUuid, request);
+        return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
 }

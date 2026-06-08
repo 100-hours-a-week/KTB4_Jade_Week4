@@ -1,4 +1,4 @@
-package kakaotech.task4.domain.comment.dto;
+package kakaotech.task4.domain.comment.dto.req;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;

@@ -1,4 +1,4 @@
-package kakaotech.task4.domain.comment.dto;
+package kakaotech.task4.domain.comment.dto.res;
 
 import lombok.Builder;
 

@@ -9,7 +9,8 @@ import org.springframework.http.HttpStatus;
 @AllArgsConstructor
 public enum CommentExceptionCode implements ExceptionCode {
     BAD_REQUEST(HttpStatus.BAD_REQUEST, "ARTICLE-400-001", "필수 값이 제외되었습니다."),
-    NOT_FOUND_ARTICLE(HttpStatus.NOT_FOUND, "ARTICLE-404-001", "해당 게시글을 찾을 수 없습니다.");
+    FORBIDDEN(HttpStatus.FORBIDDEN, "COMMENT-403-001", "수정 권한이 없습니다."),
+    NOT_FOUND(HttpStatus.NOT_FOUND, "COMMENT-404-001", "해당 댓글을 찾을 수 없습니다.");
 
     private final HttpStatus status;
     private final String code;

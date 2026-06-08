@@ -2,8 +2,10 @@ package kakaotech.task4.domain.comment.entity;
 
 import jakarta.validation.constraints.NotNull;
 import kakaotech.task4.common.baseEntity.BaseEntity;
+import kakaotech.task4.common.exception.CustomException;
 import kakaotech.task4.domain.article.entity.Article;
-import kakaotech.task4.domain.comment.dto.CreateCommentRequest;
+import kakaotech.task4.domain.comment.code.CommentExceptionCode;
+import kakaotech.task4.domain.comment.dto.req.CreateCommentRequest;
 import kakaotech.task4.domain.user.entity.User;
 import lombok.*;
 
@@ -43,4 +45,16 @@ public class Comment extends BaseEntity {
                 .content(request.content())
                 .build();
     }
+
+    public void validateOwner(User user) {
+        if (!this.user.equals(user)) {
+            throw new CustomException(CommentExceptionCode.FORBIDDEN);
+        }
+    }
+
+    public void update(String content) {
+        this.content = content;
+        updateUpdatedAt();
+    }
+
 }

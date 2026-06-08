@@ -13,7 +13,8 @@ public enum AuthExceptionCode implements ExceptionCode {
     DUPLICATE_NICKNAME(HttpStatus.CONFLICT, "AUTH-409-001", "중복된 닉네임입니다."),  //사실 code 안쓰임
     VALIDATION_ERROR(HttpStatus.UNPROCESSABLE_ENTITY, "AUTH-422-001", "필드의 유효성 검사가 올바르지 않습니다."),
     PASSWORD_MISMATCH(HttpStatus.UNPROCESSABLE_ENTITY, "AUTH-422-001", "비밀번호가 다릅니다."), //사실 code 안쓰임
-    INVALID_CREDENTIALS(HttpStatus.UNAUTHORIZED, "AUTH-401-001", "이메일 또는 비밀번호가 다릅니다.");
+    INVALID_CREDENTIALS(HttpStatus.UNAUTHORIZED, "AUTH-401-001", "이메일 또는 비밀번호가 다릅니다."),
+    UNAUTHORIZED(HttpStatus.UNAUTHORIZED, "AUTH-401-002", "로그인 후 사용할 수 있습니다.");
 
     private final HttpStatus status;
     private final String code;

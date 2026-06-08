@@ -1,6 +1,7 @@
 package kakaotech.task4.domain.article.service;
 
 import kakaotech.task4.common.exception.CustomException;
+import kakaotech.task4.common.exception.ExceptionCode.GlobalExceptionCode;
 import kakaotech.task4.common.uuid.UuidCreator;
 import kakaotech.task4.common.uuid.UuidPrefix;
 import kakaotech.task4.domain.article.code.ArticleExceptionCode;
@@ -20,7 +21,7 @@ public class ArticleService {
     private final UserService userService;
 
     public Article createArticle(String userUuid, CreateArticleRequest request) {
-        User user = validateAuthenticated(userUuid);
+        User user = findUserByUuid(userUuid);
         String articleUuid = UuidCreator.create(UuidPrefix.ARTICLE);
         Article article = Article.of(articleUuid, user, request);
         articleRepository.save(article);
@@ -28,28 +29,28 @@ public class ArticleService {
     }
 
     public Article updateArticle(String userUuid, String articleUuid, UpdateArticleRequest request) {
-        User user = validateAuthenticated(userUuid);
-        Article article = findByUuid(articleUuid);
+        User user = findUserByUuid(userUuid);
+        Article article = findArticleByUuid(articleUuid);
         validateOwner(user, article, ArticleExceptionCode.FORBIDDEN_UPDATE);
         article.update(request);
         return article;
     }
 
     public void deleteArticle(String userUuid, String articleUuid) {
-        User user = validateAuthenticated(userUuid);
-        Article article = findByUuid(articleUuid);
+        User user = findUserByUuid(userUuid);
+        Article article = findArticleByUuid(articleUuid);
         validateOwner(user, article, ArticleExceptionCode.FORBIDDEN_DELETE);
         article.softDelete();
     }
 
-    public Article findByUuid(String articleUuid) {
-        return articleRepository.findByUuid(articleUuid)
-                .orElseThrow(() -> new CustomException(ArticleExceptionCode.NOT_FOUND));
+    private User findUserByUuid(String userUuid) {
+        return userService.findByUuid(userUuid)
+                .orElseThrow(() -> new CustomException(GlobalExceptionCode.INTERNAL_SERVER_ERROR));
     }
 
-    private User validateAuthenticated(String userUuid) {
-        return userService.findByUuid(userUuid)
-                .orElseThrow(() -> new CustomException(ArticleExceptionCode.UNAUTHORIZED));
+    public Article findArticleByUuid(String articleUuid) {
+        return articleRepository.findByUuid(articleUuid)
+                .orElseThrow(() -> new CustomException(ArticleExceptionCode.NOT_FOUND));
     }
 
     private void validateOwner(User user, Article article, ArticleExceptionCode exceptionCode) {

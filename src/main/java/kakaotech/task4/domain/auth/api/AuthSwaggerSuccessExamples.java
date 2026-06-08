@@ -12,8 +12,6 @@ public final class AuthSwaggerSuccessExamples {
 
     public static final String SIGN_IN_200 = """
         {
-            "expiredAt": "2025-11-18T15:42:45Z",
-            "accessToken": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJI..",
             "profileImageUrl": "url"
         }
         """;

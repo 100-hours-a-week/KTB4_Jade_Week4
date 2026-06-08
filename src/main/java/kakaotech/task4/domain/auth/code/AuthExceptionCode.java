@@ -19,3 +19,5 @@ public enum AuthExceptionCode implements ExceptionCode {
     private final String code;
     private final String message;
 }
+
+//todo : code 안쓰는 enum -> 필드매핑 메시지 -> 클래스 따로 분리해야 할 듯

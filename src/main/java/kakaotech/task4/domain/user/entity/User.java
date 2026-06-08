@@ -46,4 +46,17 @@ public class User {
                 .build();
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof User)) return false;
+        User user = (User) o;
+        return userUuid != null && userUuid.equals(user.getUserUuid());
+    }
+
+    @Override
+    public int hashCode() {
+        return (userUuid != null) ? userUuid.hashCode() : 0;
+    }
+
 }

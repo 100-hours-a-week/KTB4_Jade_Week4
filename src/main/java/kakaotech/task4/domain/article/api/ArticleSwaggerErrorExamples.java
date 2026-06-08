@@ -43,6 +43,14 @@ public final class ArticleSwaggerErrorExamples {
             }
             """;
 
+    public static final String DELETE_ARTICLE_403 = """
+        {
+            "status": "FORBIDDEN",
+            "code": "ARTICLE-403-002",
+            "message": "삭제 권한이 없습니다."
+        }
+        """;
+
     public static final String ARTICLE_404 = """
             {
                 "status": "NOT_FOUND",

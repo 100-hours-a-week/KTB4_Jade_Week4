@@ -27,17 +27,19 @@ public class ArticleService {
         return article;
     }
 
-    private User validateAuthenticated(String userUuid) {
-        return userService.findByUuid(userUuid)
-                .orElseThrow(() -> new CustomException(ArticleExceptionCode.UNAUTHORIZED));
-    }
-
     public Article updateArticle(String userUuid, String articleUuid, UpdateArticleRequest request) {
         User user = validateAuthenticated(userUuid);
         Article article = findByUuid(articleUuid);
-        validateOwner(user, article);
+        validateOwner(user, article, ArticleExceptionCode.FORBIDDEN_UPDATE);
         article.update(request);
         return article;
+    }
+
+    public void deleteArticle(String userUuid, String articleUuid) {
+        User user = validateAuthenticated(userUuid);
+        Article article = findByUuid(articleUuid);
+        validateOwner(user, article, ArticleExceptionCode.FORBIDDEN_DELETE);
+        article.softDelete();
     }
 
     public Article findByUuid(String articleUuid) {
@@ -45,9 +47,14 @@ public class ArticleService {
                 .orElseThrow(() -> new CustomException(ArticleExceptionCode.NOT_FOUND));
     }
 
-    private void validateOwner(User user, Article article) {
-        if (!article.getUser().getUserUuid().equals(user.getUserUuid())) {
-            throw new CustomException(ArticleExceptionCode.FORBIDDEN_UPDATE);
+    private User validateAuthenticated(String userUuid) {
+        return userService.findByUuid(userUuid)
+                .orElseThrow(() -> new CustomException(ArticleExceptionCode.UNAUTHORIZED));
+    }
+
+    private void validateOwner(User user, Article article, ArticleExceptionCode exceptionCode) {
+        if (!article.getUser().equals(user)) {
+            throw new CustomException(exceptionCode);
         }
     }
 }

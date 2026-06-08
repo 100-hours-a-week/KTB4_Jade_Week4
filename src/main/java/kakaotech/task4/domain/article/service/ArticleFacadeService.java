@@ -23,4 +23,8 @@ public class ArticleFacadeService {
         Article article = articleService.updateArticle(userUuid, articleUuid, request);
         articlePhotoService.updatePhoto(request.imageUrl(), article);
     }
+
+    public void deleteArticle(String userUuid, String articleUuid) {
+        articleService.deleteArticle(userUuid, articleUuid);
+    }
 }

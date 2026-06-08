@@ -34,4 +34,13 @@ public class ArticleController implements ArticleApi {
         articleFacadeService.updateArticle(userUuid, articleUuid, request);
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
+
+    @DeleteMapping("/{article-uuid}")
+    @Override
+    public ResponseEntity<?> deleteArticle(
+            @RequestHeader("Authorization") String userUuid,
+            @PathVariable("article-uuid") String articleUuid) {
+        articleFacadeService.deleteArticle(userUuid, articleUuid);
+        return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
+    }
 }

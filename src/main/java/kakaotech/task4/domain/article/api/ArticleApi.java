@@ -61,4 +61,22 @@ public interface ArticleApi {
             @Parameter(description = "유저 UUID", required = true) @RequestHeader("Authorization") String userUuid,
             @Parameter(description = "게시글 UUID", required = true) @PathVariable("uuid") String articleUuid,
             @Valid @RequestBody UpdateArticleRequest request);
+
+    @Operation(summary = "게시글 삭제", description = "게시글 삭제 api")
+    @ApiResponses({
+            @ApiResponse(responseCode = "204", description = "게시글 삭제 성공",
+                    content = @Content),
+            @ApiResponse(responseCode = "401", description = "로그인 후 사용 가능",
+                    content = @Content(mediaType = "application/json",
+                            examples = @ExampleObject(value = ArticleSwaggerErrorExamples.CREATE_ARTICLE_401))),
+            @ApiResponse(responseCode = "403", description = "삭제 권한 없음",
+                    content = @Content(mediaType = "application/json",
+                            examples = @ExampleObject(value = ArticleSwaggerErrorExamples.DELETE_ARTICLE_403))),
+            @ApiResponse(responseCode = "404", description = "게시글 없음",
+                    content = @Content(mediaType = "application/json",
+                            examples = @ExampleObject(value = ArticleSwaggerErrorExamples.ARTICLE_404)))
+    })
+    ResponseEntity<?> deleteArticle(
+            @Parameter(description = "유저 UUID", required = true) @RequestHeader("Authorization") String userUuid,
+            @Parameter(description = "게시글 UUID", required = true) @PathVariable("article-uuid") String articleUuid);
 }

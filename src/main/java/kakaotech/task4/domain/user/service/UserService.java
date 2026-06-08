@@ -1,4 +1,6 @@
 package kakaotech.task4.domain.user.service;
+import kakaotech.task4.common.exception.CustomException;
+import kakaotech.task4.common.exception.ExceptionCode.GlobalExceptionCode;
 import kakaotech.task4.common.uuid.UuidCreator;
 import kakaotech.task4.common.uuid.UuidPrefix;
 import kakaotech.task4.domain.auth.dto.req.SignUpRequest;
@@ -32,8 +34,9 @@ public class UserService {
         return userRepository.findByEmail(email);
     }
 
-    public Optional<User> findByUuid(String uuid) {
-        return userRepository.findByUuid(uuid);
+    public Optional<User> findByUuid(String userUuid) {
+        return userRepository.findByUuid(userUuid);
     }
+
 
 }

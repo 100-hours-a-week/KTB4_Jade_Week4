@@ -3,7 +3,7 @@ package kakaotech.task4.domain.article.api;
 public final class ArticleSwaggerErrorExamples {
     private ArticleSwaggerErrorExamples() {}
 
-    public static final String CREATE_ARTICLE_400 = """
+    public static final String ARTICLE_400_001 = """
             {
                 "status": "BAD_REQUEST",
                 "code": "ARTICLE-400-001",
@@ -15,7 +15,7 @@ public final class ArticleSwaggerErrorExamples {
             }
             """;
 
-    public static final String UPDATE_ARTICLE_400 = """
+    public static final String ARTICLE_400_002 = """
             {
                 "status": "BAD_REQUEST",
                 "code": "ARTICLE-400-002",
@@ -27,15 +27,7 @@ public final class ArticleSwaggerErrorExamples {
             }
             """;
 
-    public static final String CREATE_ARTICLE_401 = """
-            {
-                "status": "UNAUTHORIZED",
-                "code": "ARTICLE-401-001",
-                "message": "로그인 후 사용할 수 있습니다."
-            }
-            """;
-
-    public static final String UPDATE_ARTICLE_403 = """
+    public static final String ARTICLE_403_001 = """
             {
                 "status": "FORBIDDEN",
                 "code": "ARTICLE-403-001",
@@ -43,15 +35,15 @@ public final class ArticleSwaggerErrorExamples {
             }
             """;
 
-    public static final String DELETE_ARTICLE_403 = """
-        {
-            "status": "FORBIDDEN",
-            "code": "ARTICLE-403-002",
-            "message": "삭제 권한이 없습니다."
-        }
-        """;
+    public static final String ARTICLE_403_002 = """
+            {
+                "status": "FORBIDDEN",
+                "code": "ARTICLE-403-002",
+                "message": "삭제 권한이 없습니다."
+            }
+            """;
 
-    public static final String ARTICLE_404 = """
+    public static final String ARTICLE_404_001 = """
             {
                 "status": "NOT_FOUND",
                 "code": "ARTICLE-404-001",
@@ -59,7 +51,7 @@ public final class ArticleSwaggerErrorExamples {
             }
             """;
 
-    public static final String CREATE_ARTICLE_422 = """
+    public static final String ARTICLE_422_001 = """
             {
                 "status": "UNPROCESSABLE_ENTITY",
                 "code": "ARTICLE-422-001",

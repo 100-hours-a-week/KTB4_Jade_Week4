@@ -10,6 +10,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import kakaotech.task4.domain.article.dto.req.CreateArticleRequest;
 import kakaotech.task4.domain.article.dto.req.UpdateArticleRequest;
+import kakaotech.task4.domain.auth.api.AuthSwaggerErrorExamples;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -25,13 +26,13 @@ public interface ArticleApi {
                             examples = @ExampleObject(value = ArticleSwaggerSuccessExamples.CREATE_ARTICLE_201))),
             @ApiResponse(responseCode = "400", description = "필수 값 누락",
                     content = @Content(mediaType = "application/json",
-                            examples = @ExampleObject(value = ArticleSwaggerErrorExamples.CREATE_ARTICLE_400))),
+                            examples = @ExampleObject(value = ArticleSwaggerErrorExamples.ARTICLE_400_001))),
             @ApiResponse(responseCode = "401", description = "로그인 후 사용 가능",
                     content = @Content(mediaType = "application/json",
-                            examples = @ExampleObject(value = ArticleSwaggerErrorExamples.CREATE_ARTICLE_401))),
+                            examples = @ExampleObject(value = AuthSwaggerErrorExamples.AUTH_401_001))),
             @ApiResponse(responseCode = "422", description = "유효성 검사 실패",
                     content = @Content(mediaType = "application/json",
-                            examples = @ExampleObject(value = ArticleSwaggerErrorExamples.CREATE_ARTICLE_422)))
+                            examples = @ExampleObject(value = ArticleSwaggerErrorExamples.ARTICLE_422_001)))
     })
     ResponseEntity<?> createArticle(
             @Parameter(description = "유저 UUID", required = true) @RequestHeader("Authorization") String userUuid,
@@ -43,19 +44,19 @@ public interface ArticleApi {
                     content = @Content),
             @ApiResponse(responseCode = "400", description = "변경할 내용 없음",
                     content = @Content(mediaType = "application/json",
-                            examples = @ExampleObject(value = ArticleSwaggerErrorExamples.UPDATE_ARTICLE_400))),
+                            examples = @ExampleObject(value = ArticleSwaggerErrorExamples.ARTICLE_400_002))),
             @ApiResponse(responseCode = "401", description = "로그인 후 사용 가능",
                     content = @Content(mediaType = "application/json",
-                            examples = @ExampleObject(value = ArticleSwaggerErrorExamples.CREATE_ARTICLE_401))),
+                            examples = @ExampleObject(value = AuthSwaggerErrorExamples.AUTH_401_001))),
             @ApiResponse(responseCode = "403", description = "수정 권한 없음",
                     content = @Content(mediaType = "application/json",
-                            examples = @ExampleObject(value = ArticleSwaggerErrorExamples.UPDATE_ARTICLE_403))),
+                            examples = @ExampleObject(value = ArticleSwaggerErrorExamples.ARTICLE_403_001))),
             @ApiResponse(responseCode = "404", description = "게시글 없음",
                     content = @Content(mediaType = "application/json",
-                            examples = @ExampleObject(value = ArticleSwaggerErrorExamples.ARTICLE_404))),
+                            examples = @ExampleObject(value = ArticleSwaggerErrorExamples.ARTICLE_404_001))),
             @ApiResponse(responseCode = "422", description = "유효성 검사 실패",
                     content = @Content(mediaType = "application/json",
-                            examples = @ExampleObject(value = ArticleSwaggerErrorExamples.CREATE_ARTICLE_422)))
+                            examples = @ExampleObject(value = ArticleSwaggerErrorExamples.ARTICLE_422_001)))
     })
     ResponseEntity<?> updateArticle(
             @Parameter(description = "유저 UUID", required = true) @RequestHeader("Authorization") String userUuid,
@@ -68,13 +69,13 @@ public interface ArticleApi {
                     content = @Content),
             @ApiResponse(responseCode = "401", description = "로그인 후 사용 가능",
                     content = @Content(mediaType = "application/json",
-                            examples = @ExampleObject(value = ArticleSwaggerErrorExamples.CREATE_ARTICLE_401))),
+                            examples = @ExampleObject(value = AuthSwaggerErrorExamples.AUTH_401_001))),
             @ApiResponse(responseCode = "403", description = "삭제 권한 없음",
                     content = @Content(mediaType = "application/json",
-                            examples = @ExampleObject(value = ArticleSwaggerErrorExamples.DELETE_ARTICLE_403))),
+                            examples = @ExampleObject(value = ArticleSwaggerErrorExamples.ARTICLE_403_002))),
             @ApiResponse(responseCode = "404", description = "게시글 없음",
                     content = @Content(mediaType = "application/json",
-                            examples = @ExampleObject(value = ArticleSwaggerErrorExamples.ARTICLE_404)))
+                            examples = @ExampleObject(value = ArticleSwaggerErrorExamples.ARTICLE_404_001)))
     })
     ResponseEntity<?> deleteArticle(
             @Parameter(description = "유저 UUID", required = true) @RequestHeader("Authorization") String userUuid,

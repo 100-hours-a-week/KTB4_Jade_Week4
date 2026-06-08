@@ -22,15 +22,15 @@ public interface AuthApi {
                             examples = @ExampleObject(value = AuthSwaggerSuccessExamples.SIGN_UP_201))),
             @ApiResponse(responseCode = "400", description = "필수 값 누락",
                     content = @Content(mediaType = "application/json",
-                            examples = @ExampleObject(value = AuthSwaggerErrorExamples.SIGN_UP_400))),
+                            examples = @ExampleObject(value = AuthSwaggerErrorExamples.AUTH_400_001))),
             @ApiResponse(responseCode = "409", description = "중복 데이터",
                     content = @Content(mediaType = "application/json",
-                            examples = @ExampleObject(value = AuthSwaggerErrorExamples.SIGN_UP_409))),
+                            examples = @ExampleObject(value = AuthSwaggerErrorExamples.AUTH_409_001))),
             @ApiResponse(responseCode = "422", description = "유효성 검사 실패",
                     content = @Content(mediaType = "application/json",
                             examples = {
-                                    @ExampleObject(name = "비밀번호 불일치", value = AuthSwaggerErrorExamples.SIGN_UP_422_PASSWORD),
-                                    @ExampleObject(name = "필드 유효성 검사 실패", value = AuthSwaggerErrorExamples.SIGN_UP_422_VALIDATION)
+                                    @ExampleObject(name = "비밀번호 불일치", value = AuthSwaggerErrorExamples.AUTH_422_001),
+                                    @ExampleObject(name = "필드 유효성 검사 실패", value = AuthSwaggerErrorExamples.GLOBAL_422_001)
                             }))
     })
     ResponseEntity<?> signUp(@Valid @RequestBody SignUpRequest request);
@@ -42,13 +42,13 @@ public interface AuthApi {
                             examples = @ExampleObject(value = AuthSwaggerSuccessExamples.SIGN_IN_200))),
             @ApiResponse(responseCode = "400", description = "필수 값 누락",
                     content = @Content(mediaType = "application/json",
-                            examples = @ExampleObject(value = AuthSwaggerErrorExamples.SIGN_IN_400))),
+                            examples = @ExampleObject(value = AuthSwaggerErrorExamples.AUTH_400_002))),
             @ApiResponse(responseCode = "401", description = "이메일 또는 비밀번호 불일치",
                     content = @Content(mediaType = "application/json",
-                            examples = @ExampleObject(value = AuthSwaggerErrorExamples.SIGN_IN_401))),
+                            examples = @ExampleObject(value = AuthSwaggerErrorExamples.AUTH_401_002))),
             @ApiResponse(responseCode = "422", description = "유효성 검사 실패",
                     content = @Content(mediaType = "application/json",
-                            examples = @ExampleObject(value = AuthSwaggerErrorExamples.SIGN_IN_422)))
+                            examples = @ExampleObject(value = AuthSwaggerErrorExamples.AUTH_422_002)))
     })
     ResponseEntity<?> signIn(@Valid @RequestBody SignInRequest request);
 

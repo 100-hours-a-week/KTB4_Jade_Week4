@@ -3,7 +3,7 @@ package kakaotech.task4.domain.comment.api;
 public final class CommentSwaggerErrorExamples {
     private CommentSwaggerErrorExamples() {}
 
-    public static final String CREATE_COMMENT_400 = """
+    public static final String COMMENT_400_001 = """
             {
                 "status": "BAD_REQUEST",
                 "code": "COMMENT-400-001",
@@ -11,19 +11,19 @@ public final class CommentSwaggerErrorExamples {
             }
             """;
 
-    public static final String CREATE_COMMENT_401 = """
+    public static final String COMMENT_403_001 = """
             {
-                "status": "UNAUTHORIZED",
-                "code": "AUTH-401-001",
-                "message": "로그인 후 사용할 수 있습니다."
+                "status": "FORBIDDEN",
+                "code": "COMMENT-403-001",
+                "message": "수정 권한이 없습니다."
             }
             """;
 
-    public static final String CREATE_COMMENT_404 = """
+    public static final String COMMENT_404_001 = """
             {
                 "status": "NOT_FOUND",
-                "code": "ARTICLE-404-001",
-                "message": "해당 게시글을 찾을 수 없습니다."
+                "code": "COMMENT-404-001",
+                "message": "해당 댓글을 찾을 수 없습니다."
             }
             """;
 }

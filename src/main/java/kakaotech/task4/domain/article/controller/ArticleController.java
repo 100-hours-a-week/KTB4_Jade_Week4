@@ -3,6 +3,7 @@ package kakaotech.task4.domain.article.controller;
 import jakarta.validation.Valid;
 import kakaotech.task4.domain.article.api.ArticleApi;
 import kakaotech.task4.domain.article.dto.req.CreateArticleRequest;
+import kakaotech.task4.domain.article.dto.req.UpdateArticleRequest;
 import kakaotech.task4.domain.article.dto.res.CreateArticleResponse;
 import kakaotech.task4.domain.article.service.ArticleFacadeService;
 import lombok.AllArgsConstructor;
@@ -22,5 +23,15 @@ public class ArticleController implements ArticleApi {
                                            @Valid @RequestBody CreateArticleRequest request) {
         CreateArticleResponse response = articleFacadeService.createArticle(userUuid, request);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
+
+    @PatchMapping("/{article-uuid}")
+    @Override
+    public ResponseEntity<?> updateArticle(
+            @RequestHeader("Authorization") String userUuid,
+            @PathVariable("article-uuid") String articleUuid,
+            @Valid @RequestBody UpdateArticleRequest request) {
+        articleFacadeService.updateArticle(userUuid, articleUuid, request);
+        return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
 }

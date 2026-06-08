@@ -12,6 +12,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.List;
 
+//지피티한테 맡긴 클래스입니다.
 @Component
 @AllArgsConstructor
 public class DataInitializer {
@@ -62,15 +63,15 @@ public class DataInitializer {
         article5.increaseCommentCount();
 
         commentRepository.addAll(List.of(
-                Comment.builder().commentId(1000).commentUuid("comment_uuid1").content("test1의 첫 번째 댓글입니다.").user(user1).article(article0).build(),
-                Comment.builder().commentId(1001).commentUuid("comment_uuid2").content("test2의 첫 번째 댓글입니다.").user(user2).article(article0).build(),
-                Comment.builder().commentId(1002).commentUuid("comment_uuid3").content("test1의 첫 번째 댓글입니다.").user(user1).article(article1).build(),
-                Comment.builder().commentId(1003).commentUuid("comment_uuid4").content("test2의 첫 번째 댓글입니다.").user(user2).article(article1).build(),
-                Comment.builder().commentId(1004).commentUuid("comment_uuid5").content("test1의 첫 번째 댓글입니다.").user(user1).article(article2).build(),
-                Comment.builder().commentId(1005).commentUuid("comment_uuid6").content("test1의 첫 번째 댓글입니다.").user(user1).article(article3).build(),
-                Comment.builder().commentId(1006).commentUuid("comment_uuid7").content("test1의 첫 번째 댓글입니다.").user(user1).article(article4).build(),
-                Comment.builder().commentId(1007).commentUuid("comment_uuid8").content("test2의 첫 번째 댓글입니다.").user(user2).article(article4).build(),
-                Comment.builder().commentId(1008).commentUuid("comment_uuid9").content("test2의 첫 번째 댓글입니다.").user(user2).article(article5).build()
+                Comment.builder().commentId(1000).commentUuid("comment_uuid1").content("test1이 article_uuid1에 작성한 댓글입니다.").user(user1).article(article0).build(),
+                Comment.builder().commentId(1001).commentUuid("comment_uuid2").content("test2가 article_uuid1에 작성한 댓글입니다.").user(user2).article(article0).build(),
+                Comment.builder().commentId(1002).commentUuid("comment_uuid3").content("test1이 article_uuid2에 작성한 댓글입니다.").user(user1).article(article1).build(),
+                Comment.builder().commentId(1003).commentUuid("comment_uuid4").content("test2가 article_uuid2에 작성한 댓글입니다.").user(user2).article(article1).build(),
+                Comment.builder().commentId(1004).commentUuid("comment_uuid5").content("test1이 article_uuid3에 작성한 댓글입니다.").user(user1).article(article2).build(),
+                Comment.builder().commentId(1005).commentUuid("comment_uuid6").content("test1이 article_uuid4에 작성한 댓글입니다.").user(user1).article(article3).build(),
+                Comment.builder().commentId(1006).commentUuid("comment_uuid7").content("test1이 article_uuid5에 작성한 댓글입니다.").user(user1).article(article4).build(),
+                Comment.builder().commentId(1007).commentUuid("comment_uuid8").content("test2가 article_uuid5에 작성한 댓글입니다.").user(user2).article(article4).build(),
+                Comment.builder().commentId(1008).commentUuid("comment_uuid9").content("test2가 article_uuid6에 작성한 댓글입니다.").user(user2).article(article5).build()
         ));
     }
 }

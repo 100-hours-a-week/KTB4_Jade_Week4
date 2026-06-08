@@ -38,4 +38,11 @@ public class PureJavaUserRepository implements UserRepository {
                 .findFirst();
     }
 
+    @Override
+    public Optional<User> findByUuid(String userUuid) {
+        return users.stream()
+                .filter(user -> user.getUserUuid().equals(userUuid))
+                .findFirst();
+    }
+
 }

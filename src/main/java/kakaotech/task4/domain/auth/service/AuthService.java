@@ -65,4 +65,9 @@ public class AuthService {
             throw new CustomException(AuthExceptionCode.INVALID_CREDENTIALS);
         }
     }
+
+    //todo : 추후 jwt, 세션 등으로 상태 관리 할 시 비즈니스 로직 추가.
+    public void signOut() {
+
+    }
 }

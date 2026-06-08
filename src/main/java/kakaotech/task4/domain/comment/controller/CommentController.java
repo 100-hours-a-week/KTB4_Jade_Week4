@@ -37,4 +37,14 @@ public class CommentController implements CommentApi {
         commentService.updateComment(userUuid, articleUuid, commentUuid, request);
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
+
+    @DeleteMapping("/{comment-uuid}")
+    @Override
+    public ResponseEntity<?> deleteComment(
+            @RequestHeader("Authorization") String userUuid,
+            @PathVariable("article-uuid") String articleUuid,
+            @PathVariable("comment-uuid") String commentUuid) {
+        commentService.deleteComment(userUuid, articleUuid, commentUuid);
+        return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
+    }
 }

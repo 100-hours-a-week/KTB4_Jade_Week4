@@ -46,9 +46,9 @@ public class Comment extends BaseEntity {
                 .build();
     }
 
-    public void validateOwner(User user) {
+    public void validateOwner(User user, CommentExceptionCode exceptionCode) {
         if (!this.user.equals(user)) {
-            throw new CustomException(CommentExceptionCode.FORBIDDEN);
+            throw new CustomException(exceptionCode);
         }
     }
 

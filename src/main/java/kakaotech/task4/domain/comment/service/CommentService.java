@@ -38,8 +38,18 @@ public class CommentService {
         User user = findUserByUuid(userUuid);
         Comment comment = findByCommentUuidAndArticle(commentUuid, article);
 
-        comment.validateOwner(user);
+        comment.validateOwner(user, CommentExceptionCode.FORBIDDEN_UPDATE);
         comment.update(request.content());
+    }
+
+    public void deleteComment(String userUuid, String articleUuid, String commentUuid) {
+        Article article = articleService.findArticleByUuid(articleUuid);
+        User user = findUserByUuid(userUuid);
+        Comment comment = findByCommentUuidAndArticle(commentUuid, article);
+
+        comment.validateOwner(user, CommentExceptionCode.FORBIDDEN_DELETE);
+        comment.softDelete();
+        article.decreaseCommentCount();
     }
 
 

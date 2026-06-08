@@ -66,4 +66,26 @@ public interface CommentApi {
             @Parameter(description = "게시글 UUID", required = true) @PathVariable("article-uuid") String articleUuid,
             @Parameter(description = "댓글 UUID", required = true) @PathVariable("comment-uuid") String commentUuid,
             @Valid @RequestBody UpdateCommentRequest request);
+
+    @Operation(summary = "댓글 삭제", description = "댓글 삭제 api")
+    @ApiResponses({
+            @ApiResponse(responseCode = "204", description = "댓글 삭제 성공",
+                    content = @Content),
+            @ApiResponse(responseCode = "401", description = "로그인 후 사용 가능",
+                    content = @Content(mediaType = "application/json",
+                            examples = @ExampleObject(value = AuthSwaggerErrorExamples.AUTH_401_001))),
+            @ApiResponse(responseCode = "403", description = "삭제 권한 없음",
+                    content = @Content(mediaType = "application/json",
+                            examples = @ExampleObject(value = CommentSwaggerErrorExamples.COMMENT_403_002))),
+            @ApiResponse(responseCode = "404", description = "게시글 또는 댓글 없음",
+                    content = @Content(mediaType = "application/json",
+                            examples = {
+                                    @ExampleObject(name = "게시글 없음", value = ArticleSwaggerErrorExamples.ARTICLE_404_001),
+                                    @ExampleObject(name = "댓글 없음", value = CommentSwaggerErrorExamples.COMMENT_404_001)
+                            }))
+    })
+    ResponseEntity<?> deleteComment(
+            @Parameter(description = "유저 UUID", required = true) @RequestHeader("Authorization") String userUuid,
+            @Parameter(description = "게시글 UUID", required = true) @PathVariable("article-uuid") String articleUuid,
+            @Parameter(description = "댓글 UUID", required = true) @PathVariable("comment-uuid") String commentUuid);
 }

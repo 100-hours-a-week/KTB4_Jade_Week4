@@ -19,6 +19,14 @@ public final class CommentSwaggerErrorExamples {
             }
             """;
 
+    public static final String COMMENT_403_002 = """
+        {
+            "status": "FORBIDDEN",
+            "code": "COMMENT-403-002",
+            "message": "삭제 권한이 없습니다."
+        }
+        """;
+
     public static final String COMMENT_404_001 = """
             {
                 "status": "NOT_FOUND",

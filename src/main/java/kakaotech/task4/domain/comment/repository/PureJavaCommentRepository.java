@@ -30,6 +30,7 @@ public class PureJavaCommentRepository implements CommentRepository {
         return comments.stream()
                 .filter(comment -> comment.getCommentUuid().equals(commentUuid))
                 .filter(comment -> comment.getArticle().equals(article))
+                .filter(comment -> !comment.isDeleted())
                 .findFirst();
     }
 }

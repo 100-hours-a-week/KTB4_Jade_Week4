@@ -1,15 +1,15 @@
 package kakaotech.task4.domain.article.entity;
 
 import jakarta.validation.constraints.NotNull;
+import kakaotech.task4.common.baseEntity.BaseEntity;
 import kakaotech.task4.domain.article.dto.req.CreateArticleRequest;
+import kakaotech.task4.domain.article.dto.req.UpdateArticleRequest;
 import kakaotech.task4.domain.user.entity.User;
 import lombok.*;
 
-import java.time.LocalDateTime;
-
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class Article {
+public class Article extends BaseEntity {
 
     @Setter
     private int articleId;
@@ -30,9 +30,6 @@ public class Article {
     private int commentCount = 0;
 
     @NotNull
-    private LocalDateTime createdAt;
-
-    @NotNull
     private User user;
 
     @Builder
@@ -43,7 +40,6 @@ public class Article {
         this.content = content;
         this.imageUrl = imageUrl;
         this.user = user;
-        this.createdAt = LocalDateTime.now();
     }
 
     public static Article of(String articleUuid, User user, CreateArticleRequest request) {
@@ -74,5 +70,11 @@ public class Article {
 
     public synchronized void decreaseCommentCount() {
         this.commentCount--;
+    }
+
+    public void update(UpdateArticleRequest request) {
+        this.title = request.title();
+        this.content = request.content();
+        updateUpdatedAt();
     }
 }

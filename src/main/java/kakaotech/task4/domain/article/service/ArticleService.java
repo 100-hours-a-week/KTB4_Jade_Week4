@@ -5,6 +5,7 @@ import kakaotech.task4.common.uuid.UuidCreator;
 import kakaotech.task4.common.uuid.UuidPrefix;
 import kakaotech.task4.domain.article.code.ArticleExceptionCode;
 import kakaotech.task4.domain.article.dto.req.CreateArticleRequest;
+import kakaotech.task4.domain.article.dto.req.UpdateArticleRequest;
 import kakaotech.task4.domain.article.entity.Article;
 import kakaotech.task4.domain.article.repository.ArticleRepository;
 import kakaotech.task4.domain.user.entity.User;
@@ -29,5 +30,24 @@ public class ArticleService {
     private User validateAuthenticated(String userUuid) {
         return userService.findByUuid(userUuid)
                 .orElseThrow(() -> new CustomException(ArticleExceptionCode.UNAUTHORIZED));
+    }
+
+    public Article updateArticle(String userUuid, String articleUuid, UpdateArticleRequest request) {
+        User user = validateAuthenticated(userUuid);
+        Article article = findByUuid(articleUuid);
+        validateOwner(user, article);
+        article.update(request);
+        return article;
+    }
+
+    public Article findByUuid(String articleUuid) {
+        return articleRepository.findByUuid(articleUuid)
+                .orElseThrow(() -> new CustomException(ArticleExceptionCode.NOT_FOUND));
+    }
+
+    private void validateOwner(User user, Article article) {
+        if (!article.getUser().getUserUuid().equals(user.getUserUuid())) {
+            throw new CustomException(ArticleExceptionCode.FORBIDDEN_UPDATE);
+        }
     }
 }

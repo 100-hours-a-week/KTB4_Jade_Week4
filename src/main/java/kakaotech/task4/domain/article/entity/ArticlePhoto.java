@@ -35,4 +35,9 @@ public class ArticlePhoto extends BaseEntity {
                 .article(article)
                 .build();
     }
+
+    public void updatePhotoUrl(String photoUrl) {
+        this.photoUrl = photoUrl;
+        updateUpdatedAt();
+    }
 }

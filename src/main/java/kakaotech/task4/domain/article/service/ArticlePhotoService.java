@@ -24,4 +24,10 @@ public class ArticlePhotoService {
                 .ifPresent(articlePhotoRepository::save);
     }
 
+    public void updatePhoto(String photoUrl, Article article) {
+        Optional.ofNullable(photoUrl)
+                .ifPresent(url -> articlePhotoRepository.findByArticle(article)
+                        .ifPresent(photo -> photo.updatePhotoUrl(url)));
+    }
+
 }

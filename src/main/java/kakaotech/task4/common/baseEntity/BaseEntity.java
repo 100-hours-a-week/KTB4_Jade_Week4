@@ -6,8 +6,9 @@ import java.time.LocalDateTime;
 
 @Getter
 public abstract class BaseEntity {
-    private final LocalDateTime createdAt;
+    private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+    private LocalDateTime deletedAt;
 
     protected BaseEntity() {
         this.createdAt = LocalDateTime.now();
@@ -16,5 +17,13 @@ public abstract class BaseEntity {
 
     public void updateUpdatedAt() {
         this.updatedAt = LocalDateTime.now();
+    }
+
+    public void softDelete() {
+        this.deletedAt = LocalDateTime.now();
+    }
+
+    public boolean isDeleted() {
+        return deletedAt != null;
     }
 }

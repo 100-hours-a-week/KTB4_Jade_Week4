@@ -28,6 +28,7 @@ public class PureJavaArticleRepository implements ArticleRepository {
     public Optional<Article> findByUuid(String articleUuid) {
         return articles.stream()
                 .filter(article -> article.getArticleUuid().equals(articleUuid))
+                .filter(article -> !article.isDeleted())
                 .findFirst();
     }
 }

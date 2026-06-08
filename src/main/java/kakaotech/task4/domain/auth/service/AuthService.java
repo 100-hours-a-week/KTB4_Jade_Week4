@@ -2,6 +2,7 @@ package kakaotech.task4.domain.auth.service;
 
 import kakaotech.task4.common.exception.CustomException;
 import kakaotech.task4.domain.auth.code.AuthExceptionCode;
+import kakaotech.task4.domain.auth.code.AuthFieldError;
 import kakaotech.task4.domain.auth.dto.req.SignInRequest;
 import kakaotech.task4.domain.auth.dto.req.SignUpRequest;
 import kakaotech.task4.domain.auth.dto.res.SignInResponse;
@@ -27,7 +28,7 @@ public class AuthService {
     private void validatePasswordMatch(SignUpRequest request) {
         if (!request.validatePasswordMatch()) {
             Map<String, Object> fieldErrors = new HashMap<>();
-            fieldErrors.put("checkPassword", AuthExceptionCode.PASSWORD_MISMATCH.getMessage());
+            fieldErrors.put(AuthFieldError.PASSWORD_MISMATCH.getField(), AuthFieldError.PASSWORD_MISMATCH.getMessage());
             throw new CustomException(AuthExceptionCode.VALIDATION_ERROR, fieldErrors);
         }
     }
@@ -36,11 +37,11 @@ public class AuthService {
         Map<String, Object> conflictErrors = new HashMap<>();
 
         if (userService.existsByEmail(request.email())) {
-            conflictErrors.put("email", AuthExceptionCode.DUPLICATE_EMAIL.getMessage());
+            conflictErrors.put(AuthFieldError.DUPLICATE_EMAIL.getField(), AuthFieldError.DUPLICATE_EMAIL.getMessage());
         }
 
         if (userService.existsByNickname(request.nickname())) {
-            conflictErrors.put("nickname", AuthExceptionCode.DUPLICATE_NICKNAME.getMessage());
+            conflictErrors.put(AuthFieldError.DUPLICATE_NICKNAME.getField(), AuthFieldError.DUPLICATE_NICKNAME.getMessage());
         }
 
         if (!conflictErrors.isEmpty()) {

@@ -27,7 +27,7 @@ public class AuthController implements AuthApi {
     public ResponseEntity<?> signUp(@Valid @RequestBody SignUpRequest request) {
         authService.signUp(request);
         SuccessRes body = SuccessRes.from(AuthSuccessCode.SIGN_UP_SUCCESS.getStatus(), AuthSuccessCode.SIGN_UP_SUCCESS.getMessage());
-        return ResponseEntity.status(AuthSuccessCode.SIGN_UP_SUCCESS.getStatus()).body(body);
+        return ResponseEntity.status(HttpStatus.CREATED).body(body);
     }
 
     @PostMapping("/sign-in")
@@ -35,6 +35,13 @@ public class AuthController implements AuthApi {
     public ResponseEntity<?> signIn(SignInRequest request) {
         SignInResponse response = authService.signIn(request);
         return ResponseEntity.status(HttpStatus.OK).body(response);
+    }
+
+    @PostMapping("/sign-out")
+    @Override
+    public ResponseEntity<?> signOut() {
+        authService.signOut();
+        return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
 
 

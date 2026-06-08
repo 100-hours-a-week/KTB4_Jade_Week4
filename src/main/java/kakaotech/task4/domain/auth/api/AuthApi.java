@@ -51,4 +51,11 @@ public interface AuthApi {
                             examples = @ExampleObject(value = AuthSwaggerErrorExamples.SIGN_IN_422)))
     })
     ResponseEntity<?> signIn(@Valid @RequestBody SignInRequest request);
+
+    @Operation(summary = "로그아웃", description = "로그아웃 api")
+    @ApiResponses({
+            @ApiResponse(responseCode = "204", description = "로그아웃 성공",
+                    content = @Content)
+    })
+    ResponseEntity<?> signOut();
 }

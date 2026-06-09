@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
 
 @Repository
 public class PureJavaCommentRepository implements CommentRepository {
@@ -32,5 +33,13 @@ public class PureJavaCommentRepository implements CommentRepository {
                 .filter(comment -> comment.getArticle().equals(article))
                 .filter(comment -> !comment.isDeleted())
                 .findFirst();
+    }
+
+    @Override
+    public List<Comment> findByArticle(Article article) {
+        return comments.stream()
+                .filter(comment -> comment.getArticle().equals(article))
+                .filter(comment -> !comment.isDeleted())
+                .collect(Collectors.toList());
     }
 }

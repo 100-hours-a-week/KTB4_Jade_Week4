@@ -32,6 +32,12 @@ public class ArticleLikeService {
         return ArticleLikeResponse.of(articleLike.isLiked(), article.getLikedCount());
     }
 
+    public boolean isLiked(User user, Article article) {
+        return articleLikeRepository.findByArticleAndUser(article, user)
+                .map(ArticleLike::isLiked)
+                .orElse(false);
+    }
+
     private ArticleLike createArticleLike(Article article, User user) {
         ArticleLike articleLike = ArticleLike.of(article, user);
         articleLikeRepository.save(articleLike);

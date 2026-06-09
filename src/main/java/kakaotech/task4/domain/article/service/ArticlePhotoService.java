@@ -2,13 +2,17 @@ package kakaotech.task4.domain.article.service;
 
 import kakaotech.task4.common.uuid.UuidCreator;
 import kakaotech.task4.common.uuid.UuidPrefix;
+import kakaotech.task4.domain.article.dto.res.ArticleListResponse;
+import kakaotech.task4.domain.article.dto.res.ArticleSummaryResponse;
 import kakaotech.task4.domain.article.entity.Article;
 import kakaotech.task4.domain.article.entity.ArticlePhoto;
 import kakaotech.task4.domain.article.repository.ArticlePhotoRepository;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 @AllArgsConstructor
@@ -28,6 +32,12 @@ public class ArticlePhotoService {
         Optional.ofNullable(photoUrl)
                 .ifPresent(url -> articlePhotoRepository.findByArticle(article)
                         .ifPresent(photo -> photo.updatePhotoUrl(url)));
+    }
+
+    public String findPhotoUrlByArticle(Article article) {
+        return articlePhotoRepository.findByArticle(article)
+                .map(ArticlePhoto::getPhotoUrl)
+                .orElse(null);
     }
 
 }

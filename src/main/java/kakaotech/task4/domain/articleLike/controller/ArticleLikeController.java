@@ -1,7 +1,7 @@
 package kakaotech.task4.domain.articleLike.controller;
 
 import kakaotech.task4.domain.articleLike.api.ArticleLikeApi;
-import kakaotech.task4.domain.articleLike.dto.res.ArticleLikeResponse;
+import kakaotech.task4.domain.articleLike.dto.ArticleLikeResponse;
 import kakaotech.task4.domain.articleLike.service.ArticleLikeFacadeService;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;

@@ -4,7 +4,7 @@ import kakaotech.task4.common.exception.CustomException;
 import kakaotech.task4.common.exception.ExceptionCode.GlobalExceptionCode;
 import kakaotech.task4.domain.article.entity.Article;
 import kakaotech.task4.domain.article.service.ArticleService;
-import kakaotech.task4.domain.articleLike.dto.res.ArticleLikeResponse;
+import kakaotech.task4.domain.articleLike.dto.ArticleLikeResponse;
 import kakaotech.task4.domain.user.entity.User;
 import kakaotech.task4.domain.user.service.UserService;
 import lombok.AllArgsConstructor;

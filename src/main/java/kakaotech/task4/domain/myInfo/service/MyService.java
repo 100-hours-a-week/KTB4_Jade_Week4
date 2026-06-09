@@ -43,7 +43,7 @@ public class MyService {
     }
 
     public void deleteAccount(String userUuid) {
-        User user = findUserByUuid(userUuid);
+        User user = userService.findByUuid(userUuid, GlobalExceptionCode.INTERNAL_SERVER_ERROR);
         user.softDelete();
     }
 

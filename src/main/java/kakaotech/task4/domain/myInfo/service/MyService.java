@@ -27,8 +27,11 @@ public class MyService {
     }
 
     public UpdateMyBasicInfoResponse updateMyBasicInfo(String userUuid, UpdateMyBasicInfoRequest request) {
+        validateAllNull(request);
+
         User user = findUserByUuid(userUuid);
         validateDuplicateNickname(request.nickname());
+
         user.updateBasicInfo(request);
         return UpdateMyBasicInfoResponse.from(user);
     }
@@ -37,6 +40,12 @@ public class MyService {
         validatePasswordMatch(request);
         User user = findUserByUuid(userUuid);
         user.updatePassword(request.password());
+    }
+
+    private void validateAllNull(UpdateMyBasicInfoRequest request) {
+        if (request.nickname() == null && request.profileImageUrl() == null) {
+            throw new CustomException(MyExceptionCode.BAD_REQUEST);
+        }
     }
 
     private User findUserByUuid(String userUuid) {

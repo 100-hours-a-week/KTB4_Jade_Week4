@@ -27,14 +27,6 @@ public final class MySwaggerErrorExamples {
         }
         """;
 
-    public static final String MY_404_001 = """
-        {
-            "status": "NOT_FOUND",
-            "code": "MY-404-001",
-            "message": "이미 탈퇴한 회원입니다."
-        }
-        """;
-
     public static final String MY_409_001 = """
             {
                 "code": "MY-409-001",

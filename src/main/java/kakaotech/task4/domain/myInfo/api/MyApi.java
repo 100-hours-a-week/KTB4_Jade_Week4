@@ -76,10 +76,7 @@ public interface MyApi {
                     content = @Content),
             @ApiResponse(responseCode = "401", description = "로그인 후 사용 가능",
                     content = @Content(mediaType = "application/json",
-                            examples = @ExampleObject(value = AuthSwaggerErrorExamples.AUTH_401_001))),
-            @ApiResponse(responseCode = "404", description = "이미 탈퇴한 회원",
-                    content = @Content(mediaType = "application/json",
-                            examples = @ExampleObject(value = MySwaggerErrorExamples.MY_404_001)))
+                            examples = @ExampleObject(value = AuthSwaggerErrorExamples.AUTH_401_001)))
     })
     ResponseEntity<?> deleteAccount(
             @Parameter(description = "유저 UUID", required = true) @RequestHeader("Authorization") String userUuid);

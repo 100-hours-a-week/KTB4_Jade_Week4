@@ -22,18 +22,21 @@ public class PureJavaUserRepository implements UserRepository {
     @Override
     public boolean existsByEmail(String email) {
         return users.stream()
+                .filter(user -> !user.isDeleted())
                 .anyMatch(user -> user.getEmail().equals(email));
     }
 
     @Override
     public boolean existsByNickname(String nickname) {
         return users.stream()
+                .filter(user -> !user.isDeleted())
                 .anyMatch(user -> user.getNickname().equals(nickname));
     }
 
     @Override
     public Optional<User> findByEmail(String email) {
         return users.stream()
+                .filter(user -> !user.isDeleted())
                 .filter(user -> user.getEmail().equals(email))
                 .findFirst();
     }
@@ -41,6 +44,7 @@ public class PureJavaUserRepository implements UserRepository {
     @Override
     public Optional<User> findByUuid(String userUuid) {
         return users.stream()
+                .filter(user -> !user.isDeleted())
                 .filter(user -> user.getUserUuid().equals(userUuid))
                 .findFirst();
     }

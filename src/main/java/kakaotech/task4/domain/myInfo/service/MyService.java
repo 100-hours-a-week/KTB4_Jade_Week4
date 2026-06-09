@@ -42,6 +42,11 @@ public class MyService {
         user.updatePassword(request.password());
     }
 
+    public void deleteAccount(String userUuid) {
+        User user = findUserByUuid(userUuid);
+        user.softDelete();
+    }
+
     private void validateAllNull(UpdateMyBasicInfoRequest request) {
         if (request.nickname() == null && request.profileImageUrl() == null) {
             throw new CustomException(MyExceptionCode.BAD_REQUEST);

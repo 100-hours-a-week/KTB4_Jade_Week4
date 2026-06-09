@@ -43,4 +43,12 @@ public class MyController implements MyApi {
         myService.updateMySecurity(userUuid, request);
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
+
+    @DeleteMapping
+    @Override
+    public ResponseEntity<?> deleteAccount(
+            @RequestHeader("Authorization") String userUuid) {
+        myService.deleteAccount(userUuid);
+        return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
+    }
 }

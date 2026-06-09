@@ -69,4 +69,15 @@ public interface MyApi {
     ResponseEntity<?> updateMySecurity(
             @Parameter(description = "유저 UUID", required = true) @RequestHeader("Authorization") String userUuid,
             @Valid @RequestBody UpdateMySecurityRequest request);
+
+    @Operation(summary = "회원 탈퇴", description = "회원 탈퇴 api")
+    @ApiResponses({
+            @ApiResponse(responseCode = "204", description = "회원 탈퇴 성공",
+                    content = @Content),
+            @ApiResponse(responseCode = "401", description = "로그인 후 사용 가능",
+                    content = @Content(mediaType = "application/json",
+                            examples = @ExampleObject(value = AuthSwaggerErrorExamples.AUTH_401_001)))
+    })
+    ResponseEntity<?> deleteAccount(
+            @Parameter(description = "유저 UUID", required = true) @RequestHeader("Authorization") String userUuid);
 }

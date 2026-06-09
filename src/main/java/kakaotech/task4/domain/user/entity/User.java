@@ -54,6 +54,11 @@ public class User extends BaseEntity {
         updateUpdatedAt();
     }
 
+    public void updatePassword(String password) {
+        this.password = password;
+        updateUpdatedAt();
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;

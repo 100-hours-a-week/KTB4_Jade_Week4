@@ -2,6 +2,7 @@ package kakaotech.task4.domain.myInfo.controller;
 
 import jakarta.validation.Valid;
 import kakaotech.task4.domain.myInfo.api.MyApi;
+import kakaotech.task4.domain.myInfo.dto.req.UpdateMySecurityRequest;
 import kakaotech.task4.domain.myInfo.dto.res.MyBasicInfoResponse;
 import kakaotech.task4.domain.myInfo.dto.req.UpdateMyBasicInfoRequest;
 import kakaotech.task4.domain.myInfo.dto.res.UpdateMyBasicInfoResponse;
@@ -32,5 +33,14 @@ public class MyController implements MyApi {
             @Valid @RequestBody UpdateMyBasicInfoRequest request) {
         UpdateMyBasicInfoResponse response = myService.updateMyBasicInfo(userUuid, request);
         return ResponseEntity.status(HttpStatus.OK).body(response);
+    }
+
+    @PutMapping("/security")
+    @Override
+    public ResponseEntity<?> updateMySecurity(
+            @RequestHeader("Authorization") String userUuid,
+            @Valid @RequestBody UpdateMySecurityRequest request) {
+        myService.updateMySecurity(userUuid, request);
+        return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
 }

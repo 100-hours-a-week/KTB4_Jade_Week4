@@ -15,6 +15,18 @@ public final class MySwaggerErrorExamples {
             }
             """;
 
+    public static final String MY_400_002 = """
+        {
+            "code": "GLOBAL-400-001",
+            "status": "BAD_REQUEST",
+            "message": "필수 값이 제외되었습니다.",
+            "fields": {
+                "password": "비밀번호를 입력해주세요.",
+                "checkPassword": "비밀번호 확인을 입력해주세요."
+            }
+        }
+        """;
+
     public static final String MY_409_001 = """
             {
                 "code": "MY-409-001",
@@ -30,4 +42,16 @@ public final class MySwaggerErrorExamples {
                 "message": "띄어쓰기 없이 10글자 이내로 입력해주세요."
             }
             """;
+
+    public static final String MY_422_002 = """
+        {
+            "status": "UNPROCESSABLE_ENTITY",
+            "code": "GLOBAL-422-002",
+            "message": "필드의 유효성 검사가 올바르지 않습니다.",
+            "fields": {
+                "password": "비밀번호는 8자 이상, 20자 이하이며, 대문자, 소문자, 숫자, 특수문자를 각각 최소 1개 포함해야 합니다.",
+                "checkPassword": "비밀번호가 다릅니다."
+            }
+        }
+        """;
 }

@@ -10,6 +10,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import kakaotech.task4.domain.auth.api.AuthSwaggerErrorExamples;
 import kakaotech.task4.domain.myInfo.dto.req.UpdateMyBasicInfoRequest;
+import kakaotech.task4.domain.myInfo.dto.req.UpdateMySecurityRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
@@ -50,4 +51,22 @@ public interface MyApi {
     ResponseEntity<?> updateMyBasicInfo(
             @Parameter(description = "유저 UUID", required = true) @RequestHeader("Authorization") String userUuid,
             @Valid @RequestBody UpdateMyBasicInfoRequest request);
+
+    @Operation(summary = "보안 정보 수정", description = "마이페이지 비밀번호 수정 api")
+    @ApiResponses({
+            @ApiResponse(responseCode = "204", description = "비밀번호 수정 성공",
+                    content = @Content),
+            @ApiResponse(responseCode = "400", description = "필수 값 누락",
+                    content = @Content(mediaType = "application/json",
+                            examples = @ExampleObject(value = MySwaggerErrorExamples.MY_400_002))),
+            @ApiResponse(responseCode = "401", description = "로그인 후 사용 가능",
+                    content = @Content(mediaType = "application/json",
+                            examples = @ExampleObject(value = AuthSwaggerErrorExamples.AUTH_401_001))),
+            @ApiResponse(responseCode = "422", description = "유효성 검사 실패",
+                    content = @Content(mediaType = "application/json",
+                            examples = @ExampleObject(value = MySwaggerErrorExamples.MY_422_002)))
+    })
+    ResponseEntity<?> updateMySecurity(
+            @Parameter(description = "유저 UUID", required = true) @RequestHeader("Authorization") String userUuid,
+            @Valid @RequestBody UpdateMySecurityRequest request);
 }

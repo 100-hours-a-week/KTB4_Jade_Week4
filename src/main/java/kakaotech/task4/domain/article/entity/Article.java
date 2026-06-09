@@ -57,7 +57,9 @@ public class Article extends BaseEntity {
     }
 
     public synchronized void decreaseLikedCount() {
-        this.likedCount--;
+        if(this.likedCount > 0) {
+            this.likedCount--;
+        }
     }
 
     public synchronized void increaseViewCount() {
@@ -69,12 +71,26 @@ public class Article extends BaseEntity {
     }
 
     public synchronized void decreaseCommentCount() {
-        this.commentCount--;
+        if(this.commentCount > 0) {
+            this.commentCount--;
+        }
     }
 
     public void update(UpdateArticleRequest request) {
         this.title = request.title();
         this.content = request.content();
         updateUpdatedAt();
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof Article article)) return false;
+        return articleUuid != null && articleUuid.equals(article.getArticleUuid());
+    }
+
+    @Override
+    public int hashCode() {
+        return (articleUuid != null) ? articleUuid.hashCode() : 0;
     }
 }

@@ -22,14 +22,14 @@ public class MyService {
     private final UserService userService;
 
     public MyBasicInfoResponse getMyBasicInfo(String userUuid) {
-        User user = findUserByUuid(userUuid);
+        User user = userService.findByUuid(userUuid, GlobalExceptionCode.INTERNAL_SERVER_ERROR);
         return MyBasicInfoResponse.from(user);
     }
 
     public UpdateMyBasicInfoResponse updateMyBasicInfo(String userUuid, UpdateMyBasicInfoRequest request) {
         validateAllNull(request);
 
-        User user = findUserByUuid(userUuid);
+        User user = userService.findByUuid(userUuid, GlobalExceptionCode.INTERNAL_SERVER_ERROR);
         validateDuplicateNickname(request.nickname());
 
         user.updateBasicInfo(request);
@@ -38,7 +38,7 @@ public class MyService {
 
     public void updateMySecurity(String userUuid, UpdateMySecurityRequest request) {
         validatePasswordMatch(request);
-        User user = findUserByUuid(userUuid);
+        User user = userService.findByUuid(userUuid, GlobalExceptionCode.INTERNAL_SERVER_ERROR);
         user.updatePassword(request.password());
     }
 
@@ -46,11 +46,6 @@ public class MyService {
         if (request.nickname() == null && request.profileImageUrl() == null) {
             throw new CustomException(MyExceptionCode.BAD_REQUEST);
         }
-    }
-
-    private User findUserByUuid(String userUuid) {
-        return userService.findByUuid(userUuid)
-                .orElseThrow(() -> new CustomException(GlobalExceptionCode.INTERNAL_SERVER_ERROR));
     }
 
     private void validateDuplicateNickname(String nickname) {

@@ -26,7 +26,7 @@ public class ArticleService {
     private final UserService userService;
 
     public Article createArticle(String userUuid, CreateArticleRequest request) {
-        User user = findUserByUuid(userUuid);
+        User user = userService.findByUuid(userUuid, GlobalExceptionCode.INTERNAL_SERVER_ERROR);
         String articleUuid = UuidCreator.create(UuidPrefix.ARTICLE);
         Article article = Article.of(articleUuid, user, request);
         articleRepository.save(article);
@@ -34,7 +34,7 @@ public class ArticleService {
     }
 
     public Article updateArticle(String userUuid, String articleUuid, UpdateArticleRequest request) {
-        User user = findUserByUuid(userUuid);
+        User user = userService.findByUuid(userUuid, GlobalExceptionCode.INTERNAL_SERVER_ERROR);
         Article article = findArticleByUuid(articleUuid);
         validateOwner(user, article, ArticleExceptionCode.FORBIDDEN_UPDATE);
         article.update(request);
@@ -42,7 +42,7 @@ public class ArticleService {
     }
 
     public void deleteArticle(String userUuid, String articleUuid) {
-        User user = findUserByUuid(userUuid);
+        User user = userService.findByUuid(userUuid, GlobalExceptionCode.INTERNAL_SERVER_ERROR);
         Article article = findArticleByUuid(articleUuid);
         validateOwner(user, article, ArticleExceptionCode.FORBIDDEN_DELETE);
         article.softDelete();
@@ -65,11 +65,6 @@ public class ArticleService {
 
         String nextCursor = hasNext ? articles.getLast().getArticleUuid() : null;
         return ArticleListResponse.of(responses, hasNext, nextCursor);
-    }
-
-    private User findUserByUuid(String userUuid) {
-        return userService.findByUuid(userUuid)
-                .orElseThrow(() -> new CustomException(GlobalExceptionCode.INTERNAL_SERVER_ERROR));
     }
 
     private void validateOwner(User user, Article article, ArticleExceptionCode exceptionCode) {

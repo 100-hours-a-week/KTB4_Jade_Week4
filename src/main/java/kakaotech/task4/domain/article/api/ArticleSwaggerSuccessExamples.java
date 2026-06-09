@@ -38,4 +38,29 @@ public final class ArticleSwaggerSuccessExamples {
         }
         """;
 
+    public static final String ARTICLE_200_002 = """
+        {
+            "title": "제목입니다.",
+            "writer": "게시글 작성자1",
+            "userUuid": "userUuid",
+            "createdAt": "2026-01-01T09:00:00Z",
+            "imageUrl": "본문 이미지url",
+            "content": "내용",
+            "likeCount": 0,
+            "viewCount": 0,
+            "commentCount": 0,
+            "isLiked": false,
+            "comments": [
+                {
+                    "commentUuid": "commentUuid",
+                    "writer": "댓글 작성자1",
+                    "profileImageUrl": "프로필 이미지url",
+                    "userUuid": "userUuid",
+                    "createdAt": "2026-01-01T09:00:00Z",
+                    "content": "댓글내용"
+                }
+            ]
+        }
+        """;
+
 }

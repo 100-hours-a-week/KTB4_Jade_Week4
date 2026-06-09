@@ -12,4 +12,5 @@ public interface CommentRepository {
     void save(Comment comment);
     void addAll(List<Comment> comments);
     Optional<Comment> findByCommentUuidAndArticle(String commentUuid, Article article);
+    List<Comment> findByArticle(Article article);
 }

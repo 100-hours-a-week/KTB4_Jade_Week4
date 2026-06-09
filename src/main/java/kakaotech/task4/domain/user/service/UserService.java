@@ -1,5 +1,6 @@
 package kakaotech.task4.domain.user.service;
 import kakaotech.task4.common.exception.CustomException;
+import kakaotech.task4.common.exception.ExceptionCode.ExceptionCode;
 import kakaotech.task4.common.exception.ExceptionCode.GlobalExceptionCode;
 import kakaotech.task4.common.uuid.UuidCreator;
 import kakaotech.task4.common.uuid.UuidPrefix;
@@ -37,6 +38,12 @@ public class UserService {
     public Optional<User> findByUuid(String userUuid) {
         return userRepository.findByUuid(userUuid);
     }
+
+    public User findByUuid(String userUuid, ExceptionCode exceptionCode) {
+        return userRepository.findByUuid(userUuid)
+                .orElseThrow(() -> new CustomException(exceptionCode));
+    }
+
 
 
 }

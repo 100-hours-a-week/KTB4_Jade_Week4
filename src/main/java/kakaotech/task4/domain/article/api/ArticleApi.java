@@ -91,5 +91,18 @@ public interface ArticleApi {
     ResponseEntity<?> getArticleList(
             @Parameter(description = "유저 UUID", required = true) @RequestHeader("Authorization") String userUuid,
             @Parameter(description = "마지막 게시글 UUID") @RequestParam(required = false) String lastArticleUuid,
-            @Parameter(description = "조회 수", example = "20") @RequestParam(defaultValue = "20") int size);
+            @Parameter(description = "조회 수", example = "10") @RequestParam(defaultValue = "10") int size);
+
+    @Operation(summary = "게시글 상세 조회", description = "게시글 상세 조회 api")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "게시글 상세 조회 성공",
+                    content = @Content(mediaType = "application/json",
+                            examples = @ExampleObject(value = ArticleSwaggerSuccessExamples.ARTICLE_200_002))),
+            @ApiResponse(responseCode = "404", description = "게시글 없음",
+                    content = @Content(mediaType = "application/json",
+                            examples = @ExampleObject(value = ArticleSwaggerErrorExamples.ARTICLE_404_001)))
+    })
+    ResponseEntity<?> getArticleDetail(
+            @Parameter(description = "유저 UUID", required = true) @RequestHeader("Authorization") String userUuid,
+            @Parameter(description = "게시글 UUID", required = true) @PathVariable("uuid") String articleUuid);
 }

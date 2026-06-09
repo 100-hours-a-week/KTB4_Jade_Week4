@@ -4,6 +4,7 @@ import kakaotech.task4.common.exception.CustomException;
 import kakaotech.task4.common.exception.ExceptionCode.GlobalExceptionCode;
 import kakaotech.task4.common.uuid.UuidCreator;
 import kakaotech.task4.common.uuid.UuidPrefix;
+import kakaotech.task4.domain.article.dto.res.CommentSummaryResponse;
 import kakaotech.task4.domain.article.entity.Article;
 import kakaotech.task4.domain.article.service.ArticleService;
 import kakaotech.task4.domain.comment.code.CommentExceptionCode;
@@ -17,6 +18,9 @@ import kakaotech.task4.domain.user.service.UserService;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
 @Service
 @AllArgsConstructor
 public class CommentService {
@@ -25,7 +29,7 @@ public class CommentService {
     private final CommentRepository commentRepository;
 
     public CreateCommentResponse createComment(String userUuid, String articleUuid, CreateCommentRequest request) {
-        User user = findUserByUuid(userUuid);
+        User user = userService.findByUuid(userUuid, GlobalExceptionCode.INTERNAL_SERVER_ERROR);
         Article article = articleService.findArticleByUuid(articleUuid);
         Comment comment = saveComment(user, article, request);
 
@@ -35,7 +39,7 @@ public class CommentService {
 
     public void updateComment(String userUuid, String articleUuid, String commentUuid, UpdateCommentRequest request) {
         Article article = articleService.findArticleByUuid(articleUuid);
-        User user = findUserByUuid(userUuid);
+        User user = userService.findByUuid(userUuid, GlobalExceptionCode.INTERNAL_SERVER_ERROR);
         Comment comment = findByCommentUuidAndArticle(commentUuid, article);
 
         comment.validateOwner(user, CommentExceptionCode.FORBIDDEN_UPDATE);
@@ -44,7 +48,7 @@ public class CommentService {
 
     public void deleteComment(String userUuid, String articleUuid, String commentUuid) {
         Article article = articleService.findArticleByUuid(articleUuid);
-        User user = findUserByUuid(userUuid);
+        User user = userService.findByUuid(userUuid, GlobalExceptionCode.INTERNAL_SERVER_ERROR);
         Comment comment = findByCommentUuidAndArticle(commentUuid, article);
 
         comment.validateOwner(user, CommentExceptionCode.FORBIDDEN_DELETE);
@@ -52,17 +56,18 @@ public class CommentService {
         article.decreaseCommentCount();
     }
 
+    public List<CommentSummaryResponse> findCommentsByArticle(Article article) {
+        return commentRepository.findByArticle(article)
+                .stream()
+                .map(CommentSummaryResponse::from)
+                .collect(Collectors.toList());
+    }
 
     private Comment saveComment(User user, Article article, CreateCommentRequest request) {
         String commentUuid = UuidCreator.create(UuidPrefix.COMMENT);
         Comment comment = Comment.of(commentUuid, user, article, request);
         commentRepository.save(comment);
         return comment;
-    }
-
-    private User findUserByUuid(String userUuid) {
-        return userService.findByUuid(userUuid)
-                .orElseThrow(() -> new CustomException(GlobalExceptionCode.INTERNAL_SERVER_ERROR));
     }
 
     private Comment findByCommentUuidAndArticle(String commentUuid, Article article) {

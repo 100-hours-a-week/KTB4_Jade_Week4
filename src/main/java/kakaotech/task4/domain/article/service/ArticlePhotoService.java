@@ -34,4 +34,10 @@ public class ArticlePhotoService {
                         .ifPresent(photo -> photo.updatePhotoUrl(url)));
     }
 
+    public String findPhotoUrlByArticle(Article article) {
+        return articlePhotoRepository.findByArticle(article)
+                .map(ArticlePhoto::getPhotoUrl)
+                .orElse(null);
+    }
+
 }

@@ -43,14 +43,14 @@ public class ArticleService {
         article.softDelete();
     }
 
-    private User findUserByUuid(String userUuid) {
-        return userService.findByUuid(userUuid)
-                .orElseThrow(() -> new CustomException(GlobalExceptionCode.INTERNAL_SERVER_ERROR));
-    }
-
     public Article findArticleByUuid(String articleUuid) {
         return articleRepository.findByUuid(articleUuid)
                 .orElseThrow(() -> new CustomException(ArticleExceptionCode.NOT_FOUND));
+    }
+
+    private User findUserByUuid(String userUuid) {
+        return userService.findByUuid(userUuid)
+                .orElseThrow(() -> new CustomException(GlobalExceptionCode.INTERNAL_SERVER_ERROR));
     }
 
     private void validateOwner(User user, Article article, ArticleExceptionCode exceptionCode) {

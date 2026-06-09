@@ -49,8 +49,8 @@ public class User extends BaseEntity {
     }
 
     public void updateBasicInfo(UpdateMyBasicInfoRequest request) {
-        this.nickname = request.nickname();
-        this.profileImageUrl = request.profileImageUrl();
+        if (request.nickname() != null) this.nickname = request.nickname();
+        if (request.profileImageUrl() != null) this.profileImageUrl = request.profileImageUrl();
         updateUpdatedAt();
     }
 

@@ -1,12 +1,14 @@
 package kakaotech.task4.domain.user.entity;
 
 import jakarta.validation.constraints.NotNull;
+import kakaotech.task4.common.baseEntity.BaseEntity;
 import kakaotech.task4.domain.auth.dto.req.SignUpRequest;
+import kakaotech.task4.domain.myInfo.dto.req.UpdateMyBasicInfoRequest;
 import lombok.*;
 
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class User {
+public class User extends BaseEntity {
 
     @Setter
     private int userId;
@@ -44,6 +46,17 @@ public class User {
                 .nickname(request.nickname())
                 .profileImageUrl(request.profileImageUrl())
                 .build();
+    }
+
+    public void updateBasicInfo(UpdateMyBasicInfoRequest request) {
+        if (request.nickname() != null) this.nickname = request.nickname();
+        if (request.profileImageUrl() != null) this.profileImageUrl = request.profileImageUrl();
+        updateUpdatedAt();
+    }
+
+    public void updatePassword(String password) {
+        this.password = password;
+        updateUpdatedAt();
     }
 
     @Override

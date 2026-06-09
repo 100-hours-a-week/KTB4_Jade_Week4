@@ -3,7 +3,7 @@ package kakaotech.task4.domain.articleLike.service;
 import kakaotech.task4.common.exception.CustomException;
 import kakaotech.task4.domain.article.entity.Article;
 import kakaotech.task4.domain.articleLike.code.ArticleLikeExceptionCode;
-import kakaotech.task4.domain.articleLike.dto.res.ArticleLikeResponse;
+import kakaotech.task4.domain.articleLike.dto.ArticleLikeResponse;
 import kakaotech.task4.domain.articleLike.entity.ArticleLike;
 import kakaotech.task4.domain.articleLike.repository.ArticleLikeRepository;
 import kakaotech.task4.domain.user.entity.User;

@@ -1,5 +1,6 @@
 package kakaotech.task4.domain.auth.service;
 
+import kakaotech.task4.common.exception.CommonFieldError;
 import kakaotech.task4.common.exception.CustomException;
 import kakaotech.task4.domain.auth.code.AuthExceptionCode;
 import kakaotech.task4.domain.auth.code.AuthFieldError;
@@ -28,7 +29,7 @@ public class AuthService {
     private void validatePasswordMatch(SignUpRequest request) {
         if (!request.validatePasswordMatch()) {
             Map<String, Object> fieldErrors = new HashMap<>();
-            fieldErrors.put(AuthFieldError.PASSWORD_MISMATCH.getField(), AuthFieldError.PASSWORD_MISMATCH.getMessage());
+            fieldErrors.put(CommonFieldError.PASSWORD_MISMATCH.getField(), CommonFieldError.PASSWORD_MISMATCH.getMessage());
             throw new CustomException(AuthExceptionCode.VALIDATION_ERROR, fieldErrors);
         }
     }
@@ -41,7 +42,7 @@ public class AuthService {
         }
 
         if (userService.existsByNickname(request.nickname())) {
-            conflictErrors.put(AuthFieldError.DUPLICATE_NICKNAME.getField(), AuthFieldError.DUPLICATE_NICKNAME.getMessage());
+            conflictErrors.put(CommonFieldError.DUPLICATE_NICKNAME.getField(), CommonFieldError.DUPLICATE_NICKNAME.getMessage());
         }
 
         if (!conflictErrors.isEmpty()) {

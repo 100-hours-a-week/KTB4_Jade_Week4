@@ -1,4 +1,4 @@
-package kakaotech.task4.domain.articleLike.dto.res;
+package kakaotech.task4.domain.articleLike.dto;
 
 import lombok.Builder;
 

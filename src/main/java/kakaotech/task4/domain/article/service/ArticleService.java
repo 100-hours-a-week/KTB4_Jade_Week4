@@ -7,12 +7,17 @@ import kakaotech.task4.common.uuid.UuidPrefix;
 import kakaotech.task4.domain.article.code.ArticleExceptionCode;
 import kakaotech.task4.domain.article.dto.req.CreateArticleRequest;
 import kakaotech.task4.domain.article.dto.req.UpdateArticleRequest;
+import kakaotech.task4.domain.article.dto.res.ArticleListResponse;
+import kakaotech.task4.domain.article.dto.res.ArticleSummaryResponse;
 import kakaotech.task4.domain.article.entity.Article;
 import kakaotech.task4.domain.article.repository.ArticleRepository;
 import kakaotech.task4.domain.user.entity.User;
 import kakaotech.task4.domain.user.service.UserService;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @AllArgsConstructor
@@ -46,6 +51,20 @@ public class ArticleService {
     public Article findArticleByUuid(String articleUuid) {
         return articleRepository.findByUuid(articleUuid)
                 .orElseThrow(() -> new CustomException(ArticleExceptionCode.NOT_FOUND));
+    }
+
+    public ArticleListResponse getArticleList(String lastArticleUuid, int size) {
+        List<Article> articles = articleRepository.findByCursor(lastArticleUuid, size + 1);
+
+        boolean hasNext = articles.size() > size;
+        if (hasNext) articles = articles.subList(0, size);
+
+        List<ArticleSummaryResponse> responses = articles.stream()
+                .map(ArticleSummaryResponse::from)
+                .collect(Collectors.toList());
+
+        String nextCursor = hasNext ? articles.getLast().getArticleUuid() : null;
+        return ArticleListResponse.of(responses, hasNext, nextCursor);
     }
 
     private User findUserByUuid(String userUuid) {

@@ -4,6 +4,7 @@ import jakarta.validation.Valid;
 import kakaotech.task4.domain.article.api.ArticleApi;
 import kakaotech.task4.domain.article.dto.req.CreateArticleRequest;
 import kakaotech.task4.domain.article.dto.req.UpdateArticleRequest;
+import kakaotech.task4.domain.article.dto.res.ArticleListResponse;
 import kakaotech.task4.domain.article.dto.res.CreateArticleResponse;
 import kakaotech.task4.domain.article.service.ArticleFacadeService;
 import lombok.AllArgsConstructor;
@@ -42,5 +43,15 @@ public class ArticleController implements ArticleApi {
             @PathVariable("article-uuid") String articleUuid) {
         articleFacadeService.deleteArticle(userUuid, articleUuid);
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
+    }
+
+    @GetMapping("/list")
+    @Override
+    public ResponseEntity<?> getArticleList(
+            @RequestHeader("Authorization") String userUuid,
+            @RequestParam(required = false) String lastArticleUuid,
+            @RequestParam(defaultValue = "10") int size) {
+        ArticleListResponse response = articleFacadeService.getArticleList(lastArticleUuid, size);
+        return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 }

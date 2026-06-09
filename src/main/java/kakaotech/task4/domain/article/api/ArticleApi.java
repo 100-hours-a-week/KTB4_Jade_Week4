@@ -15,6 +15,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestParam;
 
 @Tag(name = "[게시물 API]", description = "게시물 관련 API")
 public interface ArticleApi {
@@ -80,4 +81,15 @@ public interface ArticleApi {
     ResponseEntity<?> deleteArticle(
             @Parameter(description = "유저 UUID", required = true) @RequestHeader("Authorization") String userUuid,
             @Parameter(description = "게시글 UUID", required = true) @PathVariable("article-uuid") String articleUuid);
+
+    @Operation(summary = "게시글 목록 조회", description = "게시글 목록 조회 api")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "게시글 목록 조회 성공",
+                    content = @Content(mediaType = "application/json",
+                            examples = @ExampleObject(value = ArticleSwaggerSuccessExamples.ARTICLE_200_001)))
+    })
+    ResponseEntity<?> getArticleList(
+            @Parameter(description = "유저 UUID", required = true) @RequestHeader("Authorization") String userUuid,
+            @Parameter(description = "마지막 게시글 UUID") @RequestParam(required = false) String lastArticleUuid,
+            @Parameter(description = "조회 수", example = "20") @RequestParam(defaultValue = "20") int size);
 }

@@ -2,6 +2,7 @@ package kakaotech.task4.domain.article.service;
 
 import kakaotech.task4.domain.article.dto.req.CreateArticleRequest;
 import kakaotech.task4.domain.article.dto.req.UpdateArticleRequest;
+import kakaotech.task4.domain.article.dto.res.ArticleListResponse;
 import kakaotech.task4.domain.article.dto.res.CreateArticleResponse;
 import kakaotech.task4.domain.article.entity.Article;
 import lombok.AllArgsConstructor;
@@ -26,5 +27,9 @@ public class ArticleFacadeService {
 
     public void deleteArticle(String userUuid, String articleUuid) {
         articleService.deleteArticle(userUuid, articleUuid);
+    }
+
+    public ArticleListResponse getArticleList(String lastArticleUuid, int size) {
+        return articleService.getArticleList(lastArticleUuid, size);
     }
 }

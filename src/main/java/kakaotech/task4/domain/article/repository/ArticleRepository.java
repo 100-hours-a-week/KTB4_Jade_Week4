@@ -11,4 +11,5 @@ public interface ArticleRepository {
     void save(Article article);
     void addAll(List<Article> articles);
     Optional<Article> findByUuid(String articleUuid);
+    List<Article> findByCursor(String lastArticleUuid, int size);
 }

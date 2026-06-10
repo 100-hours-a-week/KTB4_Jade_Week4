@@ -1,8 +1,10 @@
 package kakaotech.task4.domain.articleLike.controller;
 
+import kakaotech.task4.common.resolver.CurrentUser;
 import kakaotech.task4.domain.articleLike.api.ArticleLikeApi;
 import kakaotech.task4.domain.articleLike.dto.ArticleLikeResponse;
 import kakaotech.task4.domain.articleLike.service.ArticleLikeFacadeService;
+import kakaotech.task4.domain.user.entity.User;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -17,18 +19,18 @@ public class ArticleLikeController implements ArticleLikeApi {
     @PostMapping
     @Override
     public ResponseEntity<?> like(
-            @RequestHeader("Authorization") String userUuid,
+            @CurrentUser User user,
             @PathVariable("article-uuid") String articleUuid) {
-        ArticleLikeResponse response = articleLikeFacadeService.like(userUuid, articleUuid);
+        ArticleLikeResponse response = articleLikeFacadeService.like(user, articleUuid);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     @DeleteMapping
     @Override
     public ResponseEntity<?> unlike(
-            @RequestHeader("Authorization") String userUuid,
+            @CurrentUser User user,
             @PathVariable("article-uuid") String articleUuid) {
-        ArticleLikeResponse response = articleLikeFacadeService.unlike(userUuid, articleUuid);
+        ArticleLikeResponse response = articleLikeFacadeService.unlike(user, articleUuid);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 }

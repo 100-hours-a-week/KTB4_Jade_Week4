@@ -1,6 +1,7 @@
 package kakaotech.task4.domain.article.controller;
 
 import jakarta.validation.Valid;
+import kakaotech.task4.common.resolver.CurrentUser;
 import kakaotech.task4.domain.article.api.ArticleApi;
 import kakaotech.task4.domain.article.dto.req.CreateArticleRequest;
 import kakaotech.task4.domain.article.dto.req.UpdateArticleRequest;
@@ -8,6 +9,7 @@ import kakaotech.task4.domain.article.dto.res.ArticleDetailResponse;
 import kakaotech.task4.domain.article.dto.res.ArticleListResponse;
 import kakaotech.task4.domain.article.dto.res.CreateArticleResponse;
 import kakaotech.task4.domain.article.service.ArticleFacadeService;
+import kakaotech.task4.domain.user.entity.User;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -21,35 +23,35 @@ public class ArticleController implements ArticleApi {
 
     @PostMapping
     @Override
-    public ResponseEntity<?> createArticle(@RequestHeader("Authorization") String userUuid,
+    public ResponseEntity<?> createArticle(@CurrentUser User user,
                                            @Valid @RequestBody CreateArticleRequest request) {
-        CreateArticleResponse response = articleFacadeService.createArticle(userUuid, request);
+        CreateArticleResponse response = articleFacadeService.createArticle(user, request);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     @PatchMapping("/{article-uuid}")
     @Override
     public ResponseEntity<?> updateArticle(
-            @RequestHeader("Authorization") String userUuid,
+            @CurrentUser User user,
             @PathVariable("article-uuid") String articleUuid,
             @Valid @RequestBody UpdateArticleRequest request) {
-        articleFacadeService.updateArticle(userUuid, articleUuid, request);
+        articleFacadeService.updateArticle(user, articleUuid, request);
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
 
     @DeleteMapping("/{article-uuid}")
     @Override
     public ResponseEntity<?> deleteArticle(
-            @RequestHeader("Authorization") String userUuid,
+            @CurrentUser User user,
             @PathVariable("article-uuid") String articleUuid) {
-        articleFacadeService.deleteArticle(userUuid, articleUuid);
+        articleFacadeService.deleteArticle(user, articleUuid);
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
 
     @GetMapping("/list")
     @Override
     public ResponseEntity<?> getArticleList(
-            @RequestHeader("Authorization") String userUuid,
+            @CurrentUser User user,
             @RequestParam(required = false) String lastArticleUuid,
             @RequestParam(defaultValue = "10") int size) {
         ArticleListResponse response = articleFacadeService.getArticleList(lastArticleUuid, size);
@@ -59,9 +61,9 @@ public class ArticleController implements ArticleApi {
     @GetMapping("/{uuid}")
     @Override
     public ResponseEntity<?> getArticleDetail(
-            @RequestHeader("Authorization") String userUuid,
+            @CurrentUser User user,
             @PathVariable("uuid") String articleUuid) {
-        ArticleDetailResponse response = articleFacadeService.getArticleDetail(userUuid, articleUuid);
+        ArticleDetailResponse response = articleFacadeService.getArticleDetail(user, articleUuid);
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 }

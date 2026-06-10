@@ -15,7 +15,6 @@ public class ArticleLikeFacadeService {
 
     public ArticleLikeResponse like(User user, String articleUuid) {
         Article article = articleService.findArticleByUuid(articleUuid);
-        article.increaseLikedCount();
         return articleLikeService.like(user, article);
     }
 

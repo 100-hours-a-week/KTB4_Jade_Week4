@@ -32,7 +32,7 @@ public class ArticleLike {
         return ArticleLike.builder()
                 .article(article)
                 .user(user)
-                .isLiked(true)
+                .isLiked(false)
                 .build();
     }
 

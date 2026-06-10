@@ -18,7 +18,10 @@ public class ArticleLikeService {
     public ArticleLikeResponse like(User user, Article article) {
         ArticleLike articleLike = articleLikeRepository.findByArticleAndUser(article, user)
                 .orElseGet(() -> createArticleLike(article, user));
-        articleLike.like();
+        if (!articleLike.isLiked()) {
+            articleLike.like();
+            article.increaseLikedCount();
+        }
         return ArticleLikeResponse.of(articleLike.isLiked(), article.getLikedCount());
     }
 
@@ -29,6 +32,7 @@ public class ArticleLikeService {
             throw new CustomException(ArticleLikeExceptionCode.LIKE_NOT_FOUND);
         }
         articleLike.unlike();
+        article.decreaseLikedCount();
         return ArticleLikeResponse.of(articleLike.isLiked(), article.getLikedCount());
     }
 

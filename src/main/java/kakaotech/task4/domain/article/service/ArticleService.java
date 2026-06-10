@@ -1,7 +1,6 @@
 package kakaotech.task4.domain.article.service;
 
 import kakaotech.task4.common.exception.CustomException;
-import kakaotech.task4.common.exception.ExceptionCode.GlobalExceptionCode;
 import kakaotech.task4.common.uuid.UuidCreator;
 import kakaotech.task4.common.uuid.UuidPrefix;
 import kakaotech.task4.domain.article.code.ArticleExceptionCode;
@@ -12,7 +11,6 @@ import kakaotech.task4.domain.article.dto.res.ArticleSummaryResponse;
 import kakaotech.task4.domain.article.entity.Article;
 import kakaotech.task4.domain.article.repository.ArticleRepository;
 import kakaotech.task4.domain.user.entity.User;
-import kakaotech.task4.domain.user.service.UserService;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -23,26 +21,22 @@ import java.util.stream.Collectors;
 @AllArgsConstructor
 public class ArticleService {
     private final ArticleRepository articleRepository;
-    private final UserService userService;
 
-    public Article createArticle(String userUuid, CreateArticleRequest request) {
-        User user = userService.findByUuid(userUuid, GlobalExceptionCode.INTERNAL_SERVER_ERROR);
+    public Article createArticle(User user, CreateArticleRequest request) {
         String articleUuid = UuidCreator.create(UuidPrefix.ARTICLE);
         Article article = Article.of(articleUuid, user, request);
         articleRepository.save(article);
         return article;
     }
 
-    public Article updateArticle(String userUuid, String articleUuid, UpdateArticleRequest request) {
-        User user = userService.findByUuid(userUuid, GlobalExceptionCode.INTERNAL_SERVER_ERROR);
+    public Article updateArticle(User user, String articleUuid, UpdateArticleRequest request) {
         Article article = findArticleByUuid(articleUuid);
         validateOwner(user, article, ArticleExceptionCode.FORBIDDEN_UPDATE);
         article.update(request);
         return article;
     }
 
-    public void deleteArticle(String userUuid, String articleUuid) {
-        User user = userService.findByUuid(userUuid, GlobalExceptionCode.INTERNAL_SERVER_ERROR);
+    public void deleteArticle(User user, String articleUuid) {
         Article article = findArticleByUuid(articleUuid);
         validateOwner(user, article, ArticleExceptionCode.FORBIDDEN_DELETE);
         article.softDelete();

@@ -2,7 +2,6 @@ package kakaotech.task4.domain.myInfo.service;
 
 import kakaotech.task4.common.exception.CommonFieldError;
 import kakaotech.task4.common.exception.CustomException;
-import kakaotech.task4.common.exception.ExceptionCode.GlobalExceptionCode;
 import kakaotech.task4.domain.myInfo.code.MyExceptionCode;
 import kakaotech.task4.domain.myInfo.dto.req.UpdateMyBasicInfoRequest;
 import kakaotech.task4.domain.myInfo.dto.req.UpdateMySecurityRequest;
@@ -21,29 +20,25 @@ import java.util.Map;
 public class MyService {
     private final UserService userService;
 
-    public MyBasicInfoResponse getMyBasicInfo(String userUuid) {
-        User user = userService.findByUuid(userUuid, GlobalExceptionCode.INTERNAL_SERVER_ERROR);
+    public MyBasicInfoResponse getMyBasicInfo(User user) {
         return MyBasicInfoResponse.from(user);
     }
 
-    public UpdateMyBasicInfoResponse updateMyBasicInfo(String userUuid, UpdateMyBasicInfoRequest request) {
+    public UpdateMyBasicInfoResponse updateMyBasicInfo(User user, UpdateMyBasicInfoRequest request) {
         validateAllNull(request);
 
-        User user = userService.findByUuid(userUuid, GlobalExceptionCode.INTERNAL_SERVER_ERROR);
         validateDuplicateNickname(request.nickname());
 
         user.updateBasicInfo(request);
         return UpdateMyBasicInfoResponse.from(user);
     }
 
-    public void updateMySecurity(String userUuid, UpdateMySecurityRequest request) {
+    public void updateMySecurity(User user, UpdateMySecurityRequest request) {
         validatePasswordMatch(request);
-        User user = userService.findByUuid(userUuid, GlobalExceptionCode.INTERNAL_SERVER_ERROR);
         user.updatePassword(request.password());
     }
 
-    public void deleteAccount(String userUuid) {
-        User user = userService.findByUuid(userUuid, GlobalExceptionCode.INTERNAL_SERVER_ERROR);
+    public void deleteAccount(User user) {
         user.softDelete();
     }
 

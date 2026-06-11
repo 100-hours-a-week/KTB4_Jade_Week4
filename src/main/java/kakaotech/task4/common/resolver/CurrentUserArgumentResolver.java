@@ -1,6 +1,5 @@
 package kakaotech.task4.common.resolver;
 
-import kakaotech.task4.common.exception.CustomException;
 import kakaotech.task4.domain.auth.code.AuthExceptionCode;
 import kakaotech.task4.domain.user.entity.User;
 import kakaotech.task4.domain.user.service.UserService;
@@ -19,7 +18,6 @@ import java.util.Objects;
 @Component
 @RequiredArgsConstructor
 public class CurrentUserArgumentResolver implements HandlerMethodArgumentResolver {
-
     private final UserService userService;
 
     @Override
@@ -36,9 +34,6 @@ public class CurrentUserArgumentResolver implements HandlerMethodArgumentResolve
         HttpServletRequest request = webRequest.getNativeRequest(HttpServletRequest.class);
         String userUuid = Objects.requireNonNull(request).getHeader("Authorization");
 
-        if (userUuid == null || userUuid.isBlank()) {
-            throw new CustomException(AuthExceptionCode.MISSING_AUTH_HEADER);
-        }
         return userService.findByUuid(userUuid, AuthExceptionCode.UNAUTHORIZED);
     }
 }

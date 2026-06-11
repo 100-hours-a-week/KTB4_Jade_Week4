@@ -23,9 +23,8 @@ public class AuthInterceptor implements HandlerInterceptor {
 
     private void validateAuthenticated(String userUuid) {
         if (userUuid == null || userUuid.isBlank()) {
-            throw new CustomException(AuthExceptionCode.UNAUTHORIZED);
+            throw new CustomException(AuthExceptionCode.MISSING_AUTH_HEADER);
         }
-        userService.findByUuid(userUuid)
-                .orElseThrow(() -> new CustomException(AuthExceptionCode.UNAUTHORIZED));
+        userService.findByUuid(userUuid,AuthExceptionCode.UNAUTHORIZED);
     }
 }

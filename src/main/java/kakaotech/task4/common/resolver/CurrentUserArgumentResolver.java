@@ -1,7 +1,6 @@
 package kakaotech.task4.common.resolver;
 
 import kakaotech.task4.common.exception.CustomException;
-import kakaotech.task4.common.exception.ExceptionCode.GlobalExceptionCode;
 import kakaotech.task4.domain.auth.code.AuthExceptionCode;
 import kakaotech.task4.domain.user.entity.User;
 import kakaotech.task4.domain.user.service.UserService;

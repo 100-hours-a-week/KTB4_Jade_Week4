@@ -23,8 +23,6 @@ public class Article extends BaseEntity {
     @NotNull
     private String content;
 
-    private String imageUrl;
-
     private int likedCount = 0;
     private int viewCount = 0;
     private int commentCount = 0;
@@ -33,12 +31,11 @@ public class Article extends BaseEntity {
     private User user;
 
     @Builder
-    public Article(int articleId, String articleUuid, String title, String content, String imageUrl, User user) {
+    public Article(int articleId, String articleUuid, String title, String content, User user) {
         this.articleId = articleId;
         this.articleUuid = articleUuid;
         this.title = title;
         this.content = content;
-        this.imageUrl = imageUrl;
         this.user = user;
     }
 
@@ -48,7 +45,6 @@ public class Article extends BaseEntity {
                 .user(user)
                 .title(request.title())
                 .content(request.content())
-                .imageUrl(request.imageUrl())
                 .build();
     }
 

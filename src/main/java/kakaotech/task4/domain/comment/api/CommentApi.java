@@ -17,7 +17,6 @@ import kakaotech.task4.domain.user.entity.User;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestHeader;
 
 
 @Tag(name = "[댓글 API]", description = "댓글 관련 API")

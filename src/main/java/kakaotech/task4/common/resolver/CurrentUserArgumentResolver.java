@@ -2,6 +2,7 @@ package kakaotech.task4.common.resolver;
 
 import kakaotech.task4.common.exception.CustomException;
 import kakaotech.task4.common.exception.ExceptionCode.GlobalExceptionCode;
+import kakaotech.task4.domain.auth.code.AuthExceptionCode;
 import kakaotech.task4.domain.user.entity.User;
 import kakaotech.task4.domain.user.service.UserService;
 import jakarta.servlet.http.HttpServletRequest;
@@ -37,8 +38,8 @@ public class CurrentUserArgumentResolver implements HandlerMethodArgumentResolve
         String userUuid = Objects.requireNonNull(request).getHeader("Authorization");
 
         if (userUuid == null || userUuid.isBlank()) {
-            throw new CustomException(GlobalExceptionCode.UNAUTHORIZED);
+            throw new CustomException(AuthExceptionCode.MISSING_AUTH_HEADER);
         }
-        return userService.findByUuid(userUuid, GlobalExceptionCode.INTERNAL_SERVER_ERROR);
+        return userService.findByUuid(userUuid, AuthExceptionCode.UNAUTHORIZED);
     }
 }

@@ -26,7 +26,6 @@ public class MyService {
 
     public UpdateMyBasicInfoResponse updateMyBasicInfo(User user, UpdateMyBasicInfoRequest request) {
         validateAllNull(request);
-
         validateDuplicateNickname(request.nickname());
 
         user.updateBasicInfo(request);
@@ -43,7 +42,7 @@ public class MyService {
     }
 
     private void validateAllNull(UpdateMyBasicInfoRequest request) {
-        if (request.nickname() == null && request.profileImageUrl() == null) {
+        if (request.isAllNull()) {
             throw new CustomException(MyExceptionCode.BAD_REQUEST);
         }
     }

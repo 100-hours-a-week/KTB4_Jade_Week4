@@ -32,6 +32,8 @@ public class ArticleService {
     public Article updateArticle(User user, String articleUuid, UpdateArticleRequest request) {
         Article article = findArticleByUuid(articleUuid);
         validateOwner(user, article, ArticleExceptionCode.FORBIDDEN_UPDATE);
+        validateAllNull(request);
+
         article.update(request);
         return article;
     }
@@ -64,6 +66,12 @@ public class ArticleService {
     private void validateOwner(User user, Article article, ArticleExceptionCode exceptionCode) {
         if (!article.getUser().equals(user)) {
             throw new CustomException(exceptionCode);
+        }
+    }
+
+    private void validateAllNull(UpdateArticleRequest request) {
+        if (request.isAllNull()) {
+            throw new CustomException(ArticleExceptionCode.BAD_REQUEST);
         }
     }
 }

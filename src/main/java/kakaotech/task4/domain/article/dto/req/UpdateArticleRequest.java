@@ -13,4 +13,8 @@ public record UpdateArticleRequest(
 
         @Schema(description = "이미지 URL", example = "이미지url")
         String imageUrl
-) {}
+) {
+        public boolean isAllNull() {
+                return title == null && content == null && imageUrl == null;
+        }
+}

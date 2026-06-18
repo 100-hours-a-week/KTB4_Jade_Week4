@@ -22,7 +22,7 @@ public class ArticleLikeService {
             articleLike.like();
             article.increaseLikedCount();
         }
-        return ArticleLikeResponse.of(articleLike.isLiked(), article.getLikedCount());
+        return ArticleLikeResponse.of(true, article.getLikedCount());
     }
 
     public ArticleLikeResponse unlike(User user, Article article) {
@@ -33,7 +33,7 @@ public class ArticleLikeService {
         }
         articleLike.unlike();
         article.decreaseLikedCount();
-        return ArticleLikeResponse.of(articleLike.isLiked(), article.getLikedCount());
+        return ArticleLikeResponse.of(false, article.getLikedCount());
     }
 
     public boolean isLiked(User user, Article article) {

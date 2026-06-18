@@ -34,7 +34,7 @@ public class AuthController implements AuthApi {
 
     @PostMapping("/sign-in")
     @Override
-    public ResponseEntity<?> signIn(SignInRequest request) {
+    public ResponseEntity<?> signIn(@Valid @RequestBody SignInRequest request) {
         SignInResponse response = authService.signIn(request);
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }

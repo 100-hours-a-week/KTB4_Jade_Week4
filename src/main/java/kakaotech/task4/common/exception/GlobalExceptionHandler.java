@@ -1,5 +1,7 @@
 package kakaotech.task4.common.exception;
 
+import jakarta.validation.ConstraintViolationException;
+import jakarta.validation.Path;
 import kakaotech.task4.common.exception.ExceptionCode.ExceptionCode;
 import kakaotech.task4.common.exception.ExceptionCode.GlobalExceptionCode;
 import kakaotech.task4.common.response.ExceptionRes;
@@ -45,6 +47,19 @@ public class GlobalExceptionHandler {
         return toErrorResponse(error, fields);
     }
 
+    @ExceptionHandler(ConstraintViolationException.class)
+    protected ResponseEntity<?> handleConstraintViolation(final ConstraintViolationException e) {
+        Map<String, Object> fields = new LinkedHashMap<>();
+        e.getConstraintViolations().forEach(violation -> {
+            String field = extractFieldName(violation.getPropertyPath());
+            fields.put(field, violation.getMessage());
+        });
+
+        log.warn("[ConstraintViolation] fields={}", fields);
+        ExceptionCode error = GlobalExceptionCode.VALIDATION_ERROR;
+        return toErrorResponse(error, fields);
+    }
+
     @ExceptionHandler(NoHandlerFoundException.class)
     protected ResponseEntity<?> handleNoHandlerFound(final NoHandlerFoundException e) {
         log.warn("[NoHandlerFound] {}", e.getMessage());
@@ -58,6 +73,15 @@ public class GlobalExceptionHandler {
         ExceptionCode error = GlobalExceptionCode.INTERNAL_SERVER_ERROR;
         return toErrorResponse(error);
     }
+
+    private String extractFieldName(Path propertyPath) {
+        String field = null;
+        for (Path.Node node : propertyPath) {
+            field = node.getName();
+        }
+        return field;
+    }
+
 
     private ResponseEntity<ExceptionRes> toErrorResponse(ExceptionCode error) {
         ExceptionRes body = ExceptionRes.from(error);

@@ -13,8 +13,10 @@ import kakaotech.task4.domain.user.entity.User;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+@Validated
 @RestController
 @RequestMapping("/articles")
 @AllArgsConstructor
@@ -66,4 +68,5 @@ public class ArticleController implements ArticleApi {
         ArticleDetailResponse response = articleFacadeService.getArticleDetail(user, articleUuid);
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
+
 }

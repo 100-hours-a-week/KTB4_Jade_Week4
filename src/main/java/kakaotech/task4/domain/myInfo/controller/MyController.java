@@ -15,7 +15,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/my")
+@RequestMapping("/me")
 @AllArgsConstructor
 public class MyController implements MyApi {
     private final MyService myService;

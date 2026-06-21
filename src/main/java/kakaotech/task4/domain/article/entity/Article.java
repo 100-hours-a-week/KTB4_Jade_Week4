@@ -1,38 +1,47 @@
 package kakaotech.task4.domain.article.entity;
 
-import jakarta.validation.constraints.NotNull;
+import jakarta.persistence.*;
 import kakaotech.task4.common.baseEntity.BaseEntity;
 import kakaotech.task4.domain.article.dto.req.CreateArticleRequest;
 import kakaotech.task4.domain.article.dto.req.UpdateArticleRequest;
 import kakaotech.task4.domain.user.entity.User;
 import lombok.*;
 
+@Entity
+@Table(name = "article")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Article extends BaseEntity {
 
-    @Setter
-    private int articleId;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "article_id")
+    private Long articleId;
 
-    @NotNull
+    @Column(name = "article_uuid", nullable = false, unique = true, updatable = false)
     private String articleUuid;
 
-    @NotNull
+    @Column(nullable = false, length = 26)
     private String title;
 
-    @NotNull
+    @Column(nullable = false, columnDefinition = "TEXT")
     private String content;
 
+    @Column(name = "liked_count", nullable = false)
     private int likedCount = 0;
+
+    @Column(name = "view_count", nullable = false)
     private int viewCount = 0;
+
+    @Column(name = "comment_count", nullable = false)
     private int commentCount = 0;
 
-    @NotNull
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
     @Builder
-    public Article(int articleId, String articleUuid, String title, String content, User user) {
-        this.articleId = articleId;
+    public Article(String articleUuid, String title, String content, User user) {
         this.articleUuid = articleUuid;
         this.title = title;
         this.content = content;
@@ -53,7 +62,7 @@ public class Article extends BaseEntity {
     }
 
     public synchronized void decreaseLikedCount() {
-        if(this.likedCount > 0) {
+        if (this.likedCount > 0) {
             this.likedCount--;
         }
     }
@@ -67,7 +76,7 @@ public class Article extends BaseEntity {
     }
 
     public synchronized void decreaseCommentCount() {
-        if(this.commentCount > 0) {
+        if (this.commentCount > 0) {
             this.commentCount--;
         }
     }
@@ -75,7 +84,6 @@ public class Article extends BaseEntity {
     public void update(UpdateArticleRequest request) {
         this.title = request.title();
         this.content = request.content();
-        updateUpdatedAt();
     }
 
     @Override

@@ -13,15 +13,20 @@ import kakaotech.task4.domain.article.repository.ArticleRepository;
 import kakaotech.task4.domain.user.entity.User;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
 @AllArgsConstructor
+@Transactional(readOnly = true)
 public class ArticleService {
     private final ArticleRepository articleRepository;
 
+    @Transactional
     public Article createArticle(User user, CreateArticleRequest request) {
         String articleUuid = UuidCreator.create(UuidPrefix.ARTICLE);
         Article article = Article.of(articleUuid, user, request);
@@ -29,6 +34,7 @@ public class ArticleService {
         return article;
     }
 
+    @Transactional
     public Article updateArticle(User user, String articleUuid, UpdateArticleRequest request) {
         Article article = findArticleByUuid(articleUuid);
         validateOwner(user, article, ArticleExceptionCode.FORBIDDEN_UPDATE);
@@ -38,6 +44,7 @@ public class ArticleService {
         return article;
     }
 
+    @Transactional
     public void deleteArticle(User user, String articleUuid) {
         Article article = findArticleByUuid(articleUuid);
         validateOwner(user, article, ArticleExceptionCode.FORBIDDEN_DELETE);
@@ -45,12 +52,20 @@ public class ArticleService {
     }
 
     public Article findArticleByUuid(String articleUuid) {
-        return articleRepository.findByUuid(articleUuid)
+        return articleRepository.findByArticleUuid(articleUuid)
                 .orElseThrow(() -> new CustomException(ArticleExceptionCode.NOT_FOUND));
     }
 
     public ArticleListResponse getArticleList(String lastArticleUuid, int size) {
-        List<Article> articles = articleRepository.findByCursor(lastArticleUuid, size + 1);
+        Pageable pageable = PageRequest.of(0, size + 1);
+
+        List<Article> articles;
+        if (lastArticleUuid == null) {
+            articles = articleRepository.findFirstPage(pageable);
+        } else {
+            Article cursor = findArticleByUuid(lastArticleUuid);
+            articles = articleRepository.findNextPage(cursor.getCreatedAt(), pageable);
+        }
 
         boolean hasNext = articles.size() > size;
         if (hasNext) articles = articles.subList(0, size);

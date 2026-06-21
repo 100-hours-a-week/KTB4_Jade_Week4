@@ -2,7 +2,7 @@ package kakaotech.task4.domain.articleLike.entity;
 
 import jakarta.validation.constraints.NotNull;
 import kakaotech.task4.domain.article.entity.Article;
-import kakaotech.task4.domain.user.entity.User;
+import kakaotech.task4.domain.member.entity.Member;
 import lombok.*;
 
 @Getter
@@ -18,20 +18,20 @@ public class ArticleLike {
     private Article article;
 
     @NotNull
-    private User user;
+    private Member member;
 
     @Builder
-    public ArticleLike(int articleLikeId, boolean isLiked, Article article, User user) {
+    public ArticleLike(int articleLikeId, boolean isLiked, Article article, Member member) {
         this.articleLikeId = articleLikeId;
         this.isLiked = isLiked;
         this.article = article;
-        this.user = user;
+        this.member = member;
     }
 
-    public static ArticleLike of(Article article, User user) {
+    public static ArticleLike of(Article article, Member member) {
         return ArticleLike.builder()
                 .article(article)
-                .user(user)
+                .member(member)
                 .isLiked(false)
                 .build();
     }

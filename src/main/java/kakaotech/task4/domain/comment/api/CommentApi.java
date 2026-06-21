@@ -8,12 +8,12 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-import kakaotech.task4.common.resolver.CurrentUser;
+import kakaotech.task4.common.resolver.CurrentMember;
 import kakaotech.task4.domain.article.api.ArticleSwaggerErrorExamples;
 import kakaotech.task4.domain.auth.api.AuthSwaggerErrorExamples;
 import kakaotech.task4.domain.comment.dto.req.CreateCommentRequest;
 import kakaotech.task4.domain.comment.dto.req.UpdateCommentRequest;
-import kakaotech.task4.domain.user.entity.User;
+import kakaotech.task4.domain.member.entity.Member;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -38,7 +38,7 @@ public interface CommentApi {
                             examples = @ExampleObject(value = ArticleSwaggerErrorExamples.ARTICLE_404_001)))
     })
     ResponseEntity<?> createComment(
-            @Parameter(description = "유저 UUID", required = true) @CurrentUser User user,
+            @Parameter(description = "유저 UUID", required = true) @CurrentMember Member member,
             @Parameter(description = "게시글 UUID", required = true) @PathVariable("article-uuid") String articleUuid,
             @Valid @RequestBody CreateCommentRequest request);
 
@@ -63,7 +63,7 @@ public interface CommentApi {
                             }))
     })
     ResponseEntity<?> updateComment(
-            @Parameter(description = "유저 UUID", required = true) @CurrentUser User user,
+            @Parameter(description = "유저 UUID", required = true) @CurrentMember Member member,
             @Parameter(description = "게시글 UUID", required = true) @PathVariable("article-uuid") String articleUuid,
             @Parameter(description = "댓글 UUID", required = true) @PathVariable("comment-uuid") String commentUuid,
             @Valid @RequestBody UpdateCommentRequest request);
@@ -86,7 +86,7 @@ public interface CommentApi {
                             }))
     })
     ResponseEntity<?> deleteComment(
-            @Parameter(description = "유저 UUID", required = true) @CurrentUser User user,
+            @Parameter(description = "유저 UUID", required = true) @CurrentMember Member member,
             @Parameter(description = "게시글 UUID", required = true) @PathVariable("article-uuid") String articleUuid,
             @Parameter(description = "댓글 UUID", required = true) @PathVariable("comment-uuid") String commentUuid);
 }

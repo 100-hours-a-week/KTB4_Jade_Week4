@@ -2,7 +2,7 @@ package kakaotech.task4.domain.articleLike.repository;
 
 import kakaotech.task4.domain.article.entity.Article;
 import kakaotech.task4.domain.articleLike.entity.ArticleLike;
-import kakaotech.task4.domain.user.entity.User;
+import kakaotech.task4.domain.member.entity.Member;
 import org.springframework.stereotype.Repository;
 
 import java.util.ArrayList;
@@ -22,10 +22,10 @@ public class PureJavaArticleLikeRepository implements ArticleLikeRepository {
     }
 
     @Override
-    public Optional<ArticleLike> findByArticleAndUser(Article article, User user) {
+    public Optional<ArticleLike> findByArticleAndUser(Article article, Member member) {
         return articleLikes.stream()
                 .filter(like -> like.getArticle().equals(article))
-                .filter(like -> like.getUser().equals(user))
+                .filter(like -> like.getMember().equals(member))
                 .findFirst();
     }
 

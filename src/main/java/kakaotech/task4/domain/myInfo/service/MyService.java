@@ -7,8 +7,8 @@ import kakaotech.task4.domain.myInfo.dto.req.UpdateMyBasicInfoRequest;
 import kakaotech.task4.domain.myInfo.dto.req.UpdateMySecurityRequest;
 import kakaotech.task4.domain.myInfo.dto.res.MyBasicInfoResponse;
 import kakaotech.task4.domain.myInfo.dto.res.UpdateMyBasicInfoResponse;
-import kakaotech.task4.domain.user.entity.User;
-import kakaotech.task4.domain.user.service.UserService;
+import kakaotech.task4.domain.member.entity.Member;
+import kakaotech.task4.domain.member.service.MemberService;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -18,27 +18,27 @@ import java.util.Map;
 @Service
 @AllArgsConstructor
 public class MyService {
-    private final UserService userService;
+    private final MemberService memberService;
 
-    public MyBasicInfoResponse getMyBasicInfo(User user) {
-        return MyBasicInfoResponse.from(user);
+    public MyBasicInfoResponse getMyBasicInfo(Member member) {
+        return MyBasicInfoResponse.from(member);
     }
 
-    public UpdateMyBasicInfoResponse updateMyBasicInfo(User user, UpdateMyBasicInfoRequest request) {
+    public UpdateMyBasicInfoResponse updateMyBasicInfo(Member member, UpdateMyBasicInfoRequest request) {
         validateAllNull(request);
         validateDuplicateNickname(request.nickname());
 
-        user.updateBasicInfo(request);
-        return UpdateMyBasicInfoResponse.from(user);
+        member.updateBasicInfo(request);
+        return UpdateMyBasicInfoResponse.from(member);
     }
 
-    public void updateMySecurity(User user, UpdateMySecurityRequest request) {
+    public void updateMySecurity(Member member, UpdateMySecurityRequest request) {
         validatePasswordMatch(request);
-        user.updatePassword(request.password());
+        member.updatePassword(request.password());
     }
 
-    public void deleteAccount(User user) {
-        user.softDelete();
+    public void deleteAccount(Member member) {
+        member.softDelete();
     }
 
     private void validateAllNull(UpdateMyBasicInfoRequest request) {
@@ -48,7 +48,7 @@ public class MyService {
     }
 
     private void validateDuplicateNickname(String nickname) {
-        if (userService.existsByNickname(nickname)) {
+        if (memberService.existsByNickname(nickname)) {
             throw new CustomException(MyExceptionCode.DUPLICATE_NICKNAME);
         }
     }

@@ -1,46 +1,48 @@
-package kakaotech.task4.domain.user.entity;
+package kakaotech.task4.domain.member.entity;
 
-import jakarta.validation.constraints.NotNull;
+import jakarta.persistence.*;
 import kakaotech.task4.common.baseEntity.BaseEntity;
 import kakaotech.task4.domain.auth.dto.req.SignUpRequest;
 import kakaotech.task4.domain.myInfo.dto.req.UpdateMyBasicInfoRequest;
 import lombok.*;
 
+@Entity
+@Table
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class User extends BaseEntity {
+public class Member extends BaseEntity {
 
-    @Setter
-    private int userId;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long memberId;
 
-    @NotNull
-    private String userUuid;
+    @Column(nullable = false, unique = true, updatable = false)
+    private String memberUuid;
 
-    @NotNull
+    @Column(nullable = false, unique = true)
     private String email;
 
-    @NotNull
+    @Column(nullable = false, length = 60)
     private String password;
 
-    @NotNull
+    @Column(nullable = false, length = 20)
     private String nickname;
 
-    @NotNull
+    @Column(nullable = false, length = 512)
     private String profileImageUrl;
 
     @Builder
-    public User(int userId, String userUuid, String email, String password, String nickname, String profileImageUrl) {
-        this.userId = userId;
-        this.userUuid = userUuid;
+    public Member(String memberUuid, String email, String password, String nickname, String profileImageUrl) {
+        this.memberUuid = memberUuid;
         this.email = email;
         this.password = password;
         this.nickname = nickname;
         this.profileImageUrl = profileImageUrl;
     }
 
-    public static User of(String userUuid, SignUpRequest request) {
-        return User.builder()
-                .userUuid(userUuid)
+    public static Member of(String memberUuid, SignUpRequest request) {
+        return Member.builder()
+                .memberUuid(memberUuid)
                 .email(request.email())
                 .password(request.password())
                 .nickname(request.nickname())
@@ -51,24 +53,21 @@ public class User extends BaseEntity {
     public void updateBasicInfo(UpdateMyBasicInfoRequest request) {
         if (request.nickname() != null) this.nickname = request.nickname();
         if (request.profileImageUrl() != null) this.profileImageUrl = request.profileImageUrl();
-        updateUpdatedAt();
     }
 
     public void updatePassword(String password) {
         this.password = password;
-        updateUpdatedAt();
     }
 
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (!(o instanceof User user)) return false;
-        return userUuid != null && userUuid.equals(user.getUserUuid());
+        if (!(o instanceof Member member)) return false;
+        return memberUuid != null && memberUuid.equals(member.getMemberUuid());
     }
 
     @Override
     public int hashCode() {
-        return (userUuid != null) ? userUuid.hashCode() : 0;
+        return (memberUuid != null) ? memberUuid.hashCode() : 0;
     }
-
 }

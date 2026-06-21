@@ -4,21 +4,20 @@ import jakarta.persistence.*;
 import kakaotech.task4.common.baseEntity.BaseEntity;
 import kakaotech.task4.domain.article.dto.req.CreateArticleRequest;
 import kakaotech.task4.domain.article.dto.req.UpdateArticleRequest;
-import kakaotech.task4.domain.user.entity.User;
+import kakaotech.task4.domain.member.entity.Member;
 import lombok.*;
 
 @Entity
-@Table(name = "article")
+@Table
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Article extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "article_id")
     private Long articleId;
 
-    @Column(name = "article_uuid", nullable = false, unique = true, updatable = false)
+    @Column(nullable = false, unique = true, updatable = false)
     private String articleUuid;
 
     @Column(nullable = false, length = 26)
@@ -27,31 +26,31 @@ public class Article extends BaseEntity {
     @Column(nullable = false, columnDefinition = "TEXT")
     private String content;
 
-    @Column(name = "liked_count", nullable = false)
+    @Column(nullable = false)
     private int likedCount = 0;
 
-    @Column(name = "view_count", nullable = false)
+    @Column(nullable = false)
     private int viewCount = 0;
 
-    @Column(name = "comment_count", nullable = false)
+    @Column(nullable = false)
     private int commentCount = 0;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", nullable = false)
-    private User user;
+    @JoinColumn(name = "member_id", nullable = false)
+    private Member member;
 
     @Builder
-    public Article(String articleUuid, String title, String content, User user) {
+    public Article(String articleUuid, String title, String content, Member member) {
         this.articleUuid = articleUuid;
         this.title = title;
         this.content = content;
-        this.user = user;
+        this.member = member;
     }
 
-    public static Article of(String articleUuid, User user, CreateArticleRequest request) {
+    public static Article of(String articleUuid, Member member, CreateArticleRequest request) {
         return Article.builder()
                 .articleUuid(articleUuid)
-                .user(user)
+                .member(member)
                 .title(request.title())
                 .content(request.content())
                 .build();

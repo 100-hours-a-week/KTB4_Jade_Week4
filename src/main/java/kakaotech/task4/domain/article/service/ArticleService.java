@@ -10,7 +10,7 @@ import kakaotech.task4.domain.article.dto.res.ArticleListResponse;
 import kakaotech.task4.domain.article.dto.res.ArticleSummaryResponse;
 import kakaotech.task4.domain.article.entity.Article;
 import kakaotech.task4.domain.article.repository.ArticleRepository;
-import kakaotech.task4.domain.user.entity.User;
+import kakaotech.task4.domain.member.entity.Member;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.data.domain.Pageable;
@@ -27,17 +27,17 @@ public class ArticleService {
     private final ArticleRepository articleRepository;
 
     @Transactional
-    public Article createArticle(User user, CreateArticleRequest request) {
+    public Article createArticle(Member member, CreateArticleRequest request) {
         String articleUuid = UuidCreator.create(UuidPrefix.ARTICLE);
-        Article article = Article.of(articleUuid, user, request);
+        Article article = Article.of(articleUuid, member, request);
         articleRepository.save(article);
         return article;
     }
 
     @Transactional
-    public Article updateArticle(User user, String articleUuid, UpdateArticleRequest request) {
+    public Article updateArticle(Member member, String articleUuid, UpdateArticleRequest request) {
         Article article = findArticleByUuid(articleUuid);
-        validateOwner(user, article, ArticleExceptionCode.FORBIDDEN_UPDATE);
+        validateOwner(member, article, ArticleExceptionCode.FORBIDDEN_UPDATE);
         validateAllNull(request);
 
         article.update(request);
@@ -45,9 +45,9 @@ public class ArticleService {
     }
 
     @Transactional
-    public void deleteArticle(User user, String articleUuid) {
+    public void deleteArticle(Member member, String articleUuid) {
         Article article = findArticleByUuid(articleUuid);
-        validateOwner(user, article, ArticleExceptionCode.FORBIDDEN_DELETE);
+        validateOwner(member, article, ArticleExceptionCode.FORBIDDEN_DELETE);
         article.softDelete();
     }
 
@@ -78,8 +78,8 @@ public class ArticleService {
         return ArticleListResponse.of(responses, hasNext, nextCursor);
     }
 
-    private void validateOwner(User user, Article article, ArticleExceptionCode exceptionCode) {
-        if (!article.getUser().equals(user)) {
+    private void validateOwner(Member member, Article article, ArticleExceptionCode exceptionCode) {
+        if (!article.getMember().equals(member)) {
             throw new CustomException(exceptionCode);
         }
     }

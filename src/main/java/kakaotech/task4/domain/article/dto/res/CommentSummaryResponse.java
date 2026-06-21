@@ -17,9 +17,9 @@ public record CommentSummaryResponse(
     public static CommentSummaryResponse from(Comment comment) {
         return CommentSummaryResponse.builder()
                 .commentUuid(comment.getCommentUuid())
-                .writer(comment.getUser().getNickname())
-                .profileImageUrl(comment.getUser().getProfileImageUrl())
-                .userUuid(comment.getUser().getUserUuid())
+                .writer(comment.getMember().getNickname())
+                .profileImageUrl(comment.getMember().getProfileImageUrl())
+                .userUuid(comment.getMember().getMemberUuid())
                 .createdAt(comment.getCreatedAt())
                 .content(comment.getContent())
                 .build();

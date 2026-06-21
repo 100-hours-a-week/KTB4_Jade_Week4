@@ -1,7 +1,7 @@
 package kakaotech.task4.common.config;
 
 import kakaotech.task4.common.interceptor.AuthInterceptor;
-import kakaotech.task4.common.resolver.CurrentUserArgumentResolver;
+import kakaotech.task4.common.resolver.CurrentMemberArgumentResolver;
 import lombok.AllArgsConstructor;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.method.support.HandlerMethodArgumentResolver;
@@ -14,7 +14,7 @@ import java.util.List;
 @AllArgsConstructor
 public class WebConfig implements WebMvcConfigurer {
     private final AuthInterceptor authInterceptor;
-    private final CurrentUserArgumentResolver currentUserArgumentResolver;
+    private final CurrentMemberArgumentResolver currentMemberArgumentResolver;
 
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
@@ -26,6 +26,6 @@ public class WebConfig implements WebMvcConfigurer {
 
     @Override
     public void addArgumentResolvers(List<HandlerMethodArgumentResolver> resolvers) {
-        resolvers.add(currentUserArgumentResolver);
+        resolvers.add(currentMemberArgumentResolver);
     }
 }

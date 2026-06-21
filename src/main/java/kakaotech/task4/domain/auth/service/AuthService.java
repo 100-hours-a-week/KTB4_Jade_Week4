@@ -7,8 +7,8 @@ import kakaotech.task4.domain.auth.code.AuthFieldError;
 import kakaotech.task4.domain.auth.dto.req.SignInRequest;
 import kakaotech.task4.domain.auth.dto.req.SignUpRequest;
 import kakaotech.task4.domain.auth.dto.res.SignInResponse;
-import kakaotech.task4.domain.user.entity.User;
-import kakaotech.task4.domain.user.service.UserService;
+import kakaotech.task4.domain.member.entity.Member;
+import kakaotech.task4.domain.member.service.MemberService;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -18,12 +18,12 @@ import java.util.Map;
 @Service
 @AllArgsConstructor
 public class AuthService {
-    private final UserService userService;
+    private final MemberService memberService;
 
     public void signUp(SignUpRequest request) {
         validatePasswordMatch(request);
         validateDuplicate(request);
-        userService.signUp(request);
+        memberService.signUp(request);
     }
 
     private void validatePasswordMatch(SignUpRequest request) {
@@ -37,11 +37,11 @@ public class AuthService {
     private void validateDuplicate(SignUpRequest request) {
         Map<String, Object> conflictErrors = new HashMap<>();
 
-        if (userService.existsByEmail(request.email())) {
+        if (memberService.existsByEmail(request.email())) {
             conflictErrors.put(AuthFieldError.DUPLICATE_EMAIL.getField(), AuthFieldError.DUPLICATE_EMAIL.getMessage());
         }
 
-        if (userService.existsByNickname(request.nickname())) {
+        if (memberService.existsByNickname(request.nickname())) {
             conflictErrors.put(CommonFieldError.DUPLICATE_NICKNAME.getField(), CommonFieldError.DUPLICATE_NICKNAME.getMessage());
         }
 
@@ -51,19 +51,19 @@ public class AuthService {
     }
 
     public SignInResponse signIn(SignInRequest request) {
-        User user = getAuthenticatedUser(request);
-        return SignInResponse.from(user.getProfileImageUrl());
+        Member member = getAuthenticatedUser(request);
+        return SignInResponse.from(member.getProfileImageUrl());
     }
 
-    private User getAuthenticatedUser(SignInRequest request) {
-        User user = userService.findByEmail(request.email())
+    private Member getAuthenticatedUser(SignInRequest request) {
+        Member member = memberService.findByEmail(request.email())
                 .orElseThrow(() -> new CustomException(AuthExceptionCode.INVALID_CREDENTIALS));
-        validatePassword(user, request.password());
-        return user;
+        validatePassword(member, request.password());
+        return member;
     }
 
-    private void validatePassword(User user, String password) {
-        if (!user.getPassword().equals(password)) {
+    private void validatePassword(Member member, String password) {
+        if (!member.getPassword().equals(password)) {
             throw new CustomException(AuthExceptionCode.INVALID_CREDENTIALS);
         }
     }

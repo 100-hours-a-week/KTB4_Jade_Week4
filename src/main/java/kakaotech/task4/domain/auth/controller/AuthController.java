@@ -1,7 +1,7 @@
 package kakaotech.task4.domain.auth.controller;
 
 import jakarta.validation.Valid;
-import kakaotech.task4.common.resolver.CurrentUser;
+import kakaotech.task4.common.resolver.CurrentMember;
 import kakaotech.task4.common.response.SuccessRes;
 import kakaotech.task4.domain.auth.api.AuthApi;
 import kakaotech.task4.domain.auth.code.AuthSuccessCode;
@@ -9,7 +9,7 @@ import kakaotech.task4.domain.auth.dto.req.SignInRequest;
 import kakaotech.task4.domain.auth.dto.req.SignUpRequest;
 import kakaotech.task4.domain.auth.dto.res.SignInResponse;
 import kakaotech.task4.domain.auth.service.AuthService;
-import kakaotech.task4.domain.user.entity.User;
+import kakaotech.task4.domain.member.entity.Member;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -41,7 +41,7 @@ public class AuthController implements AuthApi {
 
     @PostMapping("/sign-out")
     @Override
-    public ResponseEntity<?> signOut(@CurrentUser User user) {
+    public ResponseEntity<?> signOut(@CurrentMember Member member) {
         authService.signOut();
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }

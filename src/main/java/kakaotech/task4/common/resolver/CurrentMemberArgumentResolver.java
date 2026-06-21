@@ -1,8 +1,8 @@
 package kakaotech.task4.common.resolver;
 
 import kakaotech.task4.domain.auth.code.AuthExceptionCode;
-import kakaotech.task4.domain.user.entity.User;
-import kakaotech.task4.domain.user.service.UserService;
+import kakaotech.task4.domain.member.entity.Member;
+import kakaotech.task4.domain.member.service.MemberService;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.jspecify.annotations.NonNull;
@@ -17,13 +17,13 @@ import java.util.Objects;
 
 @Component
 @RequiredArgsConstructor
-public class CurrentUserArgumentResolver implements HandlerMethodArgumentResolver {
-    private final UserService userService;
+public class CurrentMemberArgumentResolver implements HandlerMethodArgumentResolver {
+    private final MemberService memberService;
 
     @Override
     public boolean supportsParameter(MethodParameter parameter) {
-        return parameter.hasParameterAnnotation(CurrentUser.class)
-                && parameter.getParameterType().equals(User.class);
+        return parameter.hasParameterAnnotation(CurrentMember.class)
+                && parameter.getParameterType().equals(Member.class);
     }
 
     @Override
@@ -34,6 +34,6 @@ public class CurrentUserArgumentResolver implements HandlerMethodArgumentResolve
         HttpServletRequest request = webRequest.getNativeRequest(HttpServletRequest.class);
         String userUuid = Objects.requireNonNull(request).getHeader("Authorization");
 
-        return userService.findByUuid(userUuid, AuthExceptionCode.UNAUTHORIZED);
+        return memberService.findByUuid(userUuid, AuthExceptionCode.UNAUTHORIZED);
     }
 }

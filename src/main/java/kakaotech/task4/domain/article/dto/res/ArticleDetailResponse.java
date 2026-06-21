@@ -23,8 +23,8 @@ public record ArticleDetailResponse(
     public static ArticleDetailResponse of(Article article, String imageUrl, boolean isLiked, List<CommentSummaryResponse> comments) {
         return ArticleDetailResponse.builder()
                 .title(article.getTitle())
-                .writer(article.getUser().getNickname())
-                .userUuid(article.getUser().getUserUuid())
+                .writer(article.getMember().getNickname())
+                .userUuid(article.getMember().getMemberUuid())
                 .createdAt(article.getCreatedAt())
                 .imageUrl(imageUrl)
                 .content(article.getContent())

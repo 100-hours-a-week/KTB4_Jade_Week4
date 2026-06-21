@@ -12,7 +12,7 @@ import kakaotech.task4.domain.comment.dto.req.UpdateCommentRequest;
 import kakaotech.task4.domain.comment.dto.res.CreateCommentResponse;
 import kakaotech.task4.domain.comment.entity.Comment;
 import kakaotech.task4.domain.comment.repository.CommentRepository;
-import kakaotech.task4.domain.user.entity.User;
+import kakaotech.task4.domain.member.entity.Member;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -25,27 +25,27 @@ public class CommentService {
     private final ArticleService articleService;
     private final CommentRepository commentRepository;
 
-    public CreateCommentResponse createComment(User user, String articleUuid, CreateCommentRequest request) {
+    public CreateCommentResponse createComment(Member member, String articleUuid, CreateCommentRequest request) {
         Article article = articleService.findArticleByUuid(articleUuid);
-        Comment comment = saveComment(user, article, request);
+        Comment comment = saveComment(member, article, request);
 
         article.increaseCommentCount();
         return CreateCommentResponse.from(comment.getCommentUuid());
     }
 
-    public void updateComment(User user, String articleUuid, String commentUuid, UpdateCommentRequest request) {
+    public void updateComment(Member member, String articleUuid, String commentUuid, UpdateCommentRequest request) {
         Article article = articleService.findArticleByUuid(articleUuid);
         Comment comment = findByCommentUuidAndArticle(commentUuid, article);
 
-        comment.validateOwner(user, CommentExceptionCode.FORBIDDEN_UPDATE);
+        comment.validateOwner(member, CommentExceptionCode.FORBIDDEN_UPDATE);
         comment.update(request.content());
     }
 
-    public void deleteComment(User user, String articleUuid, String commentUuid) {
+    public void deleteComment(Member member, String articleUuid, String commentUuid) {
         Article article = articleService.findArticleByUuid(articleUuid);
         Comment comment = findByCommentUuidAndArticle(commentUuid, article);
 
-        comment.validateOwner(user, CommentExceptionCode.FORBIDDEN_DELETE);
+        comment.validateOwner(member, CommentExceptionCode.FORBIDDEN_DELETE);
         comment.softDelete();
         article.decreaseCommentCount();
     }
@@ -57,9 +57,9 @@ public class CommentService {
                 .collect(Collectors.toList());
     }
 
-    private Comment saveComment(User user, Article article, CreateCommentRequest request) {
+    private Comment saveComment(Member member, Article article, CreateCommentRequest request) {
         String commentUuid = UuidCreator.create(UuidPrefix.COMMENT);
-        Comment comment = Comment.of(commentUuid, user, article, request);
+        Comment comment = Comment.of(commentUuid, member, article, request);
         commentRepository.save(comment);
         return comment;
     }

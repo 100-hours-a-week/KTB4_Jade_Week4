@@ -1,14 +1,14 @@
 package kakaotech.task4.domain.myInfo.controller;
 
 import jakarta.validation.Valid;
-import kakaotech.task4.common.resolver.CurrentUser;
+import kakaotech.task4.common.resolver.CurrentMember;
 import kakaotech.task4.domain.myInfo.api.MyApi;
 import kakaotech.task4.domain.myInfo.dto.req.UpdateMySecurityRequest;
 import kakaotech.task4.domain.myInfo.dto.res.MyBasicInfoResponse;
 import kakaotech.task4.domain.myInfo.dto.req.UpdateMyBasicInfoRequest;
 import kakaotech.task4.domain.myInfo.dto.res.UpdateMyBasicInfoResponse;
 import kakaotech.task4.domain.myInfo.service.MyService;
-import kakaotech.task4.domain.user.entity.User;
+import kakaotech.task4.domain.member.entity.Member;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -22,33 +22,33 @@ public class MyController implements MyApi {
 
     @GetMapping("/basic-info")
     @Override
-    public ResponseEntity<?> getMyBasicInfo(@CurrentUser User user) {
-        MyBasicInfoResponse response = myService.getMyBasicInfo(user);
+    public ResponseEntity<?> getMyBasicInfo(@CurrentMember Member member) {
+        MyBasicInfoResponse response = myService.getMyBasicInfo(member);
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
     @PatchMapping("/basic-info")
     @Override
     public ResponseEntity<?> updateMyBasicInfo(
-            @CurrentUser User user,
+            @CurrentMember Member member,
             @Valid @RequestBody UpdateMyBasicInfoRequest request) {
-        UpdateMyBasicInfoResponse response = myService.updateMyBasicInfo(user, request);
+        UpdateMyBasicInfoResponse response = myService.updateMyBasicInfo(member, request);
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
     @PutMapping("/security")
     @Override
     public ResponseEntity<?> updateMySecurity(
-            @CurrentUser User user,
+            @CurrentMember Member member,
             @Valid @RequestBody UpdateMySecurityRequest request) {
-        myService.updateMySecurity(user, request);
+        myService.updateMySecurity(member, request);
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
 
     @DeleteMapping
     @Override
-    public ResponseEntity<?> deleteAccount(@CurrentUser User user) {
-        myService.deleteAccount(user);
+    public ResponseEntity<?> deleteAccount(@CurrentMember Member member) {
+        myService.deleteAccount(member);
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
 }

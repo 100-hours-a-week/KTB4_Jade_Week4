@@ -20,7 +20,6 @@ public class ArticleLikeFacadeService {
 
     public ArticleLikeResponse unlike(User user, String articleUuid) {
         Article article = articleService.findArticleByUuid(articleUuid);
-        article.decreaseLikedCount();
         return articleLikeService.unlike(user, article);
     }
 }

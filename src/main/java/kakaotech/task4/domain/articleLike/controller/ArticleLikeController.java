@@ -22,7 +22,7 @@ public class ArticleLikeController implements ArticleLikeApi {
             @CurrentUser User user,
             @PathVariable("article-uuid") String articleUuid) {
         ArticleLikeResponse response = articleLikeFacadeService.like(user, articleUuid);
-        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+        return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
     @DeleteMapping
@@ -31,6 +31,6 @@ public class ArticleLikeController implements ArticleLikeApi {
             @CurrentUser User user,
             @PathVariable("article-uuid") String articleUuid) {
         ArticleLikeResponse response = articleLikeFacadeService.unlike(user, articleUuid);
-        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+        return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 }

@@ -8,6 +8,8 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 import kakaotech.task4.common.resolver.CurrentUser;
 import kakaotech.task4.domain.article.dto.req.CreateArticleRequest;
 import kakaotech.task4.domain.article.dto.req.UpdateArticleRequest;
@@ -92,7 +94,11 @@ public interface ArticleApi {
     ResponseEntity<?> getArticleList(
             @Parameter(description = "유저 UUID", required = true) @CurrentUser User user,
             @Parameter(description = "마지막 게시글 UUID") @RequestParam(required = false) String lastArticleUuid,
-            @Parameter(description = "조회 수", example = "10") @RequestParam(defaultValue = "10") int size);
+            @Parameter(description = "조회 수", example = "10")
+            @RequestParam(defaultValue = "10")
+            @Min(value = 1, message = "조회 개수는 최소 1개입니다.")
+            @Max(value = 100, message = "조회 개수는 최대 100개입니다.")
+            int size);
 
     @Operation(summary = "게시글 상세 조회", description = "게시글 상세 조회 api")
     @ApiResponses({

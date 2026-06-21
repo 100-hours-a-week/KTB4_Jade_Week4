@@ -6,6 +6,24 @@ spring:
     resources:
       add-mappings: false
 
+  datasource:
+    url: jdbc:h2:mem:test;DB_CLOSE_DELAY=-1;NON_KEYWORDS=USER
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
+
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
+
+  jpa:
+    hibernate:
+      ddl-auto: create
+    properties:
+      hibernate:
+        format_sql: true
+
 logging:
   level:
     org:

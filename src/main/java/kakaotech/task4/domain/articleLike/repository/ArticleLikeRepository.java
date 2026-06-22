@@ -3,12 +3,13 @@ package kakaotech.task4.domain.articleLike.repository;
 import kakaotech.task4.domain.article.entity.Article;
 import kakaotech.task4.domain.articleLike.entity.ArticleLike;
 import kakaotech.task4.domain.member.entity.Member;
-import org.springframework.stereotype.Repository;
+import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Optional;
 
-@Repository
-public interface ArticleLikeRepository {
-    void save(ArticleLike articleLike);
-    Optional<ArticleLike> findByArticleAndUser(Article article, Member member);
+public interface ArticleLikeRepository extends JpaRepository<ArticleLike, Long> {
+
+    Optional<ArticleLike> findByArticleAndMember(Article article, Member member);
+
+    boolean existsByArticleAndMember(Article article, Member member);
 }

@@ -1,29 +1,49 @@
 package kakaotech.task4.domain.articleLike.entity;
 
-import jakarta.validation.constraints.NotNull;
+import jakarta.persistence.*;
 import kakaotech.task4.domain.article.entity.Article;
 import kakaotech.task4.domain.member.entity.Member;
-import lombok.*;
+import lombok.AccessLevel;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
+import java.time.LocalDateTime;
+
+@Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+@EntityListeners(AuditingEntityListener.class)
+@Table(
+        uniqueConstraints = {
+                @UniqueConstraint(
+                        name = "uk_article_like_member_article",
+                        columnNames = {"member_id", "article_id"}
+                )
+        }
+)
 public class ArticleLike {
 
-    @Setter
-    private int articleLikeId;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long articleLikeId;
 
-    private boolean isLiked;
-
-    @NotNull
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "article_id", nullable = false)
     private Article article;
 
-    @NotNull
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "member_id", nullable = false)
     private Member member;
 
+    @CreatedDate
+    @Column(nullable = false, updatable = false)
+    private LocalDateTime createdAt;
+
     @Builder
-    public ArticleLike(int articleLikeId, boolean isLiked, Article article, Member member) {
-        this.articleLikeId = articleLikeId;
-        this.isLiked = isLiked;
+    public ArticleLike(Article article, Member member) {
         this.article = article;
         this.member = member;
     }
@@ -32,17 +52,6 @@ public class ArticleLike {
         return ArticleLike.builder()
                 .article(article)
                 .member(member)
-                .isLiked(false)
                 .build();
     }
-
-    public void like() {
-        this.isLiked = true;
-    }
-
-    public void unlike() {
-        this.isLiked = false;
-    }
-
-    
 }

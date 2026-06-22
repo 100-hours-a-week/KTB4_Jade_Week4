@@ -1,6 +1,6 @@
 package kakaotech.task4.domain.comment.entity;
 
-import jakarta.validation.constraints.NotNull;
+import jakarta.persistence.*;
 import kakaotech.task4.common.baseEntity.BaseEntity;
 import kakaotech.task4.common.exception.CustomException;
 import kakaotech.task4.domain.article.entity.Article;
@@ -9,38 +9,42 @@ import kakaotech.task4.domain.comment.dto.req.CreateCommentRequest;
 import kakaotech.task4.domain.member.entity.Member;
 import lombok.*;
 
+@Entity
+@Table
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class Comment extends BaseEntity {
+public class ArticleComment extends BaseEntity {
 
-    @Setter
-    private int commentId;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long articleCommentId;
 
-    @NotNull
-    private String commentUuid;
+    @Column(nullable = false, unique = true, updatable = false)
+    private String articleCommentUuid;
 
-    @NotNull
+    @Column(nullable = false)
     private String content;
 
-    @NotNull
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "member_id", nullable = false)
     private Member member;
 
-    @NotNull
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "article_id", nullable = false)
     private Article article;
 
     @Builder
-    public Comment(int commentId, String commentUuid, String content, Member member, Article article) {
-        this.commentId = commentId;
-        this.commentUuid = commentUuid;
+    public ArticleComment(String articleCommentUuid, String content, Member member, Article article) {
+        this.articleCommentUuid = articleCommentUuid;
         this.content = content;
         this.member = member;
         this.article = article;
     }
 
-    public static Comment of(String commentUuid, Member member, Article article, CreateCommentRequest request) {
-        return Comment.builder()
-                .commentUuid(commentUuid)
-                .user(member)
+    public static ArticleComment of(String articleCommentUuid, Member member, Article article, CreateCommentRequest request) {
+        return ArticleComment.builder()
+                .articleCommentUuid(articleCommentUuid)
+                .member(member)
                 .article(article)
                 .content(request.content())
                 .build();
@@ -55,5 +59,4 @@ public class Comment extends BaseEntity {
     public void update(String content) {
         this.content = content;
     }
-
 }

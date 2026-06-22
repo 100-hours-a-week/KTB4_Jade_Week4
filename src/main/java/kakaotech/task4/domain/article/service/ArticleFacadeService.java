@@ -8,7 +8,7 @@ import kakaotech.task4.domain.article.dto.res.CommentSummaryResponse;
 import kakaotech.task4.domain.article.dto.res.CreateArticleResponse;
 import kakaotech.task4.domain.article.entity.Article;
 import kakaotech.task4.domain.articleLike.service.ArticleLikeService;
-import kakaotech.task4.domain.comment.service.CommentService;
+import kakaotech.task4.domain.comment.service.ArticleCommentService;
 import kakaotech.task4.domain.member.entity.Member;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -20,7 +20,7 @@ import java.util.List;
 public class ArticleFacadeService {
     private final ArticleService articleService;
     private final ArticlePhotoService articlePhotoService;
-    private final CommentService commentService;
+    private final ArticleCommentService articleCommentService;
     private final ArticleLikeService articleLikeService;
 
     public CreateArticleResponse createArticle(Member member, CreateArticleRequest request) {
@@ -48,7 +48,7 @@ public class ArticleFacadeService {
 
         String imageUrl = articlePhotoService.findPhotoUrlByArticle(article);
         boolean isLiked = articleLikeService.isLiked(member, article);
-        List<CommentSummaryResponse> comments = commentService.findCommentsByArticle(article);
+        List<CommentSummaryResponse> comments = articleCommentService.findCommentsByArticle(article);
 
         return ArticleDetailResponse.of(article, imageUrl, isLiked, comments);
     }

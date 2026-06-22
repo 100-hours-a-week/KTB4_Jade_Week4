@@ -1,6 +1,6 @@
 package kakaotech.task4.domain.article.dto.res;
 
-import kakaotech.task4.domain.comment.entity.Comment;
+import kakaotech.task4.domain.comment.entity.ArticleComment;
 import lombok.Builder;
 
 import java.time.LocalDateTime;
@@ -14,14 +14,14 @@ public record CommentSummaryResponse(
         LocalDateTime createdAt,
         String content
 ) {
-    public static CommentSummaryResponse from(Comment comment) {
+    public static CommentSummaryResponse from(ArticleComment articleComment) {
         return CommentSummaryResponse.builder()
-                .commentUuid(comment.getCommentUuid())
-                .writer(comment.getMember().getNickname())
-                .profileImageUrl(comment.getMember().getProfileImageUrl())
-                .userUuid(comment.getMember().getMemberUuid())
-                .createdAt(comment.getCreatedAt())
-                .content(comment.getContent())
+                .commentUuid(articleComment.getArticleCommentUuid())
+                .writer(articleComment.getMember().getNickname())
+                .profileImageUrl(articleComment.getMember().getProfileImageUrl())
+                .userUuid(articleComment.getMember().getMemberUuid())
+                .createdAt(articleComment.getCreatedAt())
+                .content(articleComment.getContent())
                 .build();
     }
 }

@@ -10,8 +10,8 @@ import kakaotech.task4.domain.comment.code.CommentExceptionCode;
 import kakaotech.task4.domain.comment.dto.req.CreateCommentRequest;
 import kakaotech.task4.domain.comment.dto.req.UpdateCommentRequest;
 import kakaotech.task4.domain.comment.dto.res.CreateCommentResponse;
-import kakaotech.task4.domain.comment.entity.Comment;
-import kakaotech.task4.domain.comment.repository.CommentRepository;
+import kakaotech.task4.domain.comment.entity.ArticleComment;
+import kakaotech.task4.domain.comment.repository.ArticleCommentRepository;
 import kakaotech.task4.domain.member.entity.Member;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -21,51 +21,51 @@ import java.util.stream.Collectors;
 
 @Service
 @AllArgsConstructor
-public class CommentService {
+public class ArticleCommentService {
     private final ArticleService articleService;
-    private final CommentRepository commentRepository;
+    private final ArticleCommentRepository articleCommentRepository;
 
     public CreateCommentResponse createComment(Member member, String articleUuid, CreateCommentRequest request) {
         Article article = articleService.findArticleByUuid(articleUuid);
-        Comment comment = saveComment(member, article, request);
+        ArticleComment articleComment = saveComment(member, article, request);
 
         article.increaseCommentCount();
-        return CreateCommentResponse.from(comment.getCommentUuid());
+        return CreateCommentResponse.from(articleComment.getArticleCommentUuid());
     }
 
     public void updateComment(Member member, String articleUuid, String commentUuid, UpdateCommentRequest request) {
         Article article = articleService.findArticleByUuid(articleUuid);
-        Comment comment = findByCommentUuidAndArticle(commentUuid, article);
+        ArticleComment articleComment = findByCommentUuidAndArticle(commentUuid, article);
 
-        comment.validateOwner(member, CommentExceptionCode.FORBIDDEN_UPDATE);
-        comment.update(request.content());
+        articleComment.validateOwner(member, CommentExceptionCode.FORBIDDEN_UPDATE);
+        articleComment.update(request.content());
     }
 
     public void deleteComment(Member member, String articleUuid, String commentUuid) {
         Article article = articleService.findArticleByUuid(articleUuid);
-        Comment comment = findByCommentUuidAndArticle(commentUuid, article);
+        ArticleComment articleComment = findByCommentUuidAndArticle(commentUuid, article);
 
-        comment.validateOwner(member, CommentExceptionCode.FORBIDDEN_DELETE);
-        comment.softDelete();
+        articleComment.validateOwner(member, CommentExceptionCode.FORBIDDEN_DELETE);
+        articleComment.softDelete();
         article.decreaseCommentCount();
     }
 
     public List<CommentSummaryResponse> findCommentsByArticle(Article article) {
-        return commentRepository.findByArticle(article)
+        return articleCommentRepository.findByArticle(article)
                 .stream()
                 .map(CommentSummaryResponse::from)
                 .collect(Collectors.toList());
     }
 
-    private Comment saveComment(Member member, Article article, CreateCommentRequest request) {
+    private ArticleComment saveComment(Member member, Article article, CreateCommentRequest request) {
         String commentUuid = UuidCreator.create(UuidPrefix.COMMENT);
-        Comment comment = Comment.of(commentUuid, member, article, request);
-        commentRepository.save(comment);
-        return comment;
+        ArticleComment articleComment = ArticleComment.of(commentUuid, member, article, request);
+        articleCommentRepository.save(articleComment);
+        return articleComment;
     }
 
-    private Comment findByCommentUuidAndArticle(String commentUuid, Article article) {
-        return commentRepository.findByCommentUuidAndArticle(commentUuid, article)
+    private ArticleComment findByCommentUuidAndArticle(String commentUuid, Article article) {
+        return articleCommentRepository.findByCommentUuidAndArticle(commentUuid, article)
                 .orElseThrow(() -> new CustomException(CommentExceptionCode.NOT_FOUND));
     }
 }

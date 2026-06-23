@@ -34,8 +34,10 @@ spring:
 logging:
   level:
     org:
+      springframework:
+        web: debug
       hibernate:
         SQL: debug
-        orm:
-          jdbc:
-            bind: trace
+#        orm:
+#          jdbc:
+#            bind: trace

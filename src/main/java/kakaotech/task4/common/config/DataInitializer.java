@@ -12,6 +12,7 @@ import org.springframework.boot.ApplicationRunner;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Component
@@ -22,6 +23,9 @@ public class DataInitializer implements ApplicationRunner {
     private final ArticleRepository articleRepository;
     private final ArticleCommentRepository commentRepository;
 
+    private static final int MEMBER_COUNT = 12;
+    private static final int ARTICLE_COUNT = 30;
+
     @Override
     @Transactional
     public void run(ApplicationArguments args) {
@@ -30,63 +34,56 @@ public class DataInitializer implements ApplicationRunner {
             return;
         }
 
-        List<Member> members = memberRepository.saveAll(List.of(
-                Member.builder()
-                        .memberUuid("user_test1uuid")
-                        .email("test1@kakaotech.com")
-                        .password("Test1Hello1234!")
-                        .nickname("test1")
-                        .profileImageUrl("url1")
-                        .build(),
+        // 1) 회원 12명 생성
+        List<Member> toSaveMembers = new ArrayList<>();
+        for (int i = 1; i <= MEMBER_COUNT; i++) {
+            toSaveMembers.add(
+                    Member.builder()
+                            .memberUuid("user_test" + i + "uuid")
+                            .email("test" + i + "@kakaotech.com")
+                            .password("Test" + i + "Hello1234!")
+                            .nickname("test" + i)
+                            .profileImageUrl("url" + i)
+                            .build()
+            );
+        }
+        List<Member> members = memberRepository.saveAll(toSaveMembers);
 
-                Member.builder()
-                        .memberUuid("user_test2uuid")
-                        .email("test2@kakaotech.com")
-                        .password("Test2Hello1234!")
-                        .nickname("test2")
-                        .profileImageUrl("url2")
-                        .build()
-        ));
+        // 2) 게시글 30개 생성 (작성자를 회원들에게 골고루 분배 → N+1이 또렷이 드러남)
+        List<Article> toSaveArticles = new ArrayList<>();
+        for (int i = 1; i <= ARTICLE_COUNT; i++) {
+            Member author = members.get(i % MEMBER_COUNT); // 작성자 순환 분배
+            toSaveArticles.add(
+                    article(
+                            author,
+                            "article_uuid" + i,
+                            author.getNickname() + " 게시글" + i,
+                            author.getNickname() + "이(가) 작성한 " + i + "번째 게시글 내용"
+                    )
+            );
+        }
+        List<Article> articles = articleRepository.saveAll(toSaveArticles);
 
-        Member member1 = members.get(0);
-        Member member2 = members.get(1);
-
-        List<Article> articles = articleRepository.saveAll(List.of(
-                article(member1, "article_uuid1", "test1 게시글1", "test1 첫 번째 내용"),
-                article(member1, "article_uuid2", "test1 게시글2", "test1 두 번째 내용"),
-                article(member1, "article_uuid3", "test1 게시글3", "test1 세 번째 내용"),
-                article(member1, "article_uuid4", "test1 게시글4", "test1 네 번째 내용"),
-                article(member1, "article_uuid5", "test1 게시글5", "test1 다섯 번째 내용"),
-                article(member2, "article_uuid6", "test2 게시글1", "test2 첫 번째 내용"),
-                article(member2, "article_uuid7", "test2 게시글2", "test2 두 번째 내용"),
-                article(member2, "article_uuid8", "test2 게시글3", "test2 세 번째 내용"),
-                article(member2, "article_uuid9", "test2 게시글4", "test2 네 번째 내용"),
-                article(member2, "article_uuid10", "test2 게시글5", "test2 다섯 번째 내용"),
-                article(member1, "article_uuid11", "test1 게시글6", "test1 여섯 번째 내용"),
-                article(member1, "article_uuid12", "test1 게시글7", "test1 일곱 번째 내용"),
-                article(member2, "article_uuid13", "test2 게시글6", "test2 여섯 번째 내용"),
-                article(member2, "article_uuid14", "test2 게시글7", "test2 일곱 번째 내용"),
-                article(member1, "article_uuid15", "test1 게시글8", "test1 여덟 번째 내용")
-        ));
-
-        List<ArticleComment> comments = List.of(
-                comment(member1, articles.get(0), "comment_uuid1", "test1이 article_uuid1에 작성한 댓글입니다."),
-                comment(member2, articles.get(0), "comment_uuid2", "test2가 article_uuid1에 작성한 댓글입니다."),
-                comment(member1, articles.get(1), "comment_uuid3", "test1이 article_uuid2에 작성한 댓글입니다."),
-                comment(member2, articles.get(1), "comment_uuid4", "test2가 article_uuid2에 작성한 댓글입니다."),
-                comment(member1, articles.get(2), "comment_uuid5", "test1이 article_uuid3에 작성한 댓글입니다."),
-                comment(member1, articles.get(3), "comment_uuid6", "test1이 article_uuid4에 작성한 댓글입니다."),
-                comment(member1, articles.get(4), "comment_uuid7", "test1이 article_uuid5에 작성한 댓글입니다."),
-                comment(member2, articles.get(4), "comment_uuid8", "test2가 article_uuid5에 작성한 댓글입니다."),
-                comment(member2, articles.get(5), "comment_uuid9", "test2가 article_uuid6에 작성한 댓글입니다.")
-        );
-
-        // 댓글 데이터 기준으로 댓글 수를 증가시킴
-        comments.forEach(comment ->
-                comment.getArticle().increaseCommentCount()
-        );
-
-        commentRepository.saveAll(comments);
+        // 3) 댓글 생성 (게시글당 0~3개, 작성자도 순환)
+        List<ArticleComment> toSaveComments = new ArrayList<>();
+        int commentSeq = 1;
+        for (int i = 0; i < articles.size(); i++) {
+            Article article = articles.get(i);
+            int commentCountForArticle = i % 4; // 0,1,2,3 반복
+            for (int c = 0; c < commentCountForArticle; c++) {
+                Member commenter = members.get((i + c) % MEMBER_COUNT);
+                ArticleComment comment = comment(
+                        commenter,
+                        article,
+                        "comment_uuid" + commentSeq,
+                        commenter.getNickname() + "이(가) " + article.getArticleUuid() + "에 작성한 댓글입니다."
+                );
+                toSaveComments.add(comment);
+                article.increaseCommentCount();
+                commentSeq++;
+            }
+        }
+        commentRepository.saveAll(toSaveComments);
     }
 
     private Article article(Member member, String articleUuid, String title, String content) {

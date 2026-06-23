@@ -50,7 +50,7 @@ public class ArticleController implements ArticleApi {
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
 
-    @GetMapping()
+    @GetMapping
     @Override
     public ResponseEntity<?> getArticleList(
             @CurrentMember Member member,

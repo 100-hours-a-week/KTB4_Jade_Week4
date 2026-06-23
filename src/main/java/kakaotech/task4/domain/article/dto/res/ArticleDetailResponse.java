@@ -18,13 +18,13 @@ public record ArticleDetailResponse(
         int viewCount,
         int commentCount,
         boolean isLiked,
-        List<CommentSummaryResponse> comments
+        List<CommentDetailResponse> comments
 ) {
-    public static ArticleDetailResponse of(Article article, String imageUrl, boolean isLiked, List<CommentSummaryResponse> comments) {
+    public static ArticleDetailResponse of(Article article, String imageUrl, boolean isLiked, List<CommentDetailResponse> comments) {
         return ArticleDetailResponse.builder()
                 .title(article.getTitle())
-                .writer(article.getUser().getNickname())
-                .userUuid(article.getUser().getUserUuid())
+                .writer(article.getMember().getNickname())
+                .userUuid(article.getMember().getMemberUuid())
                 .createdAt(article.getCreatedAt())
                 .imageUrl(imageUrl)
                 .content(article.getContent())

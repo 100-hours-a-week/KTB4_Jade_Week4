@@ -8,11 +8,11 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-import kakaotech.task4.common.resolver.CurrentUser;
+import kakaotech.task4.common.resolver.CurrentMember;
 import kakaotech.task4.domain.auth.api.AuthSwaggerErrorExamples;
 import kakaotech.task4.domain.myInfo.dto.req.UpdateMyBasicInfoRequest;
 import kakaotech.task4.domain.myInfo.dto.req.UpdateMySecurityRequest;
-import kakaotech.task4.domain.user.entity.User;
+import kakaotech.task4.domain.member.entity.Member;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestBody;
 
@@ -29,7 +29,7 @@ public interface MyApi {
                             examples = @ExampleObject(value = AuthSwaggerErrorExamples.AUTH_401_001)))
     })
     ResponseEntity<?> getMyBasicInfo(
-            @Parameter(description = "유저 UUID", required = true) @CurrentUser User user);
+            @Parameter(description = "유저 UUID", required = true) @CurrentMember Member member);
 
     @Operation(summary = "마이페이지 수정", description = "마이페이지 기본 정보 수정 api")
     @ApiResponses({
@@ -50,7 +50,7 @@ public interface MyApi {
                             examples = @ExampleObject(value = MySwaggerErrorExamples.MY_422_001)))
     })
     ResponseEntity<?> updateMyBasicInfo(
-            @Parameter(description = "유저 UUID", required = true) @CurrentUser User user,
+            @Parameter(description = "유저 UUID", required = true) @CurrentMember Member member,
             @Valid @RequestBody UpdateMyBasicInfoRequest request);
 
     @Operation(summary = "보안 정보 수정", description = "마이페이지 비밀번호 수정 api")
@@ -68,7 +68,7 @@ public interface MyApi {
                             examples = @ExampleObject(value = MySwaggerErrorExamples.MY_422_002)))
     })
     ResponseEntity<?> updateMySecurity(
-            @Parameter(description = "유저 UUID", required = true) @CurrentUser User user,
+            @Parameter(description = "유저 UUID", required = true) @CurrentMember Member member,
             @Valid @RequestBody UpdateMySecurityRequest request);
 
     @Operation(summary = "회원 탈퇴", description = "회원 탈퇴 api")
@@ -80,5 +80,5 @@ public interface MyApi {
                             examples = @ExampleObject(value = AuthSwaggerErrorExamples.AUTH_401_001)))
     })
     ResponseEntity<?> deleteAccount(
-            @Parameter(description = "유저 UUID", required = true) @CurrentUser User user);
+            @Parameter(description = "유저 UUID", required = true) @CurrentMember Member member);
 }

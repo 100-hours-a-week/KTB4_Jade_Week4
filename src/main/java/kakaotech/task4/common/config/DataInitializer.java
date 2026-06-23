@@ -1,77 +1,114 @@
 package kakaotech.task4.common.config;
 
-import jakarta.annotation.PostConstruct;
 import kakaotech.task4.domain.article.entity.Article;
 import kakaotech.task4.domain.article.repository.ArticleRepository;
-import kakaotech.task4.domain.comment.entity.Comment;
-import kakaotech.task4.domain.comment.repository.CommentRepository;
-import kakaotech.task4.domain.user.entity.User;
-import kakaotech.task4.domain.user.repository.UserRepository;
-import lombok.AllArgsConstructor;
+import kakaotech.task4.domain.comment.entity.ArticleComment;
+import kakaotech.task4.domain.comment.repository.ArticleCommentRepository;
+import kakaotech.task4.domain.member.entity.Member;
+import kakaotech.task4.domain.member.repository.MemberRepository;
+import lombok.RequiredArgsConstructor;
+import org.springframework.boot.ApplicationArguments;
+import org.springframework.boot.ApplicationRunner;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
-//지피티한테 맡긴 클래스입니다.
 @Component
-@AllArgsConstructor
-public class DataInitializer {
-    private final UserRepository userRepository;
+@RequiredArgsConstructor
+public class DataInitializer implements ApplicationRunner {
+
+    private final MemberRepository memberRepository;
     private final ArticleRepository articleRepository;
-    private final CommentRepository commentRepository;
+    private final ArticleCommentRepository commentRepository;
 
-    @PostConstruct
-    public void init() {
-        User user1 = User.builder()
-                .userId(1000).userUuid("user_test1uuid").email("test1@kakaotech.com")
-                .password("Test1Hello1234!").nickname("test1").profileImageUrl("url1")
-                .build();
+    @Override
+    @Transactional
+    public void run(ApplicationArguments args) {
+        // 서버 재시작마다 중복 삽입되는 것을 방지
+        if (memberRepository.count() > 0) {
+            return;
+        }
 
-        User user2 = User.builder()
-                .userId(1001).userUuid("user_test2uuid").email("test2@kakaotech.com")
-                .password("Test2Hello1234!").nickname("test2").profileImageUrl("url2")
-                .build();
+        List<Member> members = memberRepository.saveAll(List.of(
+                Member.builder()
+                        .memberUuid("user_test1uuid")
+                        .email("test1@kakaotech.com")
+                        .password("Test1Hello1234!")
+                        .nickname("test1")
+                        .profileImageUrl("url1")
+                        .build(),
 
-        userRepository.addAll(List.of(user1, user2));
-
-        Article article0 = Article.builder().articleId(1000).articleUuid("article_uuid1").title("test1 게시글1").content("test1 첫 번째 내용").user(user1).build();
-        Article article1 = Article.builder().articleId(1001).articleUuid("article_uuid2").title("test1 게시글2").content("test1 두 번째 내용").user(user1).build();
-        Article article2 = Article.builder().articleId(1002).articleUuid("article_uuid3").title("test1 게시글3").content("test1 세 번째 내용").user(user1).build();
-        Article article3 = Article.builder().articleId(1003).articleUuid("article_uuid4").title("test1 게시글4").content("test1 네 번째 내용").user(user1).build();
-        Article article4 = Article.builder().articleId(1004).articleUuid("article_uuid5").title("test1 게시글5").content("test1 다섯 번째 내용").user(user1).build();
-        Article article5 = Article.builder().articleId(1005).articleUuid("article_uuid6").title("test2 게시글1").content("test2 첫 번째 내용").user(user2).build();
-        Article article6 = Article.builder().articleId(1006).articleUuid("article_uuid7").title("test2 게시글2").content("test2 두 번째 내용").user(user2).build();
-        Article article7 = Article.builder().articleId(1007).articleUuid("article_uuid8").title("test2 게시글3").content("test2 세 번째 내용").user(user2).build();
-        Article article8 = Article.builder().articleId(1008).articleUuid("article_uuid9").title("test2 게시글4").content("test2 네 번째 내용").user(user2).build();
-        Article article9 = Article.builder().articleId(1009).articleUuid("article_uuid10").title("test2 게시글5").content("test2 다섯 번째 내용").user(user2).build();
-        Article article10 = Article.builder().articleId(1010).articleUuid("article_uuid11").title("test1 게시글6").content("test1 여섯 번째 내용").user(user1).build();
-        Article article11 = Article.builder().articleId(1011).articleUuid("article_uuid12").title("test1 게시글7").content("test1 일곱 번째 내용").user(user1).build();
-        Article article12 = Article.builder().articleId(1012).articleUuid("article_uuid13").title("test2 게시글6").content("test2 여섯 번째 내용").user(user2).build();
-        Article article13 = Article.builder().articleId(1013).articleUuid("article_uuid14").title("test2 게시글7").content("test2 일곱 번째 내용").user(user2).build();
-        Article article14 = Article.builder().articleId(1014).articleUuid("article_uuid15").title("test1 게시글8").content("test1 여덟 번째 내용").user(user1).build();
-
-        articleRepository.addAll(List.of(article0, article1, article2, article3, article4, article5, article6, article7, article8, article9, article10, article11, article12, article13, article14));
-
-        article0.increaseCommentCount();
-        article0.increaseCommentCount();
-        article1.increaseCommentCount();
-        article1.increaseCommentCount();
-        article2.increaseCommentCount();
-        article3.increaseCommentCount();
-        article4.increaseCommentCount();
-        article4.increaseCommentCount();
-        article5.increaseCommentCount();
-
-        commentRepository.addAll(List.of(
-                Comment.builder().commentId(1000).commentUuid("comment_uuid1").content("test1이 article_uuid1에 작성한 댓글입니다.").user(user1).article(article0).build(),
-                Comment.builder().commentId(1001).commentUuid("comment_uuid2").content("test2가 article_uuid1에 작성한 댓글입니다.").user(user2).article(article0).build(),
-                Comment.builder().commentId(1002).commentUuid("comment_uuid3").content("test1이 article_uuid2에 작성한 댓글입니다.").user(user1).article(article1).build(),
-                Comment.builder().commentId(1003).commentUuid("comment_uuid4").content("test2가 article_uuid2에 작성한 댓글입니다.").user(user2).article(article1).build(),
-                Comment.builder().commentId(1004).commentUuid("comment_uuid5").content("test1이 article_uuid3에 작성한 댓글입니다.").user(user1).article(article2).build(),
-                Comment.builder().commentId(1005).commentUuid("comment_uuid6").content("test1이 article_uuid4에 작성한 댓글입니다.").user(user1).article(article3).build(),
-                Comment.builder().commentId(1006).commentUuid("comment_uuid7").content("test1이 article_uuid5에 작성한 댓글입니다.").user(user1).article(article4).build(),
-                Comment.builder().commentId(1007).commentUuid("comment_uuid8").content("test2가 article_uuid5에 작성한 댓글입니다.").user(user2).article(article4).build(),
-                Comment.builder().commentId(1008).commentUuid("comment_uuid9").content("test2가 article_uuid6에 작성한 댓글입니다.").user(user2).article(article5).build()
+                Member.builder()
+                        .memberUuid("user_test2uuid")
+                        .email("test2@kakaotech.com")
+                        .password("Test2Hello1234!")
+                        .nickname("test2")
+                        .profileImageUrl("url2")
+                        .build()
         ));
+
+        Member member1 = members.get(0);
+        Member member2 = members.get(1);
+
+        List<Article> articles = articleRepository.saveAll(List.of(
+                article(member1, "article_uuid1", "test1 게시글1", "test1 첫 번째 내용"),
+                article(member1, "article_uuid2", "test1 게시글2", "test1 두 번째 내용"),
+                article(member1, "article_uuid3", "test1 게시글3", "test1 세 번째 내용"),
+                article(member1, "article_uuid4", "test1 게시글4", "test1 네 번째 내용"),
+                article(member1, "article_uuid5", "test1 게시글5", "test1 다섯 번째 내용"),
+                article(member2, "article_uuid6", "test2 게시글1", "test2 첫 번째 내용"),
+                article(member2, "article_uuid7", "test2 게시글2", "test2 두 번째 내용"),
+                article(member2, "article_uuid8", "test2 게시글3", "test2 세 번째 내용"),
+                article(member2, "article_uuid9", "test2 게시글4", "test2 네 번째 내용"),
+                article(member2, "article_uuid10", "test2 게시글5", "test2 다섯 번째 내용"),
+                article(member1, "article_uuid11", "test1 게시글6", "test1 여섯 번째 내용"),
+                article(member1, "article_uuid12", "test1 게시글7", "test1 일곱 번째 내용"),
+                article(member2, "article_uuid13", "test2 게시글6", "test2 여섯 번째 내용"),
+                article(member2, "article_uuid14", "test2 게시글7", "test2 일곱 번째 내용"),
+                article(member1, "article_uuid15", "test1 게시글8", "test1 여덟 번째 내용")
+        ));
+
+        List<ArticleComment> comments = List.of(
+                comment(member1, articles.get(0), "comment_uuid1", "test1이 article_uuid1에 작성한 댓글입니다."),
+                comment(member2, articles.get(0), "comment_uuid2", "test2가 article_uuid1에 작성한 댓글입니다."),
+                comment(member1, articles.get(1), "comment_uuid3", "test1이 article_uuid2에 작성한 댓글입니다."),
+                comment(member2, articles.get(1), "comment_uuid4", "test2가 article_uuid2에 작성한 댓글입니다."),
+                comment(member1, articles.get(2), "comment_uuid5", "test1이 article_uuid3에 작성한 댓글입니다."),
+                comment(member1, articles.get(3), "comment_uuid6", "test1이 article_uuid4에 작성한 댓글입니다."),
+                comment(member1, articles.get(4), "comment_uuid7", "test1이 article_uuid5에 작성한 댓글입니다."),
+                comment(member2, articles.get(4), "comment_uuid8", "test2가 article_uuid5에 작성한 댓글입니다."),
+                comment(member2, articles.get(5), "comment_uuid9", "test2가 article_uuid6에 작성한 댓글입니다.")
+        );
+
+        // 댓글 데이터 기준으로 댓글 수를 증가시킴
+        comments.forEach(comment ->
+                comment.getArticle().increaseCommentCount()
+        );
+
+        commentRepository.saveAll(comments);
+    }
+
+    private Article article(Member member, String articleUuid, String title, String content) {
+        return Article.builder()
+                .articleUuid(articleUuid)
+                .title(title)
+                .content(content)
+                .member(member)
+                .build();
+    }
+
+    private ArticleComment comment(
+            Member member,
+            Article article,
+            String commentUuid,
+            String content
+    ) {
+        return ArticleComment.builder()
+                .articleCommentUuid(commentUuid)
+                .content(content)
+                .member(member)
+                .article(article)
+                .build();
     }
 }

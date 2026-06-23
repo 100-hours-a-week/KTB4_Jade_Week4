@@ -1,28 +1,35 @@
 package kakaotech.task4.domain.article.entity;
 
-import jakarta.validation.constraints.NotNull;
+import jakarta.persistence.*;
 import kakaotech.task4.common.baseEntity.BaseEntity;
 import lombok.*;
 
+@Entity
+@Table(
+        indexes = {
+                @Index(name = "idx_photo_article", columnList = "article_id")
+        }
+)
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class ArticlePhoto extends BaseEntity {
 
-    @Setter
-    private int articlePhotoId;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long articlePhotoId;
 
-    @NotNull
+    @Column(nullable = false, unique = true, updatable = false)
     private String articlePhotoUuid;
 
-    @NotNull
+    @Column(nullable = false, length = 512)
     private String photoUrl;
 
-    @NotNull
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "article_id", nullable = false)
     private Article article;
 
     @Builder
-    public ArticlePhoto(int articlePhotoId, String articlePhotoUuid, String photoUrl, Article article) {
-        this.articlePhotoId = articlePhotoId;
+    public ArticlePhoto(String articlePhotoUuid, String photoUrl, Article article) {
         this.articlePhotoUuid = articlePhotoUuid;
         this.photoUrl = photoUrl;
         this.article = article;
@@ -38,6 +45,5 @@ public class ArticlePhoto extends BaseEntity {
 
     public void updatePhotoUrl(String photoUrl) {
         this.photoUrl = photoUrl;
-        updateUpdatedAt();
     }
 }

@@ -8,10 +8,10 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-import kakaotech.task4.common.resolver.CurrentUser;
+import kakaotech.task4.common.resolver.CurrentMember;
 import kakaotech.task4.domain.auth.dto.req.SignInRequest;
 import kakaotech.task4.domain.auth.dto.req.SignUpRequest;
-import kakaotech.task4.domain.user.entity.User;
+import kakaotech.task4.domain.member.entity.Member;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestBody;
 
@@ -60,5 +60,5 @@ public interface AuthApi {
             @ApiResponse(responseCode = "204", description = "로그아웃 성공",
                     content = @Content)
     })
-    ResponseEntity<?> signOut(@Parameter(description = "유저 UUID", required = true) @CurrentUser User user);
+    ResponseEntity<?> signOut(@Parameter(description = "유저 UUID", required = true) @CurrentMember Member member);
 }

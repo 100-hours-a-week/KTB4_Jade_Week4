@@ -10,11 +10,11 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
-import kakaotech.task4.common.resolver.CurrentUser;
+import kakaotech.task4.common.resolver.CurrentMember;
 import kakaotech.task4.domain.article.dto.req.CreateArticleRequest;
 import kakaotech.task4.domain.article.dto.req.UpdateArticleRequest;
 import kakaotech.task4.domain.auth.api.AuthSwaggerErrorExamples;
-import kakaotech.task4.domain.user.entity.User;
+import kakaotech.task4.domain.member.entity.Member;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -39,7 +39,7 @@ public interface ArticleApi {
                             examples = @ExampleObject(value = ArticleSwaggerErrorExamples.ARTICLE_422_001)))
     })
     ResponseEntity<?> createArticle(
-            @Parameter(description = "유저 UUID", required = true) @CurrentUser User user,
+            @Parameter(description = "유저 UUID", required = true) @CurrentMember Member member,
             @Valid @RequestBody CreateArticleRequest request);
 
     @Operation(summary = "게시글 수정", description = "게시글 수정 api")
@@ -63,7 +63,7 @@ public interface ArticleApi {
                             examples = @ExampleObject(value = ArticleSwaggerErrorExamples.ARTICLE_422_001)))
     })
     ResponseEntity<?> updateArticle(
-            @Parameter(description = "유저 UUID", required = true)  @CurrentUser User user,
+            @Parameter(description = "유저 UUID", required = true)  @CurrentMember Member member,
             @Parameter(description = "게시글 UUID", required = true) @PathVariable("uuid") String articleUuid,
             @Valid @RequestBody UpdateArticleRequest request);
 
@@ -82,7 +82,7 @@ public interface ArticleApi {
                             examples = @ExampleObject(value = ArticleSwaggerErrorExamples.ARTICLE_404_001)))
     })
     ResponseEntity<?> deleteArticle(
-            @Parameter(description = "유저 UUID", required = true) @CurrentUser User user,
+            @Parameter(description = "유저 UUID", required = true) @CurrentMember Member member,
             @Parameter(description = "게시글 UUID", required = true) @PathVariable("article-uuid") String articleUuid);
 
     @Operation(summary = "게시글 목록 조회", description = "게시글 목록 조회 api")
@@ -92,7 +92,7 @@ public interface ArticleApi {
                             examples = @ExampleObject(value = ArticleSwaggerSuccessExamples.ARTICLE_200_001)))
     })
     ResponseEntity<?> getArticleList(
-            @Parameter(description = "유저 UUID", required = true) @CurrentUser User user,
+            @Parameter(description = "유저 UUID", required = true) @CurrentMember Member member,
             @Parameter(description = "마지막 게시글 UUID") @RequestParam(required = false) String lastArticleUuid,
             @Parameter(description = "조회 수", example = "10")
             @RequestParam(defaultValue = "10")
@@ -110,6 +110,6 @@ public interface ArticleApi {
                             examples = @ExampleObject(value = ArticleSwaggerErrorExamples.ARTICLE_404_001)))
     })
     ResponseEntity<?> getArticleDetail(
-            @Parameter(description = "유저 UUID", required = true) @CurrentUser User user,
+            @Parameter(description = "유저 UUID", required = true) @CurrentMember Member member,
             @Parameter(description = "게시글 UUID", required = true) @PathVariable("uuid") String articleUuid);
 }

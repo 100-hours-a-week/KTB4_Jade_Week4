@@ -5,7 +5,11 @@ import kakaotech.task4.common.baseEntity.BaseEntity;
 import lombok.*;
 
 @Entity
-@Table(name = "article_photo")
+@Table(
+        indexes = {
+                @Index(name = "idx_photo_article", columnList = "article_id")
+        }
+)
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class ArticlePhoto extends BaseEntity {

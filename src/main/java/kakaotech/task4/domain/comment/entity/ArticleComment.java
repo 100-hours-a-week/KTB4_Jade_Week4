@@ -10,7 +10,11 @@ import kakaotech.task4.domain.member.entity.Member;
 import lombok.*;
 
 @Entity
-@Table
+@Table(
+        indexes = {
+                @Index(name = "idx_comment_article_created", columnList = "article_id, created_at")
+        }
+)
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class ArticleComment extends BaseEntity {

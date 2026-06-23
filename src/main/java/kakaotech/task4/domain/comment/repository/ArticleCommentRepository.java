@@ -22,6 +22,7 @@ public interface ArticleCommentRepository extends JpaRepository<ArticleComment, 
 
     @Query("""
             select c from ArticleComment c
+            join fetch c.member
             where c.article = :article
               and c.deletedAt is null
             order by c.createdAt desc

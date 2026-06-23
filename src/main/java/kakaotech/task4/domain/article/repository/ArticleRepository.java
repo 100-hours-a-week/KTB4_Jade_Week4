@@ -25,7 +25,6 @@ public interface ArticleRepository extends JpaRepository<Article, Long> {
             """)
     List<Article> findFirstPage(Pageable pageable);
 
-    //Todo: 생성시간이 동일한 경우 문제가 발생할 수 있음.
     @Query("""
             select a from Article a
             where a.deletedAt is null

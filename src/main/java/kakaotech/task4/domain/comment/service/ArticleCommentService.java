@@ -15,16 +15,19 @@ import kakaotech.task4.domain.comment.repository.ArticleCommentRepository;
 import kakaotech.task4.domain.member.entity.Member;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
+@Transactional(readOnly = true)
 @AllArgsConstructor
 public class ArticleCommentService {
     private final ArticleService articleService;
     private final ArticleCommentRepository articleCommentRepository;
 
+    @Transactional
     public CreateCommentResponse createComment(Member member, String articleUuid, CreateCommentRequest request) {
         Article article = articleService.findArticleByUuid(articleUuid);
         ArticleComment articleComment = saveComment(member, article, request);
@@ -33,6 +36,7 @@ public class ArticleCommentService {
         return CreateCommentResponse.from(articleComment.getArticleCommentUuid());
     }
 
+    @Transactional
     public void updateComment(Member member, String articleUuid, String commentUuid, UpdateCommentRequest request) {
         Article article = articleService.findArticleByUuid(articleUuid);
         ArticleComment articleComment = findByCommentUuidAndArticle(commentUuid, article);
@@ -41,6 +45,7 @@ public class ArticleCommentService {
         articleComment.update(request.content());
     }
 
+    @Transactional
     public void deleteComment(Member member, String articleUuid, String commentUuid) {
         Article article = articleService.findArticleByUuid(articleUuid);
         ArticleComment articleComment = findByCommentUuidAndArticle(commentUuid, article);

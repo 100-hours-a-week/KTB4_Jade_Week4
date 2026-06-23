@@ -12,9 +12,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
+@Transactional(readOnly = true)
 @RequiredArgsConstructor
 public class ArticleLikeService {
-
     private final ArticleLikeRepository articleLikeRepository;
 
     @Transactional
@@ -36,7 +36,6 @@ public class ArticleLikeService {
         return ArticleLikeResponse.of(false, article.getLikedCount());
     }
 
-    @Transactional(readOnly = true)
     public boolean isLiked(Member member, Article article) {
         return articleLikeRepository.existsByArticleAndMember(article, member);
     }

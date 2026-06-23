@@ -15,6 +15,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 
 @Validated
 @RestController
@@ -55,7 +57,10 @@ public class ArticleController implements ArticleApi {
     public ResponseEntity<?> getArticleList(
             @CurrentMember Member member,
             @RequestParam(required = false) String lastArticleUuid,
-            @RequestParam(defaultValue = "10") int size) {
+            @RequestParam(defaultValue = "10")
+            @Min(value = 1, message = "조회 개수는 최소 1개입니다.")
+            @Max(value = 100, message = "조회 개수는 최대 100개입니다.")
+            int size) {
         ArticleListResponse response = articleFacadeService.getArticleList(lastArticleUuid, size);
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }

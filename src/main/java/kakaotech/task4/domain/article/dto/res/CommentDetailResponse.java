@@ -6,7 +6,7 @@ import lombok.Builder;
 import java.time.LocalDateTime;
 
 @Builder
-public record CommentSummaryResponse(
+public record CommentDetailResponse(
         String commentUuid,
         String writer,
         String profileImageUrl,
@@ -14,8 +14,8 @@ public record CommentSummaryResponse(
         LocalDateTime createdAt,
         String content
 ) {
-    public static CommentSummaryResponse from(ArticleComment articleComment) {
-        return CommentSummaryResponse.builder()
+    public static CommentDetailResponse from(ArticleComment articleComment) {
+        return CommentDetailResponse.builder()
                 .commentUuid(articleComment.getArticleCommentUuid())
                 .writer(articleComment.getMember().getNickname())
                 .profileImageUrl(articleComment.getMember().getProfileImageUrl())

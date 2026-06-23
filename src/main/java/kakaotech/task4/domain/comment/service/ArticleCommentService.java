@@ -3,7 +3,7 @@ package kakaotech.task4.domain.comment.service;
 import kakaotech.task4.common.exception.CustomException;
 import kakaotech.task4.common.uuid.UuidCreator;
 import kakaotech.task4.common.uuid.UuidPrefix;
-import kakaotech.task4.domain.article.dto.res.CommentSummaryResponse;
+import kakaotech.task4.domain.article.dto.res.CommentDetailResponse;
 import kakaotech.task4.domain.article.entity.Article;
 import kakaotech.task4.domain.article.service.ArticleService;
 import kakaotech.task4.domain.comment.code.CommentExceptionCode;
@@ -50,10 +50,10 @@ public class ArticleCommentService {
         article.decreaseCommentCount();
     }
 
-    public List<CommentSummaryResponse> findCommentsByArticle(Article article) {
+    public List<CommentDetailResponse> findCommentsByArticle(Article article) {
         return articleCommentRepository.findByArticle(article)
                 .stream()
-                .map(CommentSummaryResponse::from)
+                .map(CommentDetailResponse::from)
                 .collect(Collectors.toList());
     }
 

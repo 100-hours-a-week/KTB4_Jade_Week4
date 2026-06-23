@@ -4,7 +4,7 @@ import kakaotech.task4.domain.article.dto.req.CreateArticleRequest;
 import kakaotech.task4.domain.article.dto.req.UpdateArticleRequest;
 import kakaotech.task4.domain.article.dto.res.ArticleDetailResponse;
 import kakaotech.task4.domain.article.dto.res.ArticleListResponse;
-import kakaotech.task4.domain.article.dto.res.CommentSummaryResponse;
+import kakaotech.task4.domain.article.dto.res.CommentDetailResponse;
 import kakaotech.task4.domain.article.dto.res.CreateArticleResponse;
 import kakaotech.task4.domain.article.entity.Article;
 import kakaotech.task4.domain.articleLike.service.ArticleLikeService;
@@ -48,7 +48,7 @@ public class ArticleFacadeService {
 
         String imageUrl = articlePhotoService.findPhotoUrlByArticle(article);
         boolean isLiked = articleLikeService.isLiked(member, article);
-        List<CommentSummaryResponse> comments = articleCommentService.findCommentsByArticle(article);
+        List<CommentDetailResponse> comments = articleCommentService.findCommentsByArticle(article);
 
         return ArticleDetailResponse.of(article, imageUrl, isLiked, comments);
     }

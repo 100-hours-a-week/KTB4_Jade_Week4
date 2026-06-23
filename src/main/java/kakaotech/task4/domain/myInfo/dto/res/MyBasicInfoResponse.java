@@ -1,6 +1,6 @@
 package kakaotech.task4.domain.myInfo.dto.res;
 
-import kakaotech.task4.domain.user.entity.User;
+import kakaotech.task4.domain.member.entity.Member;
 import lombok.Builder;
 
 @Builder
@@ -9,11 +9,11 @@ public record MyBasicInfoResponse(
         String nickname,
         String profileImageUrl
 ) {
-    public static MyBasicInfoResponse from(User user) {
+    public static MyBasicInfoResponse from(Member member) {
         return MyBasicInfoResponse.builder()
-                .email(user.getEmail())
-                .nickname(user.getNickname())
-                .profileImageUrl(user.getProfileImageUrl())
+                .email(member.getEmail())
+                .nickname(member.getNickname())
+                .profileImageUrl(member.getProfileImageUrl())
                 .build();
     }
 }

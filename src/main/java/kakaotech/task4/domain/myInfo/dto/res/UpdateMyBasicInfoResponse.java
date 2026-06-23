@@ -1,15 +1,15 @@
 package kakaotech.task4.domain.myInfo.dto.res;
 
-import kakaotech.task4.domain.user.entity.User;
+import kakaotech.task4.domain.member.entity.Member;
 import lombok.Builder;
 
 @Builder
 public record UpdateMyBasicInfoResponse(
         String profileImageUrl
 ) {
-    public static UpdateMyBasicInfoResponse from(User user) {
+    public static UpdateMyBasicInfoResponse from(Member member) {
         return UpdateMyBasicInfoResponse.builder()
-                .profileImageUrl(user.getProfileImageUrl())
+                .profileImageUrl(member.getProfileImageUrl())
                 .build();
     }
 }

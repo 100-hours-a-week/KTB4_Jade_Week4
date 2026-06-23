@@ -1,48 +1,60 @@
 package kakaotech.task4.domain.article.entity;
 
-import jakarta.validation.constraints.NotNull;
+import jakarta.persistence.*;
 import kakaotech.task4.common.baseEntity.BaseEntity;
 import kakaotech.task4.domain.article.dto.req.CreateArticleRequest;
 import kakaotech.task4.domain.article.dto.req.UpdateArticleRequest;
-import kakaotech.task4.domain.user.entity.User;
+import kakaotech.task4.domain.member.entity.Member;
 import lombok.*;
 
+@Entity
+@Table(
+        indexes = {
+                @Index(name = "idx_article_created_at", columnList = "created_at")
+        }
+)
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Article extends BaseEntity {
 
-    @Setter
-    private int articleId;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long articleId;
 
-    @NotNull
+    @Column(nullable = false, unique = true, updatable = false)
     private String articleUuid;
 
-    @NotNull
+    @Column(nullable = false, length = 26)
     private String title;
 
-    @NotNull
+    @Column(nullable = false, columnDefinition = "TEXT")
     private String content;
 
+    @Column(nullable = false)
     private int likedCount = 0;
+
+    @Column(nullable = false)
     private int viewCount = 0;
+
+    @Column(nullable = false)
     private int commentCount = 0;
 
-    @NotNull
-    private User user;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "member_id", nullable = false)
+    private Member member;
 
     @Builder
-    public Article(int articleId, String articleUuid, String title, String content, User user) {
-        this.articleId = articleId;
+    public Article(String articleUuid, String title, String content, Member member) {
         this.articleUuid = articleUuid;
         this.title = title;
         this.content = content;
-        this.user = user;
+        this.member = member;
     }
 
-    public static Article of(String articleUuid, User user, CreateArticleRequest request) {
+    public static Article of(String articleUuid, Member member, CreateArticleRequest request) {
         return Article.builder()
                 .articleUuid(articleUuid)
-                .user(user)
+                .member(member)
                 .title(request.title())
                 .content(request.content())
                 .build();
@@ -53,7 +65,7 @@ public class Article extends BaseEntity {
     }
 
     public synchronized void decreaseLikedCount() {
-        if(this.likedCount > 0) {
+        if (this.likedCount > 0) {
             this.likedCount--;
         }
     }
@@ -67,7 +79,7 @@ public class Article extends BaseEntity {
     }
 
     public synchronized void decreaseCommentCount() {
-        if(this.commentCount > 0) {
+        if (this.commentCount > 0) {
             this.commentCount--;
         }
     }
@@ -75,7 +87,6 @@ public class Article extends BaseEntity {
     public void update(UpdateArticleRequest request) {
         this.title = request.title();
         this.content = request.content();
-        updateUpdatedAt();
     }
 
     @Override

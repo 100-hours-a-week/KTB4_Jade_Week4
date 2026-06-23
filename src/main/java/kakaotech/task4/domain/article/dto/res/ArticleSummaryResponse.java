@@ -24,8 +24,8 @@ public record ArticleSummaryResponse(
                 .commentCount(article.getCommentCount())
                 .viewCount(article.getViewCount())
                 .createdAt(article.getCreatedAt())
-                .writer(article.getUser().getNickname())
-                .profileImageUrl(article.getUser().getProfileImageUrl())
+                .writer(article.getMember().getNickname())
+                .profileImageUrl(article.getMember().getProfileImageUrl())
                 .build();
     }
 }

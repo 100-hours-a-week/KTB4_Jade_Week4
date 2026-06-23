@@ -6,45 +6,37 @@ import kakaotech.task4.domain.articleLike.code.ArticleLikeExceptionCode;
 import kakaotech.task4.domain.articleLike.dto.ArticleLikeResponse;
 import kakaotech.task4.domain.articleLike.entity.ArticleLike;
 import kakaotech.task4.domain.articleLike.repository.ArticleLikeRepository;
-import kakaotech.task4.domain.user.entity.User;
-import lombok.AllArgsConstructor;
+import kakaotech.task4.domain.member.entity.Member;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
-@AllArgsConstructor
+@Transactional(readOnly = true)
+@RequiredArgsConstructor
 public class ArticleLikeService {
     private final ArticleLikeRepository articleLikeRepository;
 
-    public ArticleLikeResponse like(User user, Article article) {
-        ArticleLike articleLike = articleLikeRepository.findByArticleAndUser(article, user)
-                .orElseGet(() -> createArticleLike(article, user));
-        if (!articleLike.isLiked()) {
-            articleLike.like();
-            article.increaseLikedCount();
+    @Transactional
+    public ArticleLikeResponse like(Member member, Article article) {
+        if (articleLikeRepository.existsByArticleAndMember(article, member)) {
+            throw new CustomException(ArticleLikeExceptionCode.ALREADY_LIKED);
         }
-        return ArticleLikeResponse.of(articleLike.isLiked(), article.getLikedCount());
+        articleLikeRepository.save(ArticleLike.of(article, member));
+        article.increaseLikedCount();
+        return ArticleLikeResponse.of(true, article.getLikedCount());
     }
 
-    public ArticleLikeResponse unlike(User user, Article article) {
-        ArticleLike articleLike = articleLikeRepository.findByArticleAndUser(article, user)
+    @Transactional
+    public ArticleLikeResponse unlike(Member member, Article article) {
+        ArticleLike articleLike = articleLikeRepository.findByArticleAndMember(article, member)
                 .orElseThrow(() -> new CustomException(ArticleLikeExceptionCode.LIKE_NOT_FOUND));
-        if (!articleLike.isLiked()) {
-            throw new CustomException(ArticleLikeExceptionCode.LIKE_NOT_FOUND);
-        }
-        articleLike.unlike();
+        articleLikeRepository.delete(articleLike);
         article.decreaseLikedCount();
-        return ArticleLikeResponse.of(articleLike.isLiked(), article.getLikedCount());
+        return ArticleLikeResponse.of(false, article.getLikedCount());
     }
 
-    public boolean isLiked(User user, Article article) {
-        return articleLikeRepository.findByArticleAndUser(article, user)
-                .map(ArticleLike::isLiked)
-                .orElse(false);
-    }
-
-    private ArticleLike createArticleLike(Article article, User user) {
-        ArticleLike articleLike = ArticleLike.of(article, user);
-        articleLikeRepository.save(articleLike);
-        return articleLike;
+    public boolean isLiked(Member member, Article article) {
+        return articleLikeRepository.existsByArticleAndMember(article, member);
     }
 }

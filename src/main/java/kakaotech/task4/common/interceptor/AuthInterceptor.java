@@ -4,7 +4,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import kakaotech.task4.common.exception.CustomException;
 import kakaotech.task4.domain.auth.code.AuthExceptionCode;
-import kakaotech.task4.domain.user.service.UserService;
+import kakaotech.task4.domain.member.service.MemberService;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.HandlerInterceptor;
@@ -12,7 +12,7 @@ import org.springframework.web.servlet.HandlerInterceptor;
 @Component
 @AllArgsConstructor
 public class AuthInterceptor implements HandlerInterceptor {
-    private final UserService userService;
+    private final MemberService memberService;
 
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) {
@@ -25,6 +25,6 @@ public class AuthInterceptor implements HandlerInterceptor {
         if (userUuid == null || userUuid.isBlank()) {
             throw new CustomException(AuthExceptionCode.MISSING_AUTH_HEADER);
         }
-        userService.findByUuid(userUuid,AuthExceptionCode.UNAUTHORIZED);
+        memberService.findByUuid(userUuid,AuthExceptionCode.UNAUTHORIZED);
     }
 }

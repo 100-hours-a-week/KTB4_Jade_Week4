@@ -1,77 +1,111 @@
 package kakaotech.task4.common.config;
 
-import jakarta.annotation.PostConstruct;
 import kakaotech.task4.domain.article.entity.Article;
 import kakaotech.task4.domain.article.repository.ArticleRepository;
-import kakaotech.task4.domain.comment.entity.Comment;
-import kakaotech.task4.domain.comment.repository.CommentRepository;
-import kakaotech.task4.domain.user.entity.User;
-import kakaotech.task4.domain.user.repository.UserRepository;
-import lombok.AllArgsConstructor;
+import kakaotech.task4.domain.comment.entity.ArticleComment;
+import kakaotech.task4.domain.comment.repository.ArticleCommentRepository;
+import kakaotech.task4.domain.member.entity.Member;
+import kakaotech.task4.domain.member.repository.MemberRepository;
+import lombok.RequiredArgsConstructor;
+import org.springframework.boot.ApplicationArguments;
+import org.springframework.boot.ApplicationRunner;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
 
-//지피티한테 맡긴 클래스입니다.
 @Component
-@AllArgsConstructor
-public class DataInitializer {
-    private final UserRepository userRepository;
+@RequiredArgsConstructor
+public class DataInitializer implements ApplicationRunner {
+
+    private final MemberRepository memberRepository;
     private final ArticleRepository articleRepository;
-    private final CommentRepository commentRepository;
+    private final ArticleCommentRepository commentRepository;
 
-    @PostConstruct
-    public void init() {
-        User user1 = User.builder()
-                .userId(1000).userUuid("user_test1uuid").email("test1@kakaotech.com")
-                .password("Test1Hello1234!").nickname("test1").profileImageUrl("url1")
+    private static final int MEMBER_COUNT = 12;
+    private static final int ARTICLE_COUNT = 30;
+
+    @Override
+    @Transactional
+    public void run(ApplicationArguments args) {
+        // 서버 재시작마다 중복 삽입되는 것을 방지
+        if (memberRepository.count() > 0) {
+            return;
+        }
+
+        // 1) 회원 12명 생성
+        List<Member> toSaveMembers = new ArrayList<>();
+        for (int i = 1; i <= MEMBER_COUNT; i++) {
+            toSaveMembers.add(
+                    Member.builder()
+                            .memberUuid("user_test" + i + "uuid")
+                            .email("test" + i + "@kakaotech.com")
+                            .password("Test" + i + "Hello1234!")
+                            .nickname("test" + i)
+                            .profileImageUrl("url" + i)
+                            .build()
+            );
+        }
+        List<Member> members = memberRepository.saveAll(toSaveMembers);
+
+        // 2) 게시글 30개 생성 (작성자를 회원들에게 골고루 분배 → N+1이 또렷이 드러남)
+        List<Article> toSaveArticles = new ArrayList<>();
+        for (int i = 1; i <= ARTICLE_COUNT; i++) {
+            Member author = members.get(i % MEMBER_COUNT); // 작성자 순환 분배
+            toSaveArticles.add(
+                    article(
+                            author,
+                            "article_uuid" + i,
+                            author.getNickname() + " 게시글" + i,
+                            author.getNickname() + "이(가) 작성한 " + i + "번째 게시글 내용"
+                    )
+            );
+        }
+        List<Article> articles = articleRepository.saveAll(toSaveArticles);
+
+        // 3) 댓글 생성 (게시글당 0~3개, 작성자도 순환)
+        List<ArticleComment> toSaveComments = new ArrayList<>();
+        int commentSeq = 1;
+        for (int i = 0; i < articles.size(); i++) {
+            Article article = articles.get(i);
+            int commentCountForArticle = i % 4; // 0,1,2,3 반복
+            for (int c = 0; c < commentCountForArticle; c++) {
+                Member commenter = members.get((i + c) % MEMBER_COUNT);
+                ArticleComment comment = comment(
+                        commenter,
+                        article,
+                        "comment_uuid" + commentSeq,
+                        commenter.getNickname() + "이(가) " + article.getArticleUuid() + "에 작성한 댓글입니다."
+                );
+                toSaveComments.add(comment);
+                article.increaseCommentCount();
+                commentSeq++;
+            }
+        }
+        commentRepository.saveAll(toSaveComments);
+    }
+
+    private Article article(Member member, String articleUuid, String title, String content) {
+        return Article.builder()
+                .articleUuid(articleUuid)
+                .title(title)
+                .content(content)
+                .member(member)
                 .build();
+    }
 
-        User user2 = User.builder()
-                .userId(1001).userUuid("user_test2uuid").email("test2@kakaotech.com")
-                .password("Test2Hello1234!").nickname("test2").profileImageUrl("url2")
+    private ArticleComment comment(
+            Member member,
+            Article article,
+            String commentUuid,
+            String content
+    ) {
+        return ArticleComment.builder()
+                .articleCommentUuid(commentUuid)
+                .content(content)
+                .member(member)
+                .article(article)
                 .build();
-
-        userRepository.addAll(List.of(user1, user2));
-
-        Article article0 = Article.builder().articleId(1000).articleUuid("article_uuid1").title("test1 게시글1").content("test1 첫 번째 내용").user(user1).build();
-        Article article1 = Article.builder().articleId(1001).articleUuid("article_uuid2").title("test1 게시글2").content("test1 두 번째 내용").user(user1).build();
-        Article article2 = Article.builder().articleId(1002).articleUuid("article_uuid3").title("test1 게시글3").content("test1 세 번째 내용").user(user1).build();
-        Article article3 = Article.builder().articleId(1003).articleUuid("article_uuid4").title("test1 게시글4").content("test1 네 번째 내용").user(user1).build();
-        Article article4 = Article.builder().articleId(1004).articleUuid("article_uuid5").title("test1 게시글5").content("test1 다섯 번째 내용").user(user1).build();
-        Article article5 = Article.builder().articleId(1005).articleUuid("article_uuid6").title("test2 게시글1").content("test2 첫 번째 내용").user(user2).build();
-        Article article6 = Article.builder().articleId(1006).articleUuid("article_uuid7").title("test2 게시글2").content("test2 두 번째 내용").user(user2).build();
-        Article article7 = Article.builder().articleId(1007).articleUuid("article_uuid8").title("test2 게시글3").content("test2 세 번째 내용").user(user2).build();
-        Article article8 = Article.builder().articleId(1008).articleUuid("article_uuid9").title("test2 게시글4").content("test2 네 번째 내용").user(user2).build();
-        Article article9 = Article.builder().articleId(1009).articleUuid("article_uuid10").title("test2 게시글5").content("test2 다섯 번째 내용").user(user2).build();
-        Article article10 = Article.builder().articleId(1010).articleUuid("article_uuid11").title("test1 게시글6").content("test1 여섯 번째 내용").user(user1).build();
-        Article article11 = Article.builder().articleId(1011).articleUuid("article_uuid12").title("test1 게시글7").content("test1 일곱 번째 내용").user(user1).build();
-        Article article12 = Article.builder().articleId(1012).articleUuid("article_uuid13").title("test2 게시글6").content("test2 여섯 번째 내용").user(user2).build();
-        Article article13 = Article.builder().articleId(1013).articleUuid("article_uuid14").title("test2 게시글7").content("test2 일곱 번째 내용").user(user2).build();
-        Article article14 = Article.builder().articleId(1014).articleUuid("article_uuid15").title("test1 게시글8").content("test1 여덟 번째 내용").user(user1).build();
-
-        articleRepository.addAll(List.of(article0, article1, article2, article3, article4, article5, article6, article7, article8, article9, article10, article11, article12, article13, article14));
-
-        article0.increaseCommentCount();
-        article0.increaseCommentCount();
-        article1.increaseCommentCount();
-        article1.increaseCommentCount();
-        article2.increaseCommentCount();
-        article3.increaseCommentCount();
-        article4.increaseCommentCount();
-        article4.increaseCommentCount();
-        article5.increaseCommentCount();
-
-        commentRepository.addAll(List.of(
-                Comment.builder().commentId(1000).commentUuid("comment_uuid1").content("test1이 article_uuid1에 작성한 댓글입니다.").user(user1).article(article0).build(),
-                Comment.builder().commentId(1001).commentUuid("comment_uuid2").content("test2가 article_uuid1에 작성한 댓글입니다.").user(user2).article(article0).build(),
-                Comment.builder().commentId(1002).commentUuid("comment_uuid3").content("test1이 article_uuid2에 작성한 댓글입니다.").user(user1).article(article1).build(),
-                Comment.builder().commentId(1003).commentUuid("comment_uuid4").content("test2가 article_uuid2에 작성한 댓글입니다.").user(user2).article(article1).build(),
-                Comment.builder().commentId(1004).commentUuid("comment_uuid5").content("test1이 article_uuid3에 작성한 댓글입니다.").user(user1).article(article2).build(),
-                Comment.builder().commentId(1005).commentUuid("comment_uuid6").content("test1이 article_uuid4에 작성한 댓글입니다.").user(user1).article(article3).build(),
-                Comment.builder().commentId(1006).commentUuid("comment_uuid7").content("test1이 article_uuid5에 작성한 댓글입니다.").user(user1).article(article4).build(),
-                Comment.builder().commentId(1007).commentUuid("comment_uuid8").content("test2가 article_uuid5에 작성한 댓글입니다.").user(user2).article(article4).build(),
-                Comment.builder().commentId(1008).commentUuid("comment_uuid9").content("test2가 article_uuid6에 작성한 댓글입니다.").user(user2).article(article5).build()
-        ));
     }
 }

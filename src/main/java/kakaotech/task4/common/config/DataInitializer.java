@@ -43,6 +43,16 @@ public class DataInitializer implements ApplicationRunner {
 
     private List<Member> createMembers() {
         List<Member> toSave = new ArrayList<>();
+
+        toSave.add(
+                Member.builder()
+                        .memberUuid("jade_uuid")
+                        .email("jade@naver.com")
+                        .password("Jade1234!")
+                        .nickname("Jade")
+                        .profileImageUrl("jade-profile-url")
+                        .build()
+        );
         for (int i = 1; i <= MEMBER_COUNT; i++) {
             toSave.add(
                     Member.builder()

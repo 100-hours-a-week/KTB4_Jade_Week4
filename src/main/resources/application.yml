@@ -37,7 +37,7 @@ logging:
       springframework:
         web: debug
       hibernate:
-        SQL: debug
+        SQL: off
 #        orm:
 #          jdbc:
 #            bind: trace

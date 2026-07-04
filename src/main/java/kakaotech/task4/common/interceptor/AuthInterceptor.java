@@ -8,6 +8,7 @@ import kakaotech.task4.domain.member.service.MemberService;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.HandlerInterceptor;
+import org.springframework.http.HttpMethod;
 
 @Component
 @AllArgsConstructor
@@ -16,6 +17,9 @@ public class AuthInterceptor implements HandlerInterceptor {
 
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) {
+        if (HttpMethod.OPTIONS.matches(request.getMethod())) {
+            return true;
+        }
         String userUuid = request.getHeader("Authorization");
         validateAuthenticated(userUuid);
         return true;

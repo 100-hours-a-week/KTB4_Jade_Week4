@@ -11,6 +11,7 @@ import kakaotech.task4.domain.member.entity.Member;
 import kakaotech.task4.domain.member.service.MemberService;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -24,6 +25,7 @@ public class MyService {
         return MyBasicInfoResponse.from(member);
     }
 
+    @Transactional
     public UpdateMyBasicInfoResponse updateMyBasicInfo(Member member, UpdateMyBasicInfoRequest request) {
         validateAllNull(request);
         validateDuplicateNickname(request.nickname());
@@ -32,6 +34,7 @@ public class MyService {
         return UpdateMyBasicInfoResponse.from(member);
     }
 
+    @Transactional
     public void updateMySecurity(Member member, UpdateMySecurityRequest request) {
         validatePasswordMatch(request);
         member.updatePassword(request.password());

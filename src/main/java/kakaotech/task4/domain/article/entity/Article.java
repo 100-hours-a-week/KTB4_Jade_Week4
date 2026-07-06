@@ -70,15 +70,15 @@ public class Article extends BaseEntity {
         }
     }
 
-    public synchronized void increaseViewCount() {
+    public void increaseViewCount() {
         this.viewCount++;
     }
 
-    public synchronized void increaseCommentCount() {
+    public void increaseCommentCount() {
         this.commentCount++;
     }
 
-    public synchronized void decreaseCommentCount() {
+    public void decreaseCommentCount() {
         if (this.commentCount > 0) {
             this.commentCount--;
         }

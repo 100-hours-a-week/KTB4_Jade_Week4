@@ -51,6 +51,31 @@ public class ArticleService {
         article.softDelete();
     }
 
+    @Transactional
+    public int increaseLikedCount(Long articleId) {
+        return articleRepository.increaseLikedCount(articleId);
+    }
+
+    @Transactional
+    public int decreaseLikedCount(Long articleId) {
+       return articleRepository.decreaseLikedCount(articleId);
+    }
+
+    @Transactional
+    public void increaseViewCount(Long articleId) {
+        articleRepository.increaseViewCount(articleId);
+    }
+
+    @Transactional
+    public void increaseCommentCount(Long articleId ) {
+        articleRepository.increaseCommentCount(articleId);
+    }
+
+    @Transactional
+    public void decreaseCommentCount(Long articleId) {
+        articleRepository.decreaseCommentCount(articleId);
+    }
+
     public Article findArticleByUuid(String articleUuid) {
         return articleRepository.findByArticleUuid(articleUuid)
                 .orElseThrow(() -> new CustomException(ArticleExceptionCode.NOT_FOUND));

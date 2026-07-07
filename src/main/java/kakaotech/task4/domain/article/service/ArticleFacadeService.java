@@ -46,8 +46,9 @@ public class ArticleFacadeService {
     @Transactional
     public ArticleDetailResponse getArticleDetail(Member member, String articleUuid) {
         Article article = articleService.findArticleByUuid(articleUuid);
-        article.increaseViewCount();
+        articleService.increaseViewCount(article.getArticleId());
 
+        article = articleService.findArticleByUuid(articleUuid);
         String imageUrl = articlePhotoService.findPhotoUrlByArticle(article);
         boolean isLiked = articleLikeService.isLiked(member, article);
         List<CommentDetailResponse> comments = articleCommentService.findCommentsByArticle(article);

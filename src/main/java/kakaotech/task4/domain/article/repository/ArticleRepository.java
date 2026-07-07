@@ -3,6 +3,7 @@ package kakaotech.task4.domain.article.repository;
 import kakaotech.task4.domain.article.entity.Article;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -37,4 +38,27 @@ public interface ArticleRepository extends JpaRepository<Article, Long> {
         """)
     List<Article> findNextPage(@Param("cursorCreatedAt") LocalDateTime cursorCreatedAt,
                                Pageable pageable);
+
+
+    @Modifying(clearAutomatically = true)
+    @Query("update Article a set a.viewCount = a.viewCount + 1 where a.articleId = :id")
+    int increaseViewCount(@Param("id") Long id);
+
+    @Modifying
+    @Query("update Article a set a.likedCount = a.likedCount + 1 where a.articleId = :id")
+    int increaseLikedCount(@Param("id") Long id);
+
+    @Modifying
+    @Query("update Article a set a.likedCount = a.likedCount - 1 " +
+            "where a.articleId = :id and a.likedCount > 0")
+    int decreaseLikedCount(@Param("id") Long id);
+
+    @Modifying
+    @Query("update Article a set a.commentCount = a.commentCount + 1 where a.articleId = :id")
+    int increaseCommentCount(@Param("id") Long id);
+
+    @Modifying
+    @Query("update Article a set a.commentCount = a.commentCount - 1 " +
+            "where a.articleId = :id and a.commentCount > 0")
+    int decreaseCommentCount(@Param("id") Long id);
 }

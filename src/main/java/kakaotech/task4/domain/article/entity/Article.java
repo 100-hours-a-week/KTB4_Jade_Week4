@@ -60,34 +60,11 @@ public class Article extends BaseEntity {
                 .build();
     }
 
-    public synchronized void increaseLikedCount() {
-        this.likedCount++;
-    }
-
-    public synchronized void decreaseLikedCount() {
-        if (this.likedCount > 0) {
-            this.likedCount--;
-        }
-    }
-
-    public void increaseViewCount() {
-        this.viewCount++;
-    }
-
-    public void increaseCommentCount() {
-        this.commentCount++;
-    }
-
-    public void decreaseCommentCount() {
-        if (this.commentCount > 0) {
-            this.commentCount--;
-        }
-    }
-
     public void update(UpdateArticleRequest request) {
         this.title = request.title();
         this.content = request.content();
     }
+
 
     @Override
     public boolean equals(Object o) {

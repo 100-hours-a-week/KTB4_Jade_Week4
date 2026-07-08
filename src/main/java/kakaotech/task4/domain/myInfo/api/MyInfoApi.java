@@ -17,7 +17,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestBody;
 
 @Tag(name = "[마이페이지 API]", description = "마이페이지 관련 API")
-public interface MyApi {
+public interface MyInfoApi {
 
     @Operation(summary = "마이페이지 조회", description = "마이페이지 기본 정보 조회 api")
     @ApiResponses({

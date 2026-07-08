@@ -23,7 +23,6 @@ public class DataInitializer implements ApplicationRunner {
     private final ArticleRepository articleRepository;
     private final ArticleCommentRepository commentRepository;
 
-    // 생성할 데이터 규모 (값만 바꾸면 조절 가능)
     private static final int MEMBER_COUNT = 10;
     private static final int ARTICLE_COUNT = 100;
     private static final int MAX_COMMENTS_PER_ARTICLE = 5;
@@ -31,7 +30,6 @@ public class DataInitializer implements ApplicationRunner {
     @Override
     @Transactional
     public void run(ApplicationArguments args) {
-        // 서버 재시작마다 중복 삽입되는 것을 방지
         if (memberRepository.count() > 0) {
             return;
         }
@@ -43,6 +41,18 @@ public class DataInitializer implements ApplicationRunner {
 
     private List<Member> createMembers() {
         List<Member> toSave = new ArrayList<>();
+
+        // 테스트용 Jade 계정
+        toSave.add(
+                Member.builder()
+                        .memberUuid("jade_uuid")
+                        .email("jade@naver.com")
+                        .password("Jade1234!")
+                        .nickname("Jade")
+                        .profileImageUrl("jade-profile-url")
+                        .build()
+        );
+
         for (int i = 1; i <= MEMBER_COUNT; i++) {
             toSave.add(
                     Member.builder()
@@ -54,38 +64,134 @@ public class DataInitializer implements ApplicationRunner {
                             .build()
             );
         }
+
         return memberRepository.saveAll(toSave);
     }
 
     private List<Article> createArticles(List<Member> members) {
         List<Article> toSave = new ArrayList<>();
-        for (int i = 1; i <= ARTICLE_COUNT; i++) {
-            // 작성자를 회원들에게 순환 분배
+
+        Member jade = members.stream()
+                .filter(member -> member.getEmail().equals("jade@naver.com"))
+                .findFirst()
+                .orElseThrow();
+
+        // Jade가 직접 작성한 테스트 게시글
+        toSave.add(
+                Article.builder()
+                        .articleUuid("jade_article_uuid_1")
+                        .title("안녕하세요, Jade의 첫 게시글입니다.")
+                        .content("테스트 계정 Jade가 작성한 첫 번째 게시글입니다.")
+                        .member(jade)
+                        .build()
+        );
+
+        toSave.add(
+                Article.builder()
+                        .articleUuid("jade_article_uuid_2")
+                        .title("오늘의 점심 추천 받아요")
+                        .content("회사 근처에서 먹을 만한 점심 메뉴를 추천해주세요.")
+                        .member(jade)
+                        .build()
+        );
+
+        toSave.add(
+                Article.builder()
+                        .articleUuid("jade_article_uuid_3")
+                        .title("프로젝트 진행 상황 공유")
+                        .content("게시글, 댓글, 마이페이지 기능 구현을 진행 중입니다.")
+                        .member(jade)
+                        .build()
+        );
+
+        // 총 게시글 수를 ARTICLE_COUNT로 유지
+        for (int i = 1; i <= ARTICLE_COUNT - 3; i++) {
             Member author = members.get((i - 1) % members.size());
+
             toSave.add(
                     Article.builder()
                             .articleUuid("article_uuid" + i)
-                            .title(author.getNickname() + " 게시글" + i)
+                            .title(author.getNickname() + " 게시글 " + i)
                             .content(author.getNickname() + "이(가) 작성한 " + i + "번째 게시글 내용")
                             .member(author)
                             .build()
             );
         }
+
         return articleRepository.saveAll(toSave);
     }
 
     private void createComments(List<Member> members, List<Article> articles) {
         List<ArticleComment> toSave = new ArrayList<>();
+
+        Member jade = members.stream()
+                .filter(member -> member.getEmail().equals("jade@naver.com"))
+                .findFirst()
+                .orElseThrow();
+
+        Article jadeFirstArticle = articles.stream()
+                .filter(article -> article.getArticleUuid().equals("jade_article_uuid_1"))
+                .findFirst()
+                .orElseThrow();
+
+        Article jadeSecondArticle = articles.stream()
+                .filter(article -> article.getArticleUuid().equals("jade_article_uuid_2"))
+                .findFirst()
+                .orElseThrow();
+
+        Member testUser1 = members.stream()
+                .filter(member -> member.getEmail().equals("test1@kakaotech.com"))
+                .findFirst()
+                .orElseThrow();
+
+        Member testUser2 = members.stream()
+                .filter(member -> member.getEmail().equals("test2@kakaotech.com"))
+                .findFirst()
+                .orElseThrow();
+
+        // Jade 게시글에 달린 명시적 테스트 댓글
+        toSave.add(
+                ArticleComment.builder()
+                        .articleCommentUuid("jade_comment_uuid_1")
+                        .content("Jade님 첫 게시글 반갑습니다!")
+                        .member(testUser1)
+                        .article(jadeFirstArticle)
+                        .build()
+        );
+
+        toSave.add(
+                ArticleComment.builder()
+                        .articleCommentUuid("jade_comment_uuid_2")
+                        .content("앞으로도 자주 글 올려주세요.")
+                        .member(testUser2)
+                        .article(jadeFirstArticle)
+                        .build()
+        );
+
+        toSave.add(
+                ArticleComment.builder()
+                        .articleCommentUuid("jade_comment_uuid_3")
+                        .content("저는 김치찌개 추천합니다.")
+                        .member(jade)
+                        .article(jadeSecondArticle)
+                        .build()
+        );
+
+        // 나머지 게시글용 더미 댓글
         int commentSeq = 1;
 
         for (int i = 0; i < articles.size(); i++) {
             Article article = articles.get(i);
-            // 게시글마다 0 ~ MAX_COMMENTS_PER_ARTICLE 개의 댓글 (순환)
+
+            if (article.getArticleUuid().startsWith("jade_article_uuid")) {
+                continue;
+            }
+
             int commentCount = i % (MAX_COMMENTS_PER_ARTICLE + 1);
 
             for (int c = 0; c < commentCount; c++) {
-                // 댓글 작성자도 순환 분배
                 Member commenter = members.get((i + c) % members.size());
+
                 toSave.add(
                         ArticleComment.builder()
                                 .articleCommentUuid("comment_uuid" + commentSeq)
@@ -95,10 +201,10 @@ public class DataInitializer implements ApplicationRunner {
                                 .article(article)
                                 .build()
                 );
-                article.increaseCommentCount();
                 commentSeq++;
             }
         }
+
         commentRepository.saveAll(toSave);
     }
 }

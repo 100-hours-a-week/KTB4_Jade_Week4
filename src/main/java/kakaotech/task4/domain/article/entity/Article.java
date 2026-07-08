@@ -10,7 +10,7 @@ import lombok.*;
 @Entity
 @Table(
         indexes = {
-                @Index(name = "idx_article_created_at", columnList = "created_at")
+                @Index(name = "idx_article_created_at", columnList = "article_id, created_at")
         }
 )
 @Getter
@@ -60,34 +60,11 @@ public class Article extends BaseEntity {
                 .build();
     }
 
-    public synchronized void increaseLikedCount() {
-        this.likedCount++;
-    }
-
-    public synchronized void decreaseLikedCount() {
-        if (this.likedCount > 0) {
-            this.likedCount--;
-        }
-    }
-
-    public synchronized void increaseViewCount() {
-        this.viewCount++;
-    }
-
-    public synchronized void increaseCommentCount() {
-        this.commentCount++;
-    }
-
-    public synchronized void decreaseCommentCount() {
-        if (this.commentCount > 0) {
-            this.commentCount--;
-        }
-    }
-
     public void update(UpdateArticleRequest request) {
         this.title = request.title();
         this.content = request.content();
     }
+
 
     @Override
     public boolean equals(Object o) {

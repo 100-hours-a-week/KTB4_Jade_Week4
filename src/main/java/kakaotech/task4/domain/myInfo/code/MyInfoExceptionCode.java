@@ -7,7 +7,7 @@ import org.springframework.http.HttpStatus;
 
 @Getter
 @AllArgsConstructor
-public enum MyExceptionCode implements ExceptionCode {
+public enum MyInfoExceptionCode implements ExceptionCode {
     BAD_REQUEST(HttpStatus.BAD_REQUEST, "MY-400-001", "변경할 내용을 입력해주세요."),
     NOT_FOUND(HttpStatus.NOT_FOUND, "MY-404-001", "이미 탈퇴한 회원입니다."),
     DUPLICATE_NICKNAME(HttpStatus.CONFLICT, "MY-409-001", "중복된 닉네임입니다."),

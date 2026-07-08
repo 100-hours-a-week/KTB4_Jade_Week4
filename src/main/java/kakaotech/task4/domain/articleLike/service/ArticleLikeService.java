@@ -2,29 +2,34 @@ package kakaotech.task4.domain.articleLike.service;
 
 import kakaotech.task4.common.exception.CustomException;
 import kakaotech.task4.domain.article.entity.Article;
+import kakaotech.task4.domain.article.service.ArticleService;
 import kakaotech.task4.domain.articleLike.code.ArticleLikeExceptionCode;
 import kakaotech.task4.domain.articleLike.dto.ArticleLikeResponse;
 import kakaotech.task4.domain.articleLike.entity.ArticleLike;
 import kakaotech.task4.domain.articleLike.repository.ArticleLikeRepository;
 import kakaotech.task4.domain.member.entity.Member;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+@Slf4j
 @Service
 @Transactional(readOnly = true)
 @RequiredArgsConstructor
 public class ArticleLikeService {
     private final ArticleLikeRepository articleLikeRepository;
+    private final ArticleService articleService;
 
     @Transactional
     public ArticleLikeResponse like(Member member, Article article) {
-        if (articleLikeRepository.existsByArticleAndMember(article, member)) {
-            throw new CustomException(ArticleLikeExceptionCode.ALREADY_LIKED);
+        int likeCount = article.getLikedCount();
+        if (!articleLikeRepository.existsByArticleAndMember(article, member)) {
+            articleLikeRepository.save(ArticleLike.of(article, member));
+            likeCount = articleService.increaseLikedCount(article.getArticleId());
+            log.info("좋아요 눌러써용");
         }
-        articleLikeRepository.save(ArticleLike.of(article, member));
-        article.increaseLikedCount();
-        return ArticleLikeResponse.of(true, article.getLikedCount());
+        return ArticleLikeResponse.of(true, likeCount);
     }
 
     @Transactional
@@ -32,8 +37,8 @@ public class ArticleLikeService {
         ArticleLike articleLike = articleLikeRepository.findByArticleAndMember(article, member)
                 .orElseThrow(() -> new CustomException(ArticleLikeExceptionCode.LIKE_NOT_FOUND));
         articleLikeRepository.delete(articleLike);
-        article.decreaseLikedCount();
-        return ArticleLikeResponse.of(false, article.getLikedCount());
+        int likeCount = articleService.decreaseLikedCount(article.getArticleId());
+        return ArticleLikeResponse.of(false, likeCount);
     }
 
     public boolean isLiked(Member member, Article article) {

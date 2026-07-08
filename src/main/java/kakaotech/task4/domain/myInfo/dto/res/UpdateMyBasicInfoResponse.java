@@ -5,11 +5,13 @@ import lombok.Builder;
 
 @Builder
 public record UpdateMyBasicInfoResponse(
-        String profileImageUrl
+        String profileImageUrl,
+        String nickname
 ) {
     public static UpdateMyBasicInfoResponse from(Member member) {
         return UpdateMyBasicInfoResponse.builder()
                 .profileImageUrl(member.getProfileImageUrl())
+                .nickname(member.getNickname())
                 .build();
     }
 }

@@ -2,7 +2,7 @@ package kakaotech.task4.domain.myInfo.service;
 
 import kakaotech.task4.common.exception.CommonFieldError;
 import kakaotech.task4.common.exception.CustomException;
-import kakaotech.task4.domain.myInfo.code.MyExceptionCode;
+import kakaotech.task4.domain.myInfo.code.MyInfoExceptionCode;
 import kakaotech.task4.domain.myInfo.dto.req.UpdateMyBasicInfoRequest;
 import kakaotech.task4.domain.myInfo.dto.req.UpdateMySecurityRequest;
 import kakaotech.task4.domain.myInfo.dto.res.MyBasicInfoResponse;
@@ -10,20 +10,24 @@ import kakaotech.task4.domain.myInfo.dto.res.UpdateMyBasicInfoResponse;
 import kakaotech.task4.domain.member.entity.Member;
 import kakaotech.task4.domain.member.service.MemberService;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.HashMap;
 import java.util.Map;
 
+@Slf4j
 @Service
 @AllArgsConstructor
-public class MyService {
+public class MyInfoService {
     private final MemberService memberService;
 
     public MyBasicInfoResponse getMyBasicInfo(Member member) {
         return MyBasicInfoResponse.from(member);
     }
 
+    @Transactional
     public UpdateMyBasicInfoResponse updateMyBasicInfo(Member member, UpdateMyBasicInfoRequest request) {
         validateAllNull(request);
         validateDuplicateNickname(request.nickname());
@@ -32,24 +36,26 @@ public class MyService {
         return UpdateMyBasicInfoResponse.from(member);
     }
 
+    @Transactional
     public void updateMySecurity(Member member, UpdateMySecurityRequest request) {
         validatePasswordMatch(request);
         member.updatePassword(request.password());
     }
 
+    @Transactional
     public void deleteAccount(Member member) {
         member.softDelete();
     }
 
     private void validateAllNull(UpdateMyBasicInfoRequest request) {
         if (request.isAllNull()) {
-            throw new CustomException(MyExceptionCode.BAD_REQUEST);
+            throw new CustomException(MyInfoExceptionCode.BAD_REQUEST);
         }
     }
 
     private void validateDuplicateNickname(String nickname) {
         if (memberService.existsByNickname(nickname)) {
-            throw new CustomException(MyExceptionCode.DUPLICATE_NICKNAME);
+            throw new CustomException(MyInfoExceptionCode.DUPLICATE_NICKNAME);
         }
     }
 
@@ -57,7 +63,7 @@ public class MyService {
         if (!request.validatePasswordMatch()) {
             Map<String, Object> fieldErrors = new HashMap<>();
             fieldErrors.put(CommonFieldError.PASSWORD_MISMATCH.getField(), CommonFieldError.PASSWORD_MISMATCH.getMessage());
-            throw new CustomException(MyExceptionCode.INVALID_PASSWORD, fieldErrors);
+            throw new CustomException(MyInfoExceptionCode.INVALID_PASSWORD, fieldErrors);
         }
     }
 }

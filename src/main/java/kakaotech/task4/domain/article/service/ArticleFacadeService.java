@@ -12,6 +12,7 @@ import kakaotech.task4.domain.comment.service.ArticleCommentService;
 import kakaotech.task4.domain.member.entity.Member;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -42,10 +43,12 @@ public class ArticleFacadeService {
         return articleService.getArticleList(lastArticleUuid, size);
     }
 
+    @Transactional
     public ArticleDetailResponse getArticleDetail(Member member, String articleUuid) {
         Article article = articleService.findArticleByUuid(articleUuid);
-        article.increaseViewCount();
+        articleService.increaseViewCount(article.getArticleId());
 
+        article = articleService.findArticleByUuid(articleUuid);
         String imageUrl = articlePhotoService.findPhotoUrlByArticle(article);
         boolean isLiked = articleLikeService.isLiked(member, article);
         List<CommentDetailResponse> comments = articleCommentService.findCommentsByArticle(article);

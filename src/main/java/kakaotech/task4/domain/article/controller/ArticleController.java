@@ -73,5 +73,4 @@ public class ArticleController implements ArticleApi {
         ArticleDetailResponse response = articleFacadeService.getArticleDetail(member, articleUuid);
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
-
 }

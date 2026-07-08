@@ -27,13 +27,12 @@ public class MyInfoService {
         return MyBasicInfoResponse.from(member);
     }
 
-    //@Transactional
+    @Transactional
     public UpdateMyBasicInfoResponse updateMyBasicInfo(Member member, UpdateMyBasicInfoRequest request) {
         validateAllNull(request);
         validateDuplicateNickname(request.nickname());
 
         member.updateBasicInfo(request);
-        log.info("변경된 닉네임: {}", member.getNickname());
         return UpdateMyBasicInfoResponse.from(member);
     }
 

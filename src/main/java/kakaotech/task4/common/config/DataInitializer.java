@@ -158,7 +158,6 @@ public class DataInitializer implements ApplicationRunner {
                         .article(jadeFirstArticle)
                         .build()
         );
-        jadeFirstArticle.increaseCommentCount();
 
         toSave.add(
                 ArticleComment.builder()
@@ -168,7 +167,6 @@ public class DataInitializer implements ApplicationRunner {
                         .article(jadeFirstArticle)
                         .build()
         );
-        jadeFirstArticle.increaseCommentCount();
 
         toSave.add(
                 ArticleComment.builder()
@@ -178,7 +176,6 @@ public class DataInitializer implements ApplicationRunner {
                         .article(jadeSecondArticle)
                         .build()
         );
-        jadeSecondArticle.increaseCommentCount();
 
         // 나머지 게시글용 더미 댓글
         int commentSeq = 1;
@@ -186,7 +183,6 @@ public class DataInitializer implements ApplicationRunner {
         for (int i = 0; i < articles.size(); i++) {
             Article article = articles.get(i);
 
-            // Jade 수동 게시글은 위에서 이미 댓글을 넣었으므로 필요하면 제외
             if (article.getArticleUuid().startsWith("jade_article_uuid")) {
                 continue;
             }
@@ -205,8 +201,6 @@ public class DataInitializer implements ApplicationRunner {
                                 .article(article)
                                 .build()
                 );
-
-                article.increaseCommentCount();
                 commentSeq++;
             }
         }

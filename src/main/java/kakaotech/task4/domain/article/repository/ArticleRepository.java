@@ -25,24 +25,25 @@ public interface ArticleRepository extends JpaRepository<Article, Long> {
         select a from Article a
         join fetch a.member
         where a.deletedAt is null
-        order by a.createdAt desc
+        order by a.createdAt desc, a.articleId desc
         """)
     List<Article> findFirstPage(Pageable pageable);
 
     @Query("""
-        select a from Article a
-        join fetch a.member
-        where a.deletedAt is null
-          and a.createdAt < :cursorCreatedAt
-        order by a.createdAt desc
-        """)
+    select a from Article a
+    join fetch a.member
+    where a.deletedAt is null
+      and (a.createdAt < :cursorCreatedAt
+           or (a.createdAt = :cursorCreatedAt and a.articleId < :cursorArticleId))
+    order by a.createdAt desc, a.articleId desc
+    """)
     List<Article> findNextPage(@Param("cursorCreatedAt") LocalDateTime cursorCreatedAt,
+                               @Param("cursorArticleId") Long cursorArticleId,
                                Pageable pageable);
-
 
     @Modifying(clearAutomatically = true)
     @Query("update Article a set a.viewCount = a.viewCount + 1 where a.articleId = :id")
-    int increaseViewCount(@Param("id") Long id);
+    void increaseViewCount(@Param("id") Long id);
 
     @Modifying
     @Query("update Article a set a.likedCount = a.likedCount + 1 where a.articleId = :id")
@@ -55,10 +56,10 @@ public interface ArticleRepository extends JpaRepository<Article, Long> {
 
     @Modifying
     @Query("update Article a set a.commentCount = a.commentCount + 1 where a.articleId = :id")
-    int increaseCommentCount(@Param("id") Long id);
+    void increaseCommentCount(@Param("id") Long id);
 
     @Modifying
     @Query("update Article a set a.commentCount = a.commentCount - 1 " +
             "where a.articleId = :id and a.commentCount > 0")
-    int decreaseCommentCount(@Param("id") Long id);
+    void decreaseCommentCount(@Param("id") Long id);
 }

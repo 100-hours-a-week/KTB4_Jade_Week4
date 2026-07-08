@@ -1,11 +1,11 @@
 package kakaotech.task4.common.exception;
 
-import jakarta.validation.ConstraintViolationException;
 import jakarta.validation.Path;
 import kakaotech.task4.common.exception.ExceptionCode.ExceptionCode;
 import kakaotech.task4.common.exception.ExceptionCode.GlobalExceptionCode;
 import kakaotech.task4.common.response.ExceptionRes;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -47,8 +47,8 @@ public class GlobalExceptionHandler {
         return toErrorResponse(error, fields);
     }
 
-    @ExceptionHandler(ConstraintViolationException.class)
-    protected ResponseEntity<?> handleConstraintViolation(final ConstraintViolationException e) {
+    @ExceptionHandler(jakarta.validation.ConstraintViolationException.class)
+    protected ResponseEntity<?> handleConstraintViolation(final jakarta.validation.ConstraintViolationException e) {
         Map<String, Object> fields = new LinkedHashMap<>();
         e.getConstraintViolations().forEach(violation -> {
             String field = extractFieldName(violation.getPropertyPath());
@@ -71,6 +71,16 @@ public class GlobalExceptionHandler {
     protected ResponseEntity<?> handleServerException(final Exception e) {
         log.error("[Exception] {}", e.getMessage());
         ExceptionCode error = GlobalExceptionCode.INTERNAL_SERVER_ERROR;
+        return toErrorResponse(error);
+    }
+
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public ResponseEntity<?> handleDataIntegrityViolationException(
+            final DataIntegrityViolationException e
+    ) {
+        log.warn("[DataIntegrityViolationException] {}", e.getMessage());
+
+        ExceptionCode error = GlobalExceptionCode.DATA_INTEGRITY_VIOLATION;
         return toErrorResponse(error);
     }
 

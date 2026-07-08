@@ -4,6 +4,7 @@ import kakaotech.task4.common.exception.CustomException;
 import kakaotech.task4.common.uuid.UuidCreator;
 import kakaotech.task4.common.uuid.UuidPrefix;
 import kakaotech.task4.domain.article.code.ArticleExceptionCode;
+import kakaotech.task4.domain.article.dto.cursor.ArticleCursor;
 import kakaotech.task4.domain.article.dto.req.CreateArticleRequest;
 import kakaotech.task4.domain.article.dto.req.UpdateArticleRequest;
 import kakaotech.task4.domain.article.dto.res.ArticleListResponse;
@@ -81,26 +82,28 @@ public class ArticleService {
                 .orElseThrow(() -> new CustomException(ArticleExceptionCode.NOT_FOUND));
     }
 
-    public ArticleListResponse getArticleList(String lastArticleUuid, int size) {
+    public ArticleListResponse getArticleList(String cursor, int size) {
         Pageable pageable = PageRequest.of(0, size + 1);
 
-        List<Article> articles;
-        if (lastArticleUuid == null) {
-            articles = articleRepository.findFirstPage(pageable);
-        } else {
-            Article cursor = findArticleByUuid(lastArticleUuid);
-            articles = articleRepository.findNextPage(cursor.getCreatedAt(), pageable);
-        }
+        List<Article> articles = (cursor == null)
+                ? articleRepository.findFirstPage(pageable)
+                : findNextPage(cursor, pageable);
 
         boolean hasNext = articles.size() > size;
         if (hasNext) articles = articles.subList(0, size);
 
         List<ArticleSummaryResponse> responses = articles.stream()
                 .map(ArticleSummaryResponse::from)
-                .collect(Collectors.toList());
+                .toList();
 
-        String nextCursor = hasNext ? articles.getLast().getArticleUuid() : null;
+        String nextCursor = hasNext ? ArticleCursor.encode(articles.getLast()) : null;
+
         return ArticleListResponse.of(responses, hasNext, nextCursor);
+    }
+
+    private List<Article> findNextPage(String cursor, Pageable pageable) {
+        ArticleCursor c = ArticleCursor.decode(cursor);
+        return articleRepository.findNextPage(c.createdAt(), c.articleId(), pageable);
     }
 
     private void validateOwner(Member member, Article article, ArticleExceptionCode exceptionCode) {

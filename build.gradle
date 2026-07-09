@@ -31,6 +31,15 @@ dependencies {
     runtimeOnly 'com.h2database:h2'
     implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.9'
     implementation 'org.apache.commons:commons-lang3:3.18.0'
+    implementation 'org.springframework.boot:spring-boot-starter-security'
+
+    implementation 'io.jsonwebtoken:jjwt-api:0.12.6'
+    runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.12.6'
+    runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.12.6'
+
+    implementation 'com.github.ben-manes.caffeine:caffeine'
+
+    testImplementation 'org.springframework.security:spring-security-test'
 }
 
 tasks.named('test') {

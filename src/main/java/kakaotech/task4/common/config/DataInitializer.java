@@ -9,6 +9,7 @@ import kakaotech.task4.domain.member.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -19,13 +20,14 @@ import java.util.List;
 @RequiredArgsConstructor
 public class DataInitializer implements ApplicationRunner {
 
-    private final MemberRepository memberRepository;
-    private final ArticleRepository articleRepository;
-    private final ArticleCommentRepository commentRepository;
-
     private static final int MEMBER_COUNT = 10;
     private static final int ARTICLE_COUNT = 100;
     private static final int MAX_COMMENTS_PER_ARTICLE = 5;
+
+    private final MemberRepository memberRepository;
+    private final ArticleRepository articleRepository;
+    private final ArticleCommentRepository commentRepository;
+    private final PasswordEncoder passwordEncoder;
 
     @Override
     @Transactional
@@ -42,12 +44,11 @@ public class DataInitializer implements ApplicationRunner {
     private List<Member> createMembers() {
         List<Member> toSave = new ArrayList<>();
 
-        // 테스트용 Jade 계정
         toSave.add(
                 Member.builder()
                         .memberUuid("jade_uuid")
                         .email("jade@naver.com")
-                        .password("Jade1234!")
+                        .password(passwordEncoder.encode("Jade1234!"))
                         .nickname("Jade")
                         .profileImageUrl("jade-profile-url")
                         .build()
@@ -58,7 +59,7 @@ public class DataInitializer implements ApplicationRunner {
                     Member.builder()
                             .memberUuid("user_test" + i + "uuid")
                             .email("test" + i + "@kakaotech.com")
-                            .password("Test" + i + "Hello1234!")
+                            .password(passwordEncoder.encode("Test" + i + "Hello1234!"))
                             .nickname("test" + i)
                             .profileImageUrl("url" + i)
                             .build()
@@ -76,7 +77,6 @@ public class DataInitializer implements ApplicationRunner {
                 .findFirst()
                 .orElseThrow();
 
-        // Jade가 직접 작성한 테스트 게시글
         toSave.add(
                 Article.builder()
                         .articleUuid("jade_article_uuid_1")
@@ -104,7 +104,6 @@ public class DataInitializer implements ApplicationRunner {
                         .build()
         );
 
-        // 총 게시글 수를 ARTICLE_COUNT로 유지
         for (int i = 1; i <= ARTICLE_COUNT - 3; i++) {
             Member author = members.get((i - 1) % members.size());
 
@@ -149,7 +148,6 @@ public class DataInitializer implements ApplicationRunner {
                 .findFirst()
                 .orElseThrow();
 
-        // Jade 게시글에 달린 명시적 테스트 댓글
         toSave.add(
                 ArticleComment.builder()
                         .articleCommentUuid("jade_comment_uuid_1")
@@ -177,7 +175,6 @@ public class DataInitializer implements ApplicationRunner {
                         .build()
         );
 
-        // 나머지 게시글용 더미 댓글
         int commentSeq = 1;
 
         for (int i = 0; i < articles.size(); i++) {
@@ -201,6 +198,7 @@ public class DataInitializer implements ApplicationRunner {
                                 .article(article)
                                 .build()
                 );
+
                 commentSeq++;
             }
         }

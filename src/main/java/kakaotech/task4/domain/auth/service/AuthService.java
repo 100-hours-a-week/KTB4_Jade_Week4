@@ -10,6 +10,7 @@ import kakaotech.task4.domain.auth.dto.res.SignInResponse;
 import kakaotech.task4.domain.member.entity.Member;
 import kakaotech.task4.domain.member.service.MemberService;
 import lombok.AllArgsConstructor;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.HashMap;
@@ -19,6 +20,7 @@ import java.util.Map;
 @AllArgsConstructor
 public class AuthService {
     private final MemberService memberService;
+    private final PasswordEncoder passwordEncoder;
 
     public void signUp(SignUpRequest request) {
         validatePasswordMatch(request);
@@ -62,9 +64,9 @@ public class AuthService {
         return member;
     }
 
-    private void validatePassword(Member member, String password) {
-        if (!member.getPassword().equals(password)) {
-            throw new CustomException(AuthExceptionCode.INVALID_CREDENTIALS);
+    private void validatePassword(Member member, String rawPassword) {
+        if (!passwordEncoder.matches(rawPassword, member.getPassword())) {
+            throw new CustomException( AuthExceptionCode.INVALID_CREDENTIALS);
         }
     }
 

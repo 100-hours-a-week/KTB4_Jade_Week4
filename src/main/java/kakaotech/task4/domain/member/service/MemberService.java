@@ -7,6 +7,7 @@ import kakaotech.task4.domain.auth.dto.req.SignUpRequest;
 import kakaotech.task4.domain.member.entity.Member;
 import kakaotech.task4.domain.member.repository.MemberRepository;
 import lombok.AllArgsConstructor;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -17,11 +18,13 @@ import java.util.Optional;
 @AllArgsConstructor
 public class MemberService {
     private final MemberRepository memberRepository;
+    private final PasswordEncoder passwordEncoder;
 
     @Transactional
     public void signUp(SignUpRequest request) {
         String uuid = UuidCreator.create(UuidPrefix.MEMBER);
-        Member member = Member.of(uuid, request);
+        String encodedPassword = passwordEncoder.encode(request.password());
+        Member member = Member.of(uuid, request, encodedPassword);
         memberRepository.save(member);
     }
 

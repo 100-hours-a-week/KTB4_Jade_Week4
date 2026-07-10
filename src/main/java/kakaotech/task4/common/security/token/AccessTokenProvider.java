@@ -1,9 +1,10 @@
-package kakaotech.task4.common.security.jwt;
+package kakaotech.task4.common.security.token;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import kakaotech.task4.common.security.properties.JwtProperties;
+import kakaotech.task4.common.security.token.dto.AccessTokenInfo;
 import org.springframework.stereotype.Component;
 
 import javax.crypto.SecretKey;
@@ -25,11 +26,11 @@ public class AccessTokenProvider {
         this.secretKey = Keys.hmacShaKeyFor(jwtProperties.secret().getBytes(StandardCharsets.UTF_8));
     }
 
-    public String createAccessToken(String memberUuid) {
+    public AccessTokenInfo createAccessToken(String memberUuid) {
         Instant issuedAt = Instant.now();
         Instant expiresAt = issuedAt.plus(jwtProperties.accessExpiration());
 
-        return Jwts.builder()
+        String token = Jwts.builder()
                 .issuer(jwtProperties.issuer())
                 .audience().add(jwtProperties.audience()).and()
                 .subject(memberUuid)
@@ -39,6 +40,8 @@ public class AccessTokenProvider {
                 .expiration(Date.from(expiresAt))
                 .signWith(secretKey, Jwts.SIG.HS256)
                 .compact();
+
+        return AccessTokenInfo.of(token, expiresAt);
     }
 
     public Claims getClaims(String accessToken) {

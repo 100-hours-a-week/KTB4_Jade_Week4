@@ -5,42 +5,31 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import kakaotech.task4.common.security.jwt.JwtAuthService;
+import kakaotech.task4.common.security.SecurityPaths;
+import kakaotech.task4.common.security.token.JwtAuthService;
 import kakaotech.task4.common.security.properties.CookieProperties;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 import java.util.Arrays;
-import java.util.Set;
 
-@Component
 @RequiredArgsConstructor
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
-    private static final Set<String> JWT_EXCLUDED_PATHS = Set.of(
-            "/auth/sign-up",
-            "/auth/sign-in",
-            "/auth/token/re-issue",
-            "/auth/csrf"
-    );
-
     private final JwtAuthService jwtAuthService;
     private final CookieProperties cookieProperties;
 
     @Override
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response,
-                                    FilterChain filterChain) throws ServletException, IOException {
+    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         String accessToken = getAccessToken(request);
 
         if (accessToken == null) {
             filterChain.doFilter(request, response);
             return;
         }
-
 
         Authentication authentication = jwtAuthService.authenticate(accessToken);
         SecurityContext context = SecurityContextHolder.createEmptyContext();
@@ -52,7 +41,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {
-        return JWT_EXCLUDED_PATHS.contains(request.getServletPath());
+        return SecurityPaths.JWT_EXCLUDED_PATHS.contains(request.getServletPath());
     }
 
     private String getAccessToken(HttpServletRequest request) {

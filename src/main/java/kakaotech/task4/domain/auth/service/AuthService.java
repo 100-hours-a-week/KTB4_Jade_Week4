@@ -1,12 +1,17 @@
 package kakaotech.task4.domain.auth.service;
 
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import kakaotech.task4.common.exception.CommonFieldError;
 import kakaotech.task4.common.exception.CustomException;
+import kakaotech.task4.common.security.token.AuthTokenService;
+import kakaotech.task4.common.security.token.dto.AccessTokenInfo;
 import kakaotech.task4.domain.auth.code.AuthExceptionCode;
 import kakaotech.task4.domain.auth.code.AuthFieldError;
 import kakaotech.task4.domain.auth.dto.req.SignInRequest;
 import kakaotech.task4.domain.auth.dto.req.SignUpRequest;
 import kakaotech.task4.domain.auth.dto.res.SignInResponse;
+import kakaotech.task4.domain.auth.dto.res.TokenReissueResponse;
 import kakaotech.task4.domain.member.entity.Member;
 import kakaotech.task4.domain.member.service.MemberService;
 import lombok.AllArgsConstructor;
@@ -21,6 +26,7 @@ import java.util.Map;
 public class AuthService {
     private final MemberService memberService;
     private final PasswordEncoder passwordEncoder;
+    private final AuthTokenService authTokenService;
 
     public void signUp(SignUpRequest request) {
         validatePasswordMatch(request);
@@ -52,26 +58,31 @@ public class AuthService {
         }
     }
 
-    public SignInResponse signIn(SignInRequest request) {
+    public SignInResponse signIn(SignInRequest request, HttpServletResponse response) {
         Member member = getAuthenticatedUser(request);
-        return SignInResponse.from(member.getProfileImageUrl(), member.getMemberUuid());
+        AccessTokenInfo accessTokenInfo = authTokenService.issue(member.getMemberUuid(), response);
+        return SignInResponse.from(member.getProfileImageUrl(), accessTokenInfo.expiresAt());
+    }
+
+    public TokenReissueResponse reissue(HttpServletRequest request, HttpServletResponse response) {
+        AccessTokenInfo accessTokenInfo = authTokenService.reissue(request, response);
+        return TokenReissueResponse.from(accessTokenInfo.expiresAt());
+    }
+
+    public void signOut(HttpServletRequest request, HttpServletResponse response) {
+        authTokenService.delete(request, response);
     }
 
     private Member getAuthenticatedUser(SignInRequest request) {
         Member member = memberService.findByEmail(request.email())
                 .orElseThrow(() -> new CustomException(AuthExceptionCode.INVALID_CREDENTIALS));
-        //validatePassword(member, request.password());
+        validatePassword(member, request.password());
         return member;
     }
 
     private void validatePassword(Member member, String rawPassword) {
         if (!passwordEncoder.matches(rawPassword, member.getPassword())) {
-            throw new CustomException( AuthExceptionCode.INVALID_CREDENTIALS);
+            throw new CustomException(AuthExceptionCode.INVALID_CREDENTIALS);
         }
-    }
-
-    //todo : 추후 jwt, 세션 등으로 상태 관리 할 시 비즈니스 로직 추가.
-    public void signOut() {
-
     }
 }

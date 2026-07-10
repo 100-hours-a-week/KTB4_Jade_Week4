@@ -1,10 +1,10 @@
-package kakaotech.task4.common.security.jwt;
+package kakaotech.task4.common.security.token;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.JwtException;
 import kakaotech.task4.common.exception.CustomException;
-import kakaotech.task4.common.security.jwt.code.JwtExceptionCode;
+import kakaotech.task4.common.security.token.code.JwtExceptionCode;
 import kakaotech.task4.common.security.properties.JwtProperties;
 import kakaotech.task4.domain.auth.code.AuthExceptionCode;
 import kakaotech.task4.domain.member.entity.Member;

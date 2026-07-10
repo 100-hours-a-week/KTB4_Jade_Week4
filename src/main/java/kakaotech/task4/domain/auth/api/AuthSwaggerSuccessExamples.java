@@ -11,8 +11,15 @@ public final class AuthSwaggerSuccessExamples {
             """;
 
     public static final String SIGN_IN_200 = """
-        {
-            "profileImageUrl": "url"
-        }
-        """;
+            {
+              "profileImageUrl": "url",
+              "accessTokenExpiresAt": "2026-07-11T12:34:56Z"
+            }
+            """;
+
+    public static final String TOKEN_REISSUE_200 = """
+            {
+              "accessTokenExpiresAt": "2026-07-11T12:34:56Z"
+            }
+            """;
 }

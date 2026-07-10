@@ -7,6 +7,8 @@ import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import kakaotech.task4.common.resolver.CurrentMember;
 import kakaotech.task4.domain.auth.dto.req.SignInRequest;
@@ -53,12 +55,28 @@ public interface AuthApi {
                     content = @Content(mediaType = "application/json",
                             examples = @ExampleObject(value = AuthSwaggerErrorExamples.AUTH_422_002)))
     })
-    ResponseEntity<?> signIn(@Valid @RequestBody SignInRequest request);
+    ResponseEntity<?> signIn(@Valid @RequestBody SignInRequest request, HttpServletResponse response);
 
     @Operation(summary = "로그아웃", description = "로그아웃 api")
     @ApiResponses({
-            @ApiResponse(responseCode = "204", description = "로그아웃 성공",
-                    content = @Content)
+            @ApiResponse(responseCode = "204", description = "로그아웃 성공", content = @Content)
     })
-    ResponseEntity<?> signOut(@Parameter(description = "유저 UUID", required = true) @CurrentMember Member member);
+    ResponseEntity<?> signOut(@Parameter(hidden = true) @CurrentMember Member member, HttpServletRequest request, HttpServletResponse response);
+
+    @Operation(summary = "토큰 재발급", description = "Refresh Token 쿠키로 Access Token과 Refresh Token을 재발급합니다.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "토큰 재발급 성공",
+                    content = @Content(mediaType = "application/json",
+                            examples = @ExampleObject(value = AuthSwaggerSuccessExamples.TOKEN_REISSUE_200))),
+            @ApiResponse(responseCode = "401", description = "Refresh Token 만료 또는 유효하지 않음",
+                    content = @Content(mediaType = "application/json",
+                            examples = {
+                                    @ExampleObject(name = "Refresh Token 만료", value = AuthSwaggerErrorExamples.JWT_401_004),
+                                    @ExampleObject(name = "Refresh Token 유효하지 않음", value = AuthSwaggerErrorExamples.JWT_401_005)
+                            })),
+            @ApiResponse(responseCode = "404", description = "Refresh Token 없음",
+                    content = @Content(mediaType = "application/json",
+                            examples = @ExampleObject(value = AuthSwaggerErrorExamples.JWT_404_001)))
+    })
+    ResponseEntity<?> reissue(HttpServletRequest request, HttpServletResponse response);
 }

@@ -2,15 +2,17 @@ package kakaotech.task4.domain.auth.dto.res;
 
 import lombok.Builder;
 
+import java.time.Instant;
+
 @Builder
-public record SignInResponse (
+public record SignInResponse(
         String profileImageUrl,
-        String userUuid
+        Instant accessTokenExpiresAt
 ) {
-    public static SignInResponse from(String profileImageUrl, String userUuid) {
+    public static SignInResponse from(String profileImageUrl, Instant accessTokenExpiresAt) {
         return SignInResponse.builder()
                 .profileImageUrl(profileImageUrl)
-                .userUuid(userUuid)
+                .accessTokenExpiresAt(accessTokenExpiresAt)
                 .build();
     }
 }

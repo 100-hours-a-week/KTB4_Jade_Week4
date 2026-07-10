@@ -16,7 +16,6 @@ import java.time.Duration;
 public class TokenCookieService {
     private static final String ACCESS_COOKIE_PATH = "/";
     private static final String REFRESH_COOKIE_PATH = "/auth";
-
     private final CookieProperties cookieProperties;
     private final JwtProperties jwtProperties;
     private final RefreshTokenProperties refreshTokenProperties;

@@ -17,7 +17,6 @@ import java.util.UUID;
 public class AccessTokenProvider {
     public static final String TOKEN_TYPE_CLAIM = "token_type";
     public static final String ACCESS_TOKEN_TYPE = "access";
-
     private final JwtProperties jwtProperties;
     private final SecretKey secretKey;
 

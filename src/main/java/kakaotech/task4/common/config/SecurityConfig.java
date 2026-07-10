@@ -49,6 +49,7 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf
                         .csrfTokenRepository(csrfTokenRepository())
                         .csrfTokenRequestHandler(new CsrfTokenHandler())
+                        .ignoringRequestMatchers(SecurityPaths.SIGN_UP, SecurityPaths.SIGN_IN)
                 )
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .formLogin(AbstractHttpConfigurer::disable)
@@ -75,12 +76,6 @@ public class SecurityConfig {
         return repository;
     }
 
-    private void customizeCsrfCookie(ResponseCookie.ResponseCookieBuilder cookie) {
-        cookie.path("/");
-        cookie.secure(cookieProperties.secure());
-        cookie.sameSite(cookieProperties.sameSite());
-    }
-
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         return request -> {
@@ -91,5 +86,11 @@ public class SecurityConfig {
             configuration.setAllowCredentials(true);
             return configuration;
         };
+    }
+
+    private void customizeCsrfCookie(ResponseCookie.ResponseCookieBuilder cookie) {
+        cookie.path("/");
+        cookie.secure(cookieProperties.secure());
+        cookie.sameSite(cookieProperties.sameSite());
     }
 }

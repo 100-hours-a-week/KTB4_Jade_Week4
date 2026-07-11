@@ -83,7 +83,7 @@ public class ArticleService {
     }
 
     public ArticleListResponse getArticleList(String cursor, int size) {
-        Pageable pageable = PageRequest.of(0, size + 1);
+        Pageable pageable = PageRequest.ofSize(size + 1);
 
         List<Article> articles = (cursor == null)
                 ? articleRepository.findFirstPage(pageable)

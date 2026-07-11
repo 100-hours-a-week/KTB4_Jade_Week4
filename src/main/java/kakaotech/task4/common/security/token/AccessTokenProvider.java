@@ -51,8 +51,4 @@ public class AccessTokenProvider {
                 .parseSignedClaims(accessToken)
                 .getPayload();
     }
-
-    public String getMemberUuid(String accessToken) {
-        return getClaims(accessToken).getSubject();
-    }
 }

@@ -44,7 +44,7 @@ logging:
 
 security:
   jwt:
-    secret: ${JWT_SECRET:local-development-secret-key-must-be-at-least-32-bytes}
+    secret: ${JWT_SECRET:KtB4JadeLocalJwtSecret20260711_x7Qm9vR2pL5nC8sY3dE6hK1uW4aZ0bT}
     issuer: ktb4-jade-api
     audience: ktb4-jade-api
     access-expiration: 15m

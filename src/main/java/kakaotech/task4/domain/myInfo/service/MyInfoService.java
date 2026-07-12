@@ -11,6 +11,7 @@ import kakaotech.task4.domain.member.entity.Member;
 import kakaotech.task4.domain.member.service.MemberService;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -22,6 +23,7 @@ import java.util.Map;
 @AllArgsConstructor
 public class MyInfoService {
     private final MemberService memberService;
+    private final PasswordEncoder passwordEncoder;
 
     public MyBasicInfoResponse getMyBasicInfo(Member member) {
         return MyBasicInfoResponse.from(member);
@@ -39,7 +41,8 @@ public class MyInfoService {
     @Transactional
     public void updateMySecurity(Member member, UpdateMySecurityRequest request) {
         validatePasswordMatch(request);
-        member.updatePassword(request.password());
+        String encodedPassword = passwordEncoder.encode(request.password());
+        member.updatePassword(encodedPassword);
     }
 
     @Transactional

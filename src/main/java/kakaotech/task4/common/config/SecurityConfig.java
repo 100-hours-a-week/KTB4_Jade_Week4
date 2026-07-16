@@ -49,7 +49,7 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf
                         .csrfTokenRepository(csrfTokenRepository())
                         .csrfTokenRequestHandler(new CsrfTokenHandler())
-                        .ignoringRequestMatchers(SecurityPaths.SIGN_UP, SecurityPaths.SIGN_IN)
+                        .ignoringRequestMatchers(SecurityPaths.SIGN_UP, SecurityPaths.SIGN_IN, SecurityPaths.TOKEN_REISSUE)
                 )
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .formLogin(AbstractHttpConfigurer::disable)

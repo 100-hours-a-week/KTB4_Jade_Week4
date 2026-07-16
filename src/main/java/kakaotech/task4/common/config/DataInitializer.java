@@ -19,7 +19,6 @@ import java.util.List;
 @Component
 @RequiredArgsConstructor
 public class DataInitializer implements ApplicationRunner {
-
     private static final int MEMBER_COUNT = 10;
     private static final int ARTICLE_COUNT = 100;
     private static final int MAX_COMMENTS_PER_ARTICLE = 5;

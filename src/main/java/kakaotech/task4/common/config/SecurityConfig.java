@@ -49,8 +49,9 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf
                         .csrfTokenRepository(csrfTokenRepository())
                         .csrfTokenRequestHandler(new CsrfTokenHandler())
-                        .ignoringRequestMatchers(SecurityPaths.SIGN_UP, SecurityPaths.SIGN_IN)
+                        .ignoringRequestMatchers(SecurityPaths.SIGN_UP, SecurityPaths.SIGN_IN, SecurityPaths.H2_CONSOLE)
                 )
+                .headers(headers -> headers.frameOptions(frame -> frame.sameOrigin()))
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .formLogin(AbstractHttpConfigurer::disable)
                 .httpBasic(AbstractHttpConfigurer::disable)

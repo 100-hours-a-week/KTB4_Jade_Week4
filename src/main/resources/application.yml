@@ -38,9 +38,9 @@ logging:
         web: debug
       hibernate:
         SQL: off
-#        orm:
-#          jdbc:
-#            bind: trace
+#    org.springframework.orm.jpa: DEBUG
+#    org.springframework.transaction.interceptor: TRACE
+#    org.hibernate.orm.jdbc.bind: TRACE
 
 security:
   jwt:

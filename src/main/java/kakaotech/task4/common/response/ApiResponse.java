@@ -27,6 +27,7 @@ public record ApiResponse<T>(
     }
 
     public static ApiResponse<Void> error(ExceptionCode exceptionCode, Map<String, Object> fields) {
-        return new ApiResponse<>(false, null, exceptionCode.getMessage(), exceptionCode.getCode(), fields);
+        Map<String, Object> normalizedFields = (fields == null || fields.isEmpty()) ? null : fields;
+        return new ApiResponse<>(false, null, exceptionCode.getMessage(), exceptionCode.getCode(), normalizedFields);
     }
 }

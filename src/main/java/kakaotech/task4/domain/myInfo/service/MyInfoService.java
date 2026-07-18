@@ -40,8 +40,10 @@ public class MyInfoService {
 
     @Transactional
     public void updateMySecurity(Member member, UpdateMySecurityRequest request) {
+        validateNowPassword(member, request.nowPassword());
         validatePasswordMatch(request);
-        String encodedPassword = passwordEncoder.encode(request.password());
+
+        String encodedPassword = passwordEncoder.encode(request.nextPassword());
         member.updatePassword(encodedPassword);
     }
 
@@ -64,9 +66,19 @@ public class MyInfoService {
 
     private void validatePasswordMatch(UpdateMySecurityRequest request) {
         if (!request.validatePasswordMatch()) {
-            Map<String, Object> fieldErrors = new HashMap<>();
-            fieldErrors.put(CommonFieldError.PASSWORD_MISMATCH.getField(), CommonFieldError.PASSWORD_MISMATCH.getMessage());
-            throw new CustomException(MyInfoExceptionCode.INVALID_PASSWORD, fieldErrors);
+            throwInvalidPassword(CommonFieldError.PASSWORD_MISMATCH);
         }
+    }
+
+    private void validateNowPassword(Member member, String nowPassword) {
+        if (!passwordEncoder.matches(nowPassword, member.getPassword())) {
+            throwInvalidPassword(CommonFieldError.INVALID_NOW_PASSWORD);
+        }
+    }
+
+    private void throwInvalidPassword(CommonFieldError fieldError) {
+        Map<String, Object> fieldErrors = new HashMap<>();
+        fieldErrors.put(fieldError.getField(), fieldError.getMessage());
+        throw new CustomException(MyInfoExceptionCode.INVALID_PASSWORD, fieldErrors);
     }
 }

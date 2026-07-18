@@ -4,7 +4,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import kakaotech.task4.common.resolver.CurrentMember;
-import kakaotech.task4.common.response.SuccessRes;
+import kakaotech.task4.common.response.ApiResponse;
 import kakaotech.task4.domain.auth.api.AuthApi;
 import kakaotech.task4.domain.auth.code.AuthSuccessCode;
 import kakaotech.task4.domain.auth.dto.req.SignInRequest;
@@ -33,7 +33,7 @@ public class AuthController implements AuthApi {
     @Override
     public ResponseEntity<?> signUp(@Valid @RequestBody SignUpRequest request) {
         authService.signUp(request);
-        SuccessRes body = SuccessRes.from(AuthSuccessCode.SIGN_UP_SUCCESS.getStatus(), AuthSuccessCode.SIGN_UP_SUCCESS.getMessage());
+        ApiResponse<Void> body = ApiResponse.success(AuthSuccessCode.SIGN_UP_SUCCESS.getMessage(), null);
         return ResponseEntity.status(HttpStatus.CREATED).body(body);
     }
 
@@ -41,7 +41,7 @@ public class AuthController implements AuthApi {
     @Override
     public ResponseEntity<?> signIn(@Valid @RequestBody SignInRequest request, HttpServletResponse response) {
         SignInResponse signInResponse = authService.signIn(request, response);
-        return ResponseEntity.status(HttpStatus.OK).body(signInResponse);
+        return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(signInResponse));
     }
 
     @PostMapping("/sign-out")
@@ -55,7 +55,7 @@ public class AuthController implements AuthApi {
     @Override
     public ResponseEntity<?> reissue(HttpServletRequest request, HttpServletResponse response) {
         TokenReissueResponse tokenReissueResponse = authService.reissue(request, response);
-        return ResponseEntity.status(HttpStatus.OK).body(tokenReissueResponse);
+        return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(tokenReissueResponse));
     }
 
     @GetMapping("/csrf")

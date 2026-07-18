@@ -3,7 +3,7 @@ package kakaotech.task4.common.security.handler;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import kakaotech.task4.common.response.ExceptionRes;
+import kakaotech.task4.common.response.ApiResponse;
 import kakaotech.task4.common.security.token.code.JwtExceptionCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
@@ -26,6 +26,6 @@ public class JwtAuthenticationEntryPoint implements AuthenticationEntryPoint {
         response.setStatus(exceptionCode.getStatus().value());
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
         response.setCharacterEncoding("UTF-8");
-        objectMapper.writeValue(response.getWriter(), ExceptionRes.from(exceptionCode));
+        objectMapper.writeValue(response.getWriter(), ApiResponse.error(exceptionCode));
     }
 }

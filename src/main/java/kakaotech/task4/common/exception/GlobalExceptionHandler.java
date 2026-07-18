@@ -3,7 +3,7 @@ package kakaotech.task4.common.exception;
 import jakarta.validation.Path;
 import kakaotech.task4.common.exception.ExceptionCode.ExceptionCode;
 import kakaotech.task4.common.exception.ExceptionCode.GlobalExceptionCode;
-import kakaotech.task4.common.response.ExceptionRes;
+import kakaotech.task4.common.response.ApiResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
@@ -20,31 +20,27 @@ import java.util.Map;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
-    //todo : 삼항 연산자로 필드 있고 없고 분리 중. 더 좋은 방법 없나?
     @ExceptionHandler(CustomException.class)
     protected ResponseEntity<?> handleCustomException(final CustomException e) {
         log.warn("[CustomException] {}", e.getMessage());
-        ExceptionCode error = e.getExceptionCode();
-        Map<String, Object> fields = e.getFields();
-
-        return fields.isEmpty()
-                ? toErrorResponse(error)
-                : toErrorResponse(error, fields);
+        return toErrorResponse(e.getExceptionCode(), e.getFields());
     }
 
-    //todo : 삼항 연산자로 400과 422분리 중. 더 좋은 방법 없을까?
     @ExceptionHandler(MethodArgumentNotValidException.class)
     protected ResponseEntity<?> handleMethodArgumentNotValid(final MethodArgumentNotValidException e) {
-        boolean hasMissing = e.getBindingResult().getFieldErrors().stream()
-                .anyMatch(error -> "NotBlank".equals(error.getCode()));
-
         Map<String, Object> fields = new LinkedHashMap<>();
         e.getBindingResult().getFieldErrors()
                 .forEach(error -> fields.put(error.getField(), error.getDefaultMessage()));
 
-        log.warn("[Validation] hasMissing={}, fields={}", hasMissing, fields);
-        ExceptionCode error = hasMissing ? GlobalExceptionCode.BAD_REQUEST : GlobalExceptionCode.VALIDATION_ERROR;
+        ExceptionCode error = resolveValidationErrorCode(e);
+        log.warn("[Validation] code={}, fields={}", error.getCode(), fields);
         return toErrorResponse(error, fields);
+    }
+
+    private ExceptionCode resolveValidationErrorCode(MethodArgumentNotValidException e) {
+        boolean hasMissing = e.getBindingResult().getFieldErrors().stream()
+                .anyMatch(error -> "NotBlank".equals(error.getCode()));
+        return hasMissing ? GlobalExceptionCode.BAD_REQUEST : GlobalExceptionCode.VALIDATION_ERROR;
     }
 
     @ExceptionHandler(jakarta.validation.ConstraintViolationException.class)
@@ -93,14 +89,14 @@ public class GlobalExceptionHandler {
     }
 
 
-    private ResponseEntity<ExceptionRes> toErrorResponse(ExceptionCode error) {
-        ExceptionRes body = ExceptionRes.from(error);
+    private ResponseEntity<ApiResponse<Void>> toErrorResponse(ExceptionCode error) {
+        ApiResponse<Void> body = ApiResponse.error(error);
         HttpStatus status = error.getStatus();
         return ResponseEntity.status(status).body(body);
     }
 
-    private ResponseEntity<ExceptionRes> toErrorResponse(ExceptionCode error, Map<String, Object> fields) {
-        ExceptionRes body = ExceptionRes.from(error, fields);
+    private ResponseEntity<ApiResponse<Void>> toErrorResponse(ExceptionCode error, Map<String, Object> fields) {
+        ApiResponse<Void> body = ApiResponse.error(error, fields);
         HttpStatus status = error.getStatus();
         return ResponseEntity.status(status).body(body);
     }

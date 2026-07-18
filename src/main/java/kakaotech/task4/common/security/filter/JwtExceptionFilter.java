@@ -7,7 +7,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import kakaotech.task4.common.exception.CustomException;
 import kakaotech.task4.common.exception.ExceptionCode.ExceptionCode;
-import kakaotech.task4.common.response.ExceptionRes;
+import kakaotech.task4.common.response.ApiResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -34,6 +34,6 @@ public class JwtExceptionFilter extends OncePerRequestFilter {
         response.setStatus(exceptionCode.getStatus().value());
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
         response.setCharacterEncoding("UTF-8");
-        objectMapper.writeValue(response.getWriter(), ExceptionRes.from(exceptionCode));
+        objectMapper.writeValue(response.getWriter(), ApiResponse.error(exceptionCode));
     }
 }

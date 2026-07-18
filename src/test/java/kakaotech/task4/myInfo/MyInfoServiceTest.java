@@ -15,6 +15,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -27,6 +28,9 @@ class MyInfoServiceTest {
 
     @Mock
     private MemberService memberService;
+
+    @Mock
+    private PasswordEncoder passwordEncoder;
 
     @InjectMocks
     private MyInfoService myInfoService;
@@ -85,7 +89,8 @@ class MyInfoServiceTest {
     void updateMySecurityWithPasswordMismatch() {
         // given
         Member member = createMember();
-        UpdateMySecurityRequest request = new UpdateMySecurityRequest("Password123!", "Password1234!");
+        UpdateMySecurityRequest request = new UpdateMySecurityRequest("Password123!", "Password1234!", "Password12345!");
+        when(passwordEncoder.matches("Password123!", member.getPassword())).thenReturn(true);
 
         // when & then
         assertThatThrownBy(() -> myInfoService.updateMySecurity(member, request))

@@ -32,7 +32,7 @@ public class JwtAuthService {
             Member member = memberService.findByUuid(claims.getSubject(), AuthExceptionCode.UNAUTHORIZED);
             List<SimpleGrantedAuthority> authorities = List.of(new SimpleGrantedAuthority("ROLE_USER"));
 
-            return UsernamePasswordAuthenticationToken.authenticated(member, null, authorities);
+            return UsernamePasswordAuthenticationToken.authenticated(member.getMemberUuid(), null, authorities);
         } catch (ExpiredJwtException e) {
             throw new CustomException(JwtExceptionCode.ACCESS_TOKEN_EXPIRED);
         } catch (JwtException | IllegalArgumentException e) {

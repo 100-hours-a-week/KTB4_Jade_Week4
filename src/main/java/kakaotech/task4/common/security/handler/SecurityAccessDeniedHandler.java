@@ -21,14 +21,20 @@ public class SecurityAccessDeniedHandler implements AccessDeniedHandler {
     private final ObjectMapper objectMapper;
 
     @Override
-    public void handle(HttpServletRequest request, HttpServletResponse response, AccessDeniedException accessDeniedException) throws IOException {
-        ExceptionCode exceptionCode = accessDeniedException instanceof CsrfException
-                ? AuthExceptionCode.INVALID_CSRF_TOKEN
-                : AuthExceptionCode.ACCESS_DENIED;
+    public void handle(HttpServletRequest request, HttpServletResponse response, AccessDeniedException exception) throws IOException {
+        ExceptionCode exceptionCode = resolveExceptionCode(exception);
 
         response.setStatus(exceptionCode.getStatus().value());
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
         response.setCharacterEncoding("UTF-8");
         objectMapper.writeValue(response.getWriter(), ApiResponse.error(exceptionCode));
     }
+
+    private ExceptionCode resolveExceptionCode(AccessDeniedException exception) {
+        if (exception instanceof CsrfException) {
+            return AuthExceptionCode.INVALID_CSRF_TOKEN;
+        }
+        return AuthExceptionCode.ACCESS_DENIED;
+    }
+
 }

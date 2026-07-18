@@ -8,13 +8,16 @@ public final class SecurityPaths {
     public static final String TOKEN_REISSUE = "/auth/token/re-issue";
     public static final String CSRF = "/auth/csrf";
 
+    public static final String H2_CONSOLE = "/h2-console/**";
+
     public static final String[] PUBLIC_PATHS = {
             SIGN_UP,
             SIGN_IN,
             TOKEN_REISSUE,
             CSRF,
             "/swagger-ui/**",
-            "/v3/api-docs/**"
+            "/v3/api-docs/**",
+            H2_CONSOLE
     };
 
     public static final Set<String> JWT_EXCLUDED_PATHS = Set.of(

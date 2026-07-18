@@ -14,7 +14,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.Optional;
 
 @Service
-@Transactional(readOnly = true)
 @AllArgsConstructor
 public class MemberService {
     private final MemberRepository memberRepository;
@@ -40,6 +39,7 @@ public class MemberService {
         return memberRepository.findByEmail(email);
     }
 
+    @Transactional
     public Member findByUuid(String userUuid, ExceptionCode exceptionCode) {
         return memberRepository.findByMemberUuid(userUuid)
                 .orElseThrow(() -> new CustomException(exceptionCode));

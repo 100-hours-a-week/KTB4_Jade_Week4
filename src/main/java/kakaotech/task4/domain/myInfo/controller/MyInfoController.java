@@ -8,6 +8,7 @@ import kakaotech.task4.domain.myInfo.dto.res.MyBasicInfoResponse;
 import kakaotech.task4.domain.myInfo.dto.req.UpdateMyBasicInfoRequest;
 import kakaotech.task4.domain.myInfo.dto.res.UpdateMyBasicInfoResponse;
 import kakaotech.task4.domain.myInfo.service.MyInfoService;
+import kakaotech.task4.common.response.ApiResponse;
 import kakaotech.task4.domain.member.entity.Member;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -24,7 +25,7 @@ public class MyInfoController implements MyInfoApi {
     @Override
     public ResponseEntity<?> getMyBasicInfo(@CurrentMember Member member) {
         MyBasicInfoResponse response = myInfoService.getMyBasicInfo(member);
-        return ResponseEntity.status(HttpStatus.OK).body(response);
+        return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(response));
     }
 
     @PatchMapping("/basic-info")
@@ -33,7 +34,7 @@ public class MyInfoController implements MyInfoApi {
             @CurrentMember Member member,
             @Valid @RequestBody UpdateMyBasicInfoRequest request) {
         UpdateMyBasicInfoResponse response = myInfoService.updateMyBasicInfo(member, request);
-        return ResponseEntity.status(HttpStatus.OK).body(response);
+        return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(response));
     }
 
     @PutMapping("/security")

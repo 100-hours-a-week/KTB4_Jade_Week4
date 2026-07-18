@@ -3,7 +3,7 @@ package kakaotech.task4.common.exception;
 import jakarta.validation.Path;
 import kakaotech.task4.common.exception.ExceptionCode.ExceptionCode;
 import kakaotech.task4.common.exception.ExceptionCode.GlobalExceptionCode;
-import kakaotech.task4.common.response.ExceptionRes;
+import kakaotech.task4.common.response.ApiResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
@@ -93,14 +93,14 @@ public class GlobalExceptionHandler {
     }
 
 
-    private ResponseEntity<ExceptionRes> toErrorResponse(ExceptionCode error) {
-        ExceptionRes body = ExceptionRes.from(error);
+    private ResponseEntity<ApiResponse<Void>> toErrorResponse(ExceptionCode error) {
+        ApiResponse<Void> body = ApiResponse.error(error);
         HttpStatus status = error.getStatus();
         return ResponseEntity.status(status).body(body);
     }
 
-    private ResponseEntity<ExceptionRes> toErrorResponse(ExceptionCode error, Map<String, Object> fields) {
-        ExceptionRes body = ExceptionRes.from(error, fields);
+    private ResponseEntity<ApiResponse<Void>> toErrorResponse(ExceptionCode error, Map<String, Object> fields) {
+        ApiResponse<Void> body = ApiResponse.error(error, fields);
         HttpStatus status = error.getStatus();
         return ResponseEntity.status(status).body(body);
     }

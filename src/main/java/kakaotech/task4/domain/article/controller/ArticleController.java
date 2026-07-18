@@ -11,6 +11,7 @@ import kakaotech.task4.domain.article.dto.res.ArticleDetailResponse;
 import kakaotech.task4.domain.article.dto.res.ArticleListResponse;
 import kakaotech.task4.domain.article.dto.res.CreateArticleResponse;
 import kakaotech.task4.domain.article.service.ArticleFacadeService;
+import kakaotech.task4.common.response.ApiResponse;
 import kakaotech.task4.domain.member.entity.Member;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -30,7 +31,7 @@ public class ArticleController implements ArticleApi {
     public ResponseEntity<?> createArticle(@CurrentMember Member member,
                                            @Valid @RequestBody CreateArticleRequest request) {
         CreateArticleResponse response = articleFacadeService.createArticle(member, request);
-        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(response));
     }
 
     @PatchMapping("/{article-uuid}")
@@ -62,7 +63,7 @@ public class ArticleController implements ArticleApi {
             @Max(value = 100, message = "조회 개수는 최대 100개입니다.")
             int size) {
         ArticleListResponse response = articleFacadeService.getArticleList(cursor, size);
-        return ResponseEntity.status(HttpStatus.OK).body(response);
+        return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(response));
     }
 
     @GetMapping("/{uuid}")
@@ -71,6 +72,6 @@ public class ArticleController implements ArticleApi {
             @CurrentMember Member member,
             @PathVariable("uuid") String articleUuid) {
         ArticleDetailResponse response = articleFacadeService.getArticleDetail(member, articleUuid);
-        return ResponseEntity.status(HttpStatus.OK).body(response);
+        return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(response));
     }
 }

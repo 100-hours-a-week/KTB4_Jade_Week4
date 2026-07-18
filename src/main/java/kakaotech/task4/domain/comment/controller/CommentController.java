@@ -7,6 +7,7 @@ import kakaotech.task4.domain.comment.dto.req.CreateCommentRequest;
 import kakaotech.task4.domain.comment.dto.req.UpdateCommentRequest;
 import kakaotech.task4.domain.comment.dto.res.CreateCommentResponse;
 import kakaotech.task4.domain.comment.service.ArticleCommentService;
+import kakaotech.task4.common.response.ApiResponse;
 import kakaotech.task4.domain.member.entity.Member;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -26,7 +27,7 @@ public class CommentController implements CommentApi {
             @PathVariable("article-uuid") String articleUuid,
             @Valid @RequestBody CreateCommentRequest request) {
         CreateCommentResponse response = articleCommentService.createComment(member, articleUuid, request);
-        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(response));
     }
 
     @PutMapping("/{comment-uuid}")

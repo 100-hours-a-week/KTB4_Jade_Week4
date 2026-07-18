@@ -4,6 +4,7 @@ import kakaotech.task4.common.resolver.CurrentMember;
 import kakaotech.task4.domain.articleLike.api.ArticleLikeApi;
 import kakaotech.task4.domain.articleLike.dto.ArticleLikeResponse;
 import kakaotech.task4.domain.articleLike.service.ArticleLikeFacadeService;
+import kakaotech.task4.common.response.ApiResponse;
 import kakaotech.task4.domain.member.entity.Member;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -22,7 +23,7 @@ public class ArticleLikeController implements ArticleLikeApi {
             @CurrentMember Member member,
             @PathVariable("article-uuid") String articleUuid) {
         ArticleLikeResponse response = articleLikeFacadeService.like(member, articleUuid);
-        return ResponseEntity.status(HttpStatus.OK).body(response);
+        return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(response));
     }
 
     @DeleteMapping
@@ -31,6 +32,6 @@ public class ArticleLikeController implements ArticleLikeApi {
             @CurrentMember Member member,
             @PathVariable("article-uuid") String articleUuid) {
         ArticleLikeResponse response = articleLikeFacadeService.unlike(member, articleUuid);
-        return ResponseEntity.status(HttpStatus.OK).body(response);
+        return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(response));
     }
 }

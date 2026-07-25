@@ -53,10 +53,10 @@ public class ArticleCommentService {
         articleComment.softDelete();
     }
 
-    public List<CommentDetailResponse> findCommentsByArticle(Article article) {
+    public List<CommentDetailResponse> findCommentsByArticle(Article article, Member viewer) {
         return articleCommentRepository.findByArticle(article)
                 .stream()
-                .map(CommentDetailResponse::from)
+                .map(articleComment -> CommentDetailResponse.of(articleComment, viewer))
                 .collect(Collectors.toList());
     }
 

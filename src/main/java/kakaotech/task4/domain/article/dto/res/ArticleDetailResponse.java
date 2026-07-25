@@ -3,6 +3,7 @@ package kakaotech.task4.domain.article.dto.res;
 import kakaotech.task4.domain.article.entity.Article;
 import kakaotech.task4.domain.articleVote.entity.ArticleVoteCount;
 import kakaotech.task4.domain.articleVote.entity.VoteOption;
+import kakaotech.task4.domain.member.entity.Member;
 import lombok.Builder;
 
 import java.time.LocalDateTime;
@@ -17,7 +18,7 @@ public record ArticleDetailResponse(
         int voteCountB,
         VoteOption myVote,
         String writer,
-        String userUuid,
+        boolean isMine,
         String profileImageUrl,
         LocalDateTime createdAt,
         int likeCount,
@@ -25,6 +26,7 @@ public record ArticleDetailResponse(
         List<CommentDetailResponse> comments
 ) {
     public static ArticleDetailResponse of(Article article,
+                                           Member viewer,
                                            ArticleVoteCount voteCount,
                                            VoteOption myVote,
                                            boolean isLiked,
@@ -37,7 +39,7 @@ public record ArticleDetailResponse(
                 .voteCountB(voteCount.getCountB())
                 .myVote(myVote)
                 .writer(article.getMember().getNickname())
-                .userUuid(article.getMember().getMemberUuid())
+                .isMine(article.getMember().equals(viewer))
                 .profileImageUrl(article.getMember().getProfileImageUrl())
                 .createdAt(article.getCreatedAt())
                 .likeCount(article.getLikedCount())

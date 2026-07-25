@@ -58,6 +58,7 @@ public class ArticleFacadeService {
         List<ArticleSummaryResponse> responses = articles.stream()
                 .map(article -> ArticleSummaryResponse.of(
                         article,
+                        member,
                         voteCounts.get(article.getArticleId()),
                         myVotes.get(article.getArticleId()),
                         likedArticleIds.contains(article.getArticleId())))
@@ -76,8 +77,8 @@ public class ArticleFacadeService {
         ArticleVoteCount voteCount = articleVoteService.findVoteCount(article);
         VoteOption myVote = articleVoteService.findMyVote(member, article);
         boolean isLiked = articleLikeService.isLiked(member, article);
-        List<CommentDetailResponse> comments = articleCommentService.findCommentsByArticle(article);
+        List<CommentDetailResponse> comments = articleCommentService.findCommentsByArticle(article, member);
 
-        return ArticleDetailResponse.of(article, voteCount, myVote, isLiked, comments);
+        return ArticleDetailResponse.of(article, member, voteCount, myVote, isLiked, comments);
     }
 }

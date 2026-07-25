@@ -13,11 +13,14 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.servlet.NoHandlerFoundException;
 
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 @Slf4j
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+
+    private static final String MISSING_VALUE_CODE = "NotBlank";
 
     @ExceptionHandler(CustomException.class)
     protected ResponseEntity<?> handleCustomException(final CustomException e) {
@@ -27,18 +30,25 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     protected ResponseEntity<?> handleMethodArgumentNotValid(final MethodArgumentNotValidException e) {
-        Map<String, Object> fields = new LinkedHashMap<>();
-        e.getBindingResult().getFieldErrors()
-                .forEach(error -> fields.put(error.getField(), error.getDefaultMessage()));
+        Map<String, Object> fields = toFieldMessages(e.getBindingResult().getFieldErrors());
 
         ExceptionCode error = resolveValidationErrorCode(e);
         log.warn("[Validation] code={}, fields={}", error.getCode(), fields);
         return toErrorResponse(error, fields);
     }
 
+    private Map<String, Object> toFieldMessages(List<org.springframework.validation.FieldError> fieldErrors) {
+        Map<String, Object> fields = new LinkedHashMap<>();
+        fieldErrors.stream()
+                .filter(error -> MISSING_VALUE_CODE.equals(error.getCode()))
+                .forEach(error -> fields.put(error.getField(), error.getDefaultMessage()));
+        fieldErrors.forEach(error -> fields.putIfAbsent(error.getField(), error.getDefaultMessage()));
+        return fields;
+    }
+
     private ExceptionCode resolveValidationErrorCode(MethodArgumentNotValidException e) {
         boolean hasMissing = e.getBindingResult().getFieldErrors().stream()
-                .anyMatch(error -> "NotBlank".equals(error.getCode()));
+                .anyMatch(error -> MISSING_VALUE_CODE.equals(error.getCode()));
         return hasMissing ? GlobalExceptionCode.BAD_REQUEST : GlobalExceptionCode.VALIDATION_ERROR;
     }
 

@@ -11,7 +11,12 @@ public interface MemberRepository extends JpaRepository<Member, Long> {
 
     boolean existsByEmail(String email);
 
-    boolean existsByNickname(String nickname);
+    @Query("""
+            select count(m) > 0 from Member m
+            where m.nickname = :nickname
+              and m.deletedAt is null
+            """)
+    boolean existsByNickname(@Param("nickname") String nickname);
 
     @Query("""
             select m from Member m

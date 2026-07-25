@@ -27,7 +27,7 @@ public class CommentController implements CommentApi {
             @PathVariable("article-uuid") String articleUuid,
             @Valid @RequestBody CreateCommentRequest request) {
         CreateCommentResponse response = articleCommentService.createComment(member, articleUuid, request);
-        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(response));
+        return ApiResponse.created(response).toEntity();
     }
 
     @PutMapping("/{comment-uuid}")

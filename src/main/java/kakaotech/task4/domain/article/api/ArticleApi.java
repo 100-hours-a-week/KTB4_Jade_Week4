@@ -28,43 +28,63 @@ public interface ArticleApi {
             @ApiResponse(responseCode = "201", description = "게시글 작성 성공",
                     content = @Content(mediaType = "application/json",
                             examples = @ExampleObject(value = ArticleSwaggerSuccessExamples.CREATE_ARTICLE_201))),
-            @ApiResponse(responseCode = "400", description = "필수 값 누락",
+            @ApiResponse(responseCode = "400", description = "필수 값 누락 또는 본문 형식 오류",
                     content = @Content(mediaType = "application/json",
-                            examples = @ExampleObject(value = ArticleSwaggerErrorExamples.ARTICLE_400_001))),
+                            examples = {
+                                    @ExampleObject(name = "필수 값 누락", value = ArticleSwaggerErrorExamples.GLOBAL_400_001),
+                                    @ExampleObject(name = "본문 형식 오류", value = AuthSwaggerErrorExamples.GLOBAL_400_002)
+                            })),
             @ApiResponse(responseCode = "401", description = "로그인 후 사용 가능",
                     content = @Content(mediaType = "application/json",
-                            examples = @ExampleObject(value = AuthSwaggerErrorExamples.AUTH_401_001))),
+                            examples = {
+                                    @ExampleObject(name = "Access Token 없음", value = AuthSwaggerErrorExamples.JWT_401_001),
+                                    @ExampleObject(name = "Access Token 만료", value = AuthSwaggerErrorExamples.JWT_401_002),
+                                    @ExampleObject(name = "Access Token 유효하지 않음", value = AuthSwaggerErrorExamples.JWT_401_003)
+                            })),
+            @ApiResponse(responseCode = "403", description = "CSRF Token 없음 또는 유효하지 않음",
+                    content = @Content(mediaType = "application/json",
+                            examples = @ExampleObject(value = AuthSwaggerErrorExamples.AUTH_403_002))),
             @ApiResponse(responseCode = "422", description = "유효성 검사 실패",
                     content = @Content(mediaType = "application/json",
-                            examples = @ExampleObject(value = ArticleSwaggerErrorExamples.ARTICLE_422_001)))
+                            examples = @ExampleObject(value = ArticleSwaggerErrorExamples.GLOBAL_422_001)))
     })
     ResponseEntity<?> createArticle(
-            @Parameter(description = "유저 UUID", required = true) @CurrentMember Member member,
+            @Parameter(hidden = true) @CurrentMember Member member,
             @Valid @RequestBody CreateArticleRequest request);
 
-    @Operation(summary = "게시글 수정", description = "게시글 수정 api")
+    @Operation(summary = "게시글 수정", description = "전달된 필드만 수정한다. 세 필드가 모두 null이면 400을 반환한다.")
     @ApiResponses({
             @ApiResponse(responseCode = "204", description = "게시글 수정 성공",
                     content = @Content),
-            @ApiResponse(responseCode = "400", description = "변경할 내용 없음",
+            @ApiResponse(responseCode = "400", description = "변경할 내용 없음 또는 본문 형식 오류",
                     content = @Content(mediaType = "application/json",
-                            examples = @ExampleObject(value = ArticleSwaggerErrorExamples.ARTICLE_400_002))),
+                            examples = {
+                                    @ExampleObject(name = "변경할 내용 없음", value = ArticleSwaggerErrorExamples.ARTICLE_400_001),
+                                    @ExampleObject(name = "본문 형식 오류", value = AuthSwaggerErrorExamples.GLOBAL_400_002)
+                            })),
             @ApiResponse(responseCode = "401", description = "로그인 후 사용 가능",
                     content = @Content(mediaType = "application/json",
-                            examples = @ExampleObject(value = AuthSwaggerErrorExamples.AUTH_401_001))),
-            @ApiResponse(responseCode = "403", description = "수정 권한 없음",
+                            examples = {
+                                    @ExampleObject(name = "Access Token 없음", value = AuthSwaggerErrorExamples.JWT_401_001),
+                                    @ExampleObject(name = "Access Token 만료", value = AuthSwaggerErrorExamples.JWT_401_002),
+                                    @ExampleObject(name = "Access Token 유효하지 않음", value = AuthSwaggerErrorExamples.JWT_401_003)
+                            })),
+            @ApiResponse(responseCode = "403", description = "수정 권한 없음 또는 CSRF Token 오류",
                     content = @Content(mediaType = "application/json",
-                            examples = @ExampleObject(value = ArticleSwaggerErrorExamples.ARTICLE_403_001))),
+                            examples = {
+                                    @ExampleObject(name = "수정 권한 없음", value = ArticleSwaggerErrorExamples.ARTICLE_403_001),
+                                    @ExampleObject(name = "CSRF Token 오류", value = AuthSwaggerErrorExamples.AUTH_403_002)
+                            })),
             @ApiResponse(responseCode = "404", description = "게시글 없음",
                     content = @Content(mediaType = "application/json",
                             examples = @ExampleObject(value = ArticleSwaggerErrorExamples.ARTICLE_404_001))),
             @ApiResponse(responseCode = "422", description = "유효성 검사 실패",
                     content = @Content(mediaType = "application/json",
-                            examples = @ExampleObject(value = ArticleSwaggerErrorExamples.ARTICLE_422_001)))
+                            examples = @ExampleObject(value = ArticleSwaggerErrorExamples.GLOBAL_422_001)))
     })
     ResponseEntity<?> updateArticle(
-            @Parameter(description = "유저 UUID", required = true)  @CurrentMember Member member,
-            @Parameter(description = "게시글 UUID", required = true) @PathVariable("uuid") String articleUuid,
+            @Parameter(hidden = true) @CurrentMember Member member,
+            @Parameter(description = "게시글 UUID", required = true) @PathVariable("article-uuid") String articleUuid,
             @Valid @RequestBody UpdateArticleRequest request);
 
     @Operation(summary = "게시글 삭제", description = "게시글 삭제 api")
@@ -73,31 +93,51 @@ public interface ArticleApi {
                     content = @Content),
             @ApiResponse(responseCode = "401", description = "로그인 후 사용 가능",
                     content = @Content(mediaType = "application/json",
-                            examples = @ExampleObject(value = AuthSwaggerErrorExamples.AUTH_401_001))),
-            @ApiResponse(responseCode = "403", description = "삭제 권한 없음",
+                            examples = {
+                                    @ExampleObject(name = "Access Token 없음", value = AuthSwaggerErrorExamples.JWT_401_001),
+                                    @ExampleObject(name = "Access Token 만료", value = AuthSwaggerErrorExamples.JWT_401_002),
+                                    @ExampleObject(name = "Access Token 유효하지 않음", value = AuthSwaggerErrorExamples.JWT_401_003)
+                            })),
+            @ApiResponse(responseCode = "403", description = "삭제 권한 없음 또는 CSRF Token 오류",
                     content = @Content(mediaType = "application/json",
-                            examples = @ExampleObject(value = ArticleSwaggerErrorExamples.ARTICLE_403_002))),
+                            examples = {
+                                    @ExampleObject(name = "삭제 권한 없음", value = ArticleSwaggerErrorExamples.ARTICLE_403_002),
+                                    @ExampleObject(name = "CSRF Token 오류", value = AuthSwaggerErrorExamples.AUTH_403_002)
+                            })),
             @ApiResponse(responseCode = "404", description = "게시글 없음",
                     content = @Content(mediaType = "application/json",
                             examples = @ExampleObject(value = ArticleSwaggerErrorExamples.ARTICLE_404_001)))
     })
     ResponseEntity<?> deleteArticle(
-            @Parameter(description = "유저 UUID", required = true) @CurrentMember Member member,
+            @Parameter(hidden = true) @CurrentMember Member member,
             @Parameter(description = "게시글 UUID", required = true) @PathVariable("article-uuid") String articleUuid);
 
-    @Operation(summary = "게시글 목록 조회", description = "게시글 목록 조회 api")
+    @Operation(summary = "게시글 목록 조회",
+            description = "최신순 커서 페이지네이션. 다음 페이지가 있으면 응답의 nextCursor를 cursor로 그대로 전달한다.")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "게시글 목록 조회 성공",
                     content = @Content(mediaType = "application/json",
-                            examples = @ExampleObject(value = ArticleSwaggerSuccessExamples.ARTICLE_200_001)))
+                            examples = @ExampleObject(value = ArticleSwaggerSuccessExamples.ARTICLE_200_001))),
+            @ApiResponse(responseCode = "401", description = "로그인 후 사용 가능",
+                    content = @Content(mediaType = "application/json",
+                            examples = {
+                                    @ExampleObject(name = "Access Token 없음", value = AuthSwaggerErrorExamples.JWT_401_001),
+                                    @ExampleObject(name = "Access Token 만료", value = AuthSwaggerErrorExamples.JWT_401_002),
+                                    @ExampleObject(name = "Access Token 유효하지 않음", value = AuthSwaggerErrorExamples.JWT_401_003)
+                            })),
+            @ApiResponse(responseCode = "422", description = "size 범위 위반",
+                    content = @Content(mediaType = "application/json",
+                            examples = @ExampleObject(value = ArticleSwaggerErrorExamples.GLOBAL_422_001_SIZE)))
     })
     ResponseEntity<?> getArticleList(
-            @Parameter(description = "유저 UUID", required = true) @CurrentMember Member member,
-            @Parameter(description = "마지막 게시글 UUID") @RequestParam(required = false) String lastArticleUuid,
-            @Parameter(description = "조회 수", example = "10")
+            @Parameter(hidden = true) @CurrentMember Member member,
+            @Parameter(description = "이전 응답의 nextCursor 값 (첫 페이지는 생략)",
+                    example = "MjAyNi0wMS0wMVQwODowMDowMHwxMg==")
+            @RequestParam(required = false) String cursor,
+            @Parameter(description = "조회 개수 (1~10)", example = "10")
             @RequestParam(defaultValue = "10")
             @Min(value = 1, message = "조회 개수는 최소 1개입니다.")
-            @Max(value = 100, message = "조회 개수는 최대 100개입니다.")
+            @Max(value = 10, message = "조회 개수는 최대 10개입니다.")
             int size);
 
     @Operation(summary = "게시글 상세 조회", description = "게시글 상세 조회 api")
@@ -105,11 +145,18 @@ public interface ArticleApi {
             @ApiResponse(responseCode = "200", description = "게시글 상세 조회 성공",
                     content = @Content(mediaType = "application/json",
                             examples = @ExampleObject(value = ArticleSwaggerSuccessExamples.ARTICLE_200_002))),
+            @ApiResponse(responseCode = "401", description = "로그인 후 사용 가능",
+                    content = @Content(mediaType = "application/json",
+                            examples = {
+                                    @ExampleObject(name = "Access Token 없음", value = AuthSwaggerErrorExamples.JWT_401_001),
+                                    @ExampleObject(name = "Access Token 만료", value = AuthSwaggerErrorExamples.JWT_401_002),
+                                    @ExampleObject(name = "Access Token 유효하지 않음", value = AuthSwaggerErrorExamples.JWT_401_003)
+                            })),
             @ApiResponse(responseCode = "404", description = "게시글 없음",
                     content = @Content(mediaType = "application/json",
                             examples = @ExampleObject(value = ArticleSwaggerErrorExamples.ARTICLE_404_001)))
     })
     ResponseEntity<?> getArticleDetail(
-            @Parameter(description = "유저 UUID", required = true) @CurrentMember Member member,
+            @Parameter(hidden = true) @CurrentMember Member member,
             @Parameter(description = "게시글 UUID", required = true) @PathVariable("uuid") String articleUuid);
 }

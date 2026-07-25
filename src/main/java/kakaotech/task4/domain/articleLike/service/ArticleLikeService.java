@@ -12,6 +12,10 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
+
 @Service
 @Transactional(readOnly = true)
 @RequiredArgsConstructor
@@ -40,5 +44,12 @@ public class ArticleLikeService {
 
     public boolean isLiked(Member member, Article article) {
         return articleLikeRepository.existsByArticleAndMember(article, member);
+    }
+
+    public Set<Long> findLikedArticleIds(Member member, List<Article> articles) {
+        return articleLikeRepository.findAllByMemberAndArticleIn(member, articles)
+                .stream()
+                .map(articleLike -> articleLike.getArticle().getArticleId())
+                .collect(Collectors.toSet());
     }
 }

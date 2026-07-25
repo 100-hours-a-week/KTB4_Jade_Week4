@@ -2,6 +2,8 @@ package kakaotech.task4.common.config;
 
 import kakaotech.task4.domain.article.entity.Article;
 import kakaotech.task4.domain.article.repository.ArticleRepository;
+import kakaotech.task4.domain.articleVote.entity.ArticleVoteCount;
+import kakaotech.task4.domain.articleVote.repository.ArticleVoteCountRepository;
 import kakaotech.task4.domain.comment.entity.ArticleComment;
 import kakaotech.task4.domain.comment.repository.ArticleCommentRepository;
 import kakaotech.task4.domain.member.entity.Member;
@@ -26,6 +28,7 @@ public class DataInitializer implements ApplicationRunner {
     private final MemberRepository memberRepository;
     private final ArticleRepository articleRepository;
     private final ArticleCommentRepository commentRepository;
+    private final ArticleVoteCountRepository articleVoteCountRepository;
     private final PasswordEncoder passwordEncoder;
 
     @Override
@@ -38,6 +41,7 @@ public class DataInitializer implements ApplicationRunner {
         List<Member> members = createMembers();
         List<Article> articles = createArticles(members);
         createComments(members, articles);
+        createVoteCounts(articles);
     }
 
     private List<Member> createMembers() {
@@ -80,7 +84,8 @@ public class DataInitializer implements ApplicationRunner {
                 Article.builder()
                         .articleUuid("jade_article_uuid_1")
                         .title("안녕하세요, Jade의 첫 게시글입니다.")
-                        .content("테스트 계정 Jade가 작성한 첫 번째 게시글입니다.")
+                        .optionA("반갑습니다")
+                        .optionB("환영합니다")
                         .member(jade)
                         .build()
         );
@@ -89,7 +94,8 @@ public class DataInitializer implements ApplicationRunner {
                 Article.builder()
                         .articleUuid("jade_article_uuid_2")
                         .title("오늘의 점심 추천 받아요")
-                        .content("회사 근처에서 먹을 만한 점심 메뉴를 추천해주세요.")
+                        .optionA("김치찌개")
+                        .optionB("돈까스")
                         .member(jade)
                         .build()
         );
@@ -98,7 +104,8 @@ public class DataInitializer implements ApplicationRunner {
                 Article.builder()
                         .articleUuid("jade_article_uuid_3")
                         .title("프로젝트 진행 상황 공유")
-                        .content("게시글, 댓글, 마이페이지 기능 구현을 진행 중입니다.")
+                        .optionA("기능 먼저")
+                        .optionB("성능 먼저")
                         .member(jade)
                         .build()
         );
@@ -110,7 +117,8 @@ public class DataInitializer implements ApplicationRunner {
                     Article.builder()
                             .articleUuid("article_uuid" + i)
                             .title(author.getNickname() + " 게시글 " + i)
-                            .content(author.getNickname() + "이(가) 작성한 " + i + "번째 게시글 내용")
+                            .optionA("A 선택지 " + i)
+                            .optionB("B 선택지 " + i)
                             .member(author)
                             .build()
             );
@@ -203,5 +211,13 @@ public class DataInitializer implements ApplicationRunner {
         }
 
         commentRepository.saveAll(toSave);
+    }
+
+    private void createVoteCounts(List<Article> articles) {
+        List<ArticleVoteCount> toSave = articles.stream()
+                .map(article -> ArticleVoteCount.of(article.getArticleId()))
+                .toList();
+
+        articleVoteCountRepository.saveAll(toSave);
     }
 }

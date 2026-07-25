@@ -33,15 +33,14 @@ public class AuthController implements AuthApi {
     @Override
     public ResponseEntity<?> signUp(@Valid @RequestBody SignUpRequest request) {
         authService.signUp(request);
-        ApiResponse<Void> body = ApiResponse.success(AuthSuccessCode.SIGN_UP_SUCCESS.getMessage(), null);
-        return ResponseEntity.status(HttpStatus.CREATED).body(body);
+        return ApiResponse.<Void>success(AuthSuccessCode.SIGN_UP_SUCCESS, null).toEntity();
     }
 
     @PostMapping("/sign-in")
     @Override
     public ResponseEntity<?> signIn(@Valid @RequestBody SignInRequest request, HttpServletResponse response) {
         SignInResponse signInResponse = authService.signIn(request, response);
-        return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(signInResponse));
+        return ApiResponse.success(signInResponse).toEntity();
     }
 
     @PostMapping("/sign-out")
@@ -55,7 +54,7 @@ public class AuthController implements AuthApi {
     @Override
     public ResponseEntity<?> reissue(HttpServletRequest request, HttpServletResponse response) {
         TokenReissueResponse tokenReissueResponse = authService.reissue(request, response);
-        return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(tokenReissueResponse));
+        return ApiResponse.success(tokenReissueResponse).toEntity();
     }
 
     @GetMapping("/csrf")

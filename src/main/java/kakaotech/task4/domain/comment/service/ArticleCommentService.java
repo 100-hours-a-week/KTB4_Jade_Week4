@@ -32,7 +32,6 @@ public class ArticleCommentService {
         Article article = articleService.findArticleByUuid(articleUuid);
         ArticleComment articleComment = saveComment(member, article, request);
 
-        articleService.increaseCommentCount(article.getArticleId());
         return CreateCommentResponse.from(articleComment.getArticleCommentUuid());
     }
 
@@ -52,7 +51,6 @@ public class ArticleCommentService {
 
         articleComment.validateOwner(member, CommentExceptionCode.FORBIDDEN_DELETE);
         articleComment.softDelete();
-        articleService.decreaseCommentCount(article.getArticleId());
     }
 
     public List<CommentDetailResponse> findCommentsByArticle(Article article) {

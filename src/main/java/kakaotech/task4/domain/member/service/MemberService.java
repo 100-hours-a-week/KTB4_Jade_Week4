@@ -1,6 +1,6 @@
 package kakaotech.task4.domain.member.service;
 import kakaotech.task4.common.exception.CustomException;
-import kakaotech.task4.common.exception.ExceptionCode.ExceptionCode;
+import kakaotech.task4.common.exception.ExceptionCode;
 import kakaotech.task4.common.uuid.UuidCreator;
 import kakaotech.task4.common.uuid.UuidPrefix;
 import kakaotech.task4.domain.auth.dto.req.SignUpRequest;

@@ -27,18 +27,28 @@ public interface CommentApi {
             @ApiResponse(responseCode = "201", description = "댓글 작성 성공",
                     content = @Content(mediaType = "application/json",
                             examples = @ExampleObject(value = CommentSwaggerSuccessExamples.CREATE_COMMENT_201))),
-            @ApiResponse(responseCode = "400", description = "필수 값 누락",
+            @ApiResponse(responseCode = "400", description = "필수 값 누락 또는 본문 형식 오류",
                     content = @Content(mediaType = "application/json",
-                            examples = @ExampleObject(value = CommentSwaggerErrorExamples.COMMENT_400_001))),
+                            examples = {
+                                    @ExampleObject(name = "필수 값 누락", value = CommentSwaggerErrorExamples.GLOBAL_400_001),
+                                    @ExampleObject(name = "본문 형식 오류", value = AuthSwaggerErrorExamples.GLOBAL_400_002)
+                            })),
             @ApiResponse(responseCode = "401", description = "로그인 후 사용 가능",
                     content = @Content(mediaType = "application/json",
-                            examples = @ExampleObject(value = AuthSwaggerErrorExamples.AUTH_401_001))),
+                            examples = {
+                                    @ExampleObject(name = "Access Token 없음", value = AuthSwaggerErrorExamples.JWT_401_001),
+                                    @ExampleObject(name = "Access Token 만료", value = AuthSwaggerErrorExamples.JWT_401_002),
+                                    @ExampleObject(name = "Access Token 유효하지 않음", value = AuthSwaggerErrorExamples.JWT_401_003)
+                            })),
+            @ApiResponse(responseCode = "403", description = "CSRF Token 없음 또는 유효하지 않음",
+                    content = @Content(mediaType = "application/json",
+                            examples = @ExampleObject(value = AuthSwaggerErrorExamples.AUTH_403_002))),
             @ApiResponse(responseCode = "404", description = "게시글 없음",
                     content = @Content(mediaType = "application/json",
                             examples = @ExampleObject(value = ArticleSwaggerErrorExamples.ARTICLE_404_001)))
     })
     ResponseEntity<?> createComment(
-            @Parameter(description = "유저 UUID", required = true) @CurrentMember Member member,
+            @Parameter(hidden = true) @CurrentMember Member member,
             @Parameter(description = "게시글 UUID", required = true) @PathVariable("article-uuid") String articleUuid,
             @Valid @RequestBody CreateCommentRequest request);
 
@@ -46,15 +56,25 @@ public interface CommentApi {
     @ApiResponses({
             @ApiResponse(responseCode = "204", description = "댓글 수정 성공",
                     content = @Content),
-            @ApiResponse(responseCode = "400", description = "필수 값 누락",
+            @ApiResponse(responseCode = "400", description = "필수 값 누락 또는 본문 형식 오류",
                     content = @Content(mediaType = "application/json",
-                            examples = @ExampleObject(value = CommentSwaggerErrorExamples.COMMENT_400_001))),
+                            examples = {
+                                    @ExampleObject(name = "필수 값 누락", value = CommentSwaggerErrorExamples.GLOBAL_400_001),
+                                    @ExampleObject(name = "본문 형식 오류", value = AuthSwaggerErrorExamples.GLOBAL_400_002)
+                            })),
             @ApiResponse(responseCode = "401", description = "로그인 후 사용 가능",
                     content = @Content(mediaType = "application/json",
-                            examples = @ExampleObject(value = AuthSwaggerErrorExamples.AUTH_401_001))),
-            @ApiResponse(responseCode = "403", description = "수정 권한 없음",
+                            examples = {
+                                    @ExampleObject(name = "Access Token 없음", value = AuthSwaggerErrorExamples.JWT_401_001),
+                                    @ExampleObject(name = "Access Token 만료", value = AuthSwaggerErrorExamples.JWT_401_002),
+                                    @ExampleObject(name = "Access Token 유효하지 않음", value = AuthSwaggerErrorExamples.JWT_401_003)
+                            })),
+            @ApiResponse(responseCode = "403", description = "수정 권한 없음 또는 CSRF Token 오류",
                     content = @Content(mediaType = "application/json",
-                            examples = @ExampleObject(value = CommentSwaggerErrorExamples.COMMENT_403_001))),
+                            examples = {
+                                    @ExampleObject(name = "수정 권한 없음", value = CommentSwaggerErrorExamples.COMMENT_403_001),
+                                    @ExampleObject(name = "CSRF Token 오류", value = AuthSwaggerErrorExamples.AUTH_403_002)
+                            })),
             @ApiResponse(responseCode = "404", description = "게시글 또는 댓글 없음",
                     content = @Content(mediaType = "application/json",
                             examples = {
@@ -63,7 +83,7 @@ public interface CommentApi {
                             }))
     })
     ResponseEntity<?> updateComment(
-            @Parameter(description = "유저 UUID", required = true) @CurrentMember Member member,
+            @Parameter(hidden = true) @CurrentMember Member member,
             @Parameter(description = "게시글 UUID", required = true) @PathVariable("article-uuid") String articleUuid,
             @Parameter(description = "댓글 UUID", required = true) @PathVariable("comment-uuid") String commentUuid,
             @Valid @RequestBody UpdateCommentRequest request);
@@ -74,10 +94,17 @@ public interface CommentApi {
                     content = @Content),
             @ApiResponse(responseCode = "401", description = "로그인 후 사용 가능",
                     content = @Content(mediaType = "application/json",
-                            examples = @ExampleObject(value = AuthSwaggerErrorExamples.AUTH_401_001))),
-            @ApiResponse(responseCode = "403", description = "삭제 권한 없음",
+                            examples = {
+                                    @ExampleObject(name = "Access Token 없음", value = AuthSwaggerErrorExamples.JWT_401_001),
+                                    @ExampleObject(name = "Access Token 만료", value = AuthSwaggerErrorExamples.JWT_401_002),
+                                    @ExampleObject(name = "Access Token 유효하지 않음", value = AuthSwaggerErrorExamples.JWT_401_003)
+                            })),
+            @ApiResponse(responseCode = "403", description = "삭제 권한 없음 또는 CSRF Token 오류",
                     content = @Content(mediaType = "application/json",
-                            examples = @ExampleObject(value = CommentSwaggerErrorExamples.COMMENT_403_002))),
+                            examples = {
+                                    @ExampleObject(name = "삭제 권한 없음", value = CommentSwaggerErrorExamples.COMMENT_403_002),
+                                    @ExampleObject(name = "CSRF Token 오류", value = AuthSwaggerErrorExamples.AUTH_403_002)
+                            })),
             @ApiResponse(responseCode = "404", description = "게시글 또는 댓글 없음",
                     content = @Content(mediaType = "application/json",
                             examples = {
@@ -86,7 +113,7 @@ public interface CommentApi {
                             }))
     })
     ResponseEntity<?> deleteComment(
-            @Parameter(description = "유저 UUID", required = true) @CurrentMember Member member,
+            @Parameter(hidden = true) @CurrentMember Member member,
             @Parameter(description = "게시글 UUID", required = true) @PathVariable("article-uuid") String articleUuid,
             @Parameter(description = "댓글 UUID", required = true) @PathVariable("comment-uuid") String commentUuid);
 }

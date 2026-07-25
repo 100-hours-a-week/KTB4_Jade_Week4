@@ -41,10 +41,6 @@ public interface ArticleRepository extends JpaRepository<Article, Long> {
                                @Param("cursorArticleId") Long cursorArticleId,
                                Pageable pageable);
 
-    @Modifying(clearAutomatically = true)
-    @Query("update Article a set a.viewCount = a.viewCount + 1 where a.articleId = :id")
-    void increaseViewCount(@Param("id") Long id);
-
     @Modifying
     @Query("update Article a set a.likedCount = a.likedCount + 1 where a.articleId = :id")
     int increaseLikedCount(@Param("id") Long id);
@@ -54,12 +50,4 @@ public interface ArticleRepository extends JpaRepository<Article, Long> {
             "where a.articleId = :id and a.likedCount > 0")
     int decreaseLikedCount(@Param("id") Long id);
 
-    @Modifying
-    @Query("update Article a set a.commentCount = a.commentCount + 1 where a.articleId = :id")
-    void increaseCommentCount(@Param("id") Long id);
-
-    @Modifying
-    @Query("update Article a set a.commentCount = a.commentCount - 1 " +
-            "where a.articleId = :id and a.commentCount > 0")
-    void decreaseCommentCount(@Param("id") Long id);
 }

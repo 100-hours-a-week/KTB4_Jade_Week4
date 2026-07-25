@@ -38,7 +38,7 @@ public class AuthService {
     private void validatePasswordMatch(SignUpRequest request) {
         if (!request.validatePasswordMatch()) {
             Map<String, Object> fieldErrors = new HashMap<>();
-            fieldErrors.put(CommonFieldError.PASSWORD_MISMATCH.getField(), CommonFieldError.PASSWORD_MISMATCH.getMessage());
+            fieldErrors.put(AuthFieldError.PASSWORD_MISMATCH.getField(), AuthFieldError.PASSWORD_MISMATCH.getMessage());
             throw new CustomException(AuthExceptionCode.VALIDATION_ERROR, fieldErrors);
         }
     }

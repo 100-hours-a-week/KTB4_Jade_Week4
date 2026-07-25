@@ -97,7 +97,7 @@ public final class AuthSwaggerErrorExamples {
               "message": "필드의 유효성 검사가 올바르지 않습니다.",
               "code": "AUTH-422-001",
               "fields": {
-                "checkNextPassword": "비밀번호가 다릅니다."
+                "checkPassword": "비밀번호가 다릅니다."
               }
             }
             """;

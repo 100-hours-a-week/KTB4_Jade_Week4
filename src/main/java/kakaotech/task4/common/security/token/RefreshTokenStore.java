@@ -24,7 +24,7 @@ public class RefreshTokenStore {
 
     public RefreshTokenInfo get(String refreshTokenHash) {
         RefreshTokenInfo refreshTokenInfo = Optional.ofNullable(store.get(refreshTokenHash))
-                .orElseThrow(() -> new CustomException(JwtExceptionCode.REFRESH_TOKEN_NOT_FOUND));
+                .orElseThrow(() -> new CustomException(JwtExceptionCode.INVALID_REFRESH_TOKEN));
 
         if (refreshTokenInfo.isExpired()) {
             store.remove(refreshTokenHash);

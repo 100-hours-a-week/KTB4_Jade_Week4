@@ -91,13 +91,16 @@ public interface AuthApi {
             @ApiResponse(responseCode = "200", description = "토큰 재발급 성공",
                     content = @Content(mediaType = "application/json",
                             examples = @ExampleObject(value = AuthSwaggerSuccessExamples.TOKEN_REISSUE_200))),
-            @ApiResponse(responseCode = "401", description = "Refresh Token 만료",
+            @ApiResponse(responseCode = "401", description = "Refresh Token 만료 또는 유효하지 않음",
                     content = @Content(mediaType = "application/json",
-                            examples = @ExampleObject(value = AuthSwaggerErrorExamples.JWT_401_004))),
+                            examples = {
+                                    @ExampleObject(name = "Refresh Token 만료", value = AuthSwaggerErrorExamples.JWT_401_004),
+                                    @ExampleObject(name = "Refresh Token 유효하지 않음", value = AuthSwaggerErrorExamples.JWT_401_005)
+                            })),
             @ApiResponse(responseCode = "403", description = "CSRF Token 없음 또는 유효하지 않음",
                     content = @Content(mediaType = "application/json",
                             examples = @ExampleObject(value = AuthSwaggerErrorExamples.AUTH_403_002))),
-            @ApiResponse(responseCode = "404", description = "Refresh Token 쿠키 없음 또는 저장소에 없음",
+            @ApiResponse(responseCode = "404", description = "Refresh Token 쿠키 없음",
                     content = @Content(mediaType = "application/json",
                             examples = @ExampleObject(value = AuthSwaggerErrorExamples.JWT_404_001)))
     })

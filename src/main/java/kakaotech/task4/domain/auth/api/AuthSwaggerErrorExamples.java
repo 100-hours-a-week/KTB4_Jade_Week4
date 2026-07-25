@@ -165,6 +165,15 @@ public final class AuthSwaggerErrorExamples {
             }
             """;
 
+    public static final String JWT_401_005 = """
+            {
+              "status": "UNAUTHORIZED",
+              "success": false,
+              "message": "Refresh Token이 유효하지 않습니다.",
+              "code": "JWT-401-005"
+            }
+            """;
+
     public static final String JWT_404_001 = """
             {
               "status": "NOT_FOUND",

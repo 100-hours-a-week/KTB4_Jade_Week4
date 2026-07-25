@@ -1,6 +1,6 @@
 package kakaotech.task4.domain.articleLike.code;
 
-import kakaotech.task4.common.exception.ExceptionCode.ExceptionCode;
+import kakaotech.task4.common.exception.ExceptionCode;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.springframework.http.HttpStatus;

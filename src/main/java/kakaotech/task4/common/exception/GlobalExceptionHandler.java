@@ -1,13 +1,12 @@
 package kakaotech.task4.common.exception;
 
 import jakarta.validation.Path;
-import kakaotech.task4.common.exception.ExceptionCode.ExceptionCode;
-import kakaotech.task4.common.exception.ExceptionCode.GlobalExceptionCode;
 import kakaotech.task4.common.response.ApiResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -54,6 +53,13 @@ public class GlobalExceptionHandler {
         log.warn("[ConstraintViolation] fields={}", fields);
         ExceptionCode error = GlobalExceptionCode.VALIDATION_ERROR;
         return toErrorResponse(error, fields);
+    }
+
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    protected ResponseEntity<?> handleMessageNotReadable(final HttpMessageNotReadableException e) {
+        log.warn("[MessageNotReadable] {}", e.getMessage());
+        ExceptionCode error = GlobalExceptionCode.MALFORMED_REQUEST;
+        return toErrorResponse(error);
     }
 
     @ExceptionHandler(NoHandlerFoundException.class)

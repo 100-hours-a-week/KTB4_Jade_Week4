@@ -1,4 +1,4 @@
-package kakaotech.task4.common.exception.ExceptionCode;
+package kakaotech.task4.common.exception;
 
 import org.springframework.http.HttpStatus;
 

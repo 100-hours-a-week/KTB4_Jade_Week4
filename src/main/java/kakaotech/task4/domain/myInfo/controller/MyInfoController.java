@@ -25,7 +25,7 @@ public class MyInfoController implements MyInfoApi {
     @Override
     public ResponseEntity<?> getMyBasicInfo(@CurrentMember Member member) {
         MyBasicInfoResponse response = myInfoService.getMyBasicInfo(member);
-        return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(response));
+        return ApiResponse.success(response).toEntity();
     }
 
     @PatchMapping("/basic-info")
@@ -34,7 +34,7 @@ public class MyInfoController implements MyInfoApi {
             @CurrentMember Member member,
             @Valid @RequestBody UpdateMyBasicInfoRequest request) {
         UpdateMyBasicInfoResponse response = myInfoService.updateMyBasicInfo(member, request);
-        return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(response));
+        return ApiResponse.success(response).toEntity();
     }
 
     @PutMapping("/security")

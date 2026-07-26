@@ -27,27 +27,25 @@ public class Article extends BaseEntity {
     @Column(nullable = false, length = 26)
     private String title;
 
-    @Column(nullable = false, columnDefinition = "TEXT")
-    private String content;
+    @Column(nullable = false, length = 15)
+    private String optionA;
+
+    @Column(nullable = false, length = 15)
+    private String optionB;
 
     @Column(nullable = false)
     private int likedCount = 0;
-
-    @Column(nullable = false)
-    private int viewCount = 0;
-
-    @Column(nullable = false)
-    private int commentCount = 0;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "member_id", nullable = false)
     private Member member;
 
     @Builder
-    public Article(String articleUuid, String title, String content, Member member) {
+    public Article(String articleUuid, String title, String optionA, String optionB, Member member) {
         this.articleUuid = articleUuid;
         this.title = title;
-        this.content = content;
+        this.optionA = optionA;
+        this.optionB = optionB;
         this.member = member;
     }
 
@@ -56,15 +54,16 @@ public class Article extends BaseEntity {
                 .articleUuid(articleUuid)
                 .member(member)
                 .title(request.title())
-                .content(request.content())
+                .optionA(request.optionA())
+                .optionB(request.optionB())
                 .build();
     }
 
     public void update(UpdateArticleRequest request) {
-        this.title = request.title();
-        this.content = request.content();
+        if (request.title() != null) this.title = request.title();
+        if (request.optionA() != null) this.optionA = request.optionA();
+        if (request.optionB() != null) this.optionB = request.optionB();
     }
-
 
     @Override
     public boolean equals(Object o) {

@@ -1,7 +1,11 @@
 package kakaotech.task4.common.config;
 
+import jakarta.persistence.EntityManager;
 import kakaotech.task4.domain.article.entity.Article;
 import kakaotech.task4.domain.article.repository.ArticleRepository;
+import kakaotech.task4.domain.articleVote.entity.ArticleVoteCount;
+import kakaotech.task4.domain.articleVote.entity.VoteOption;
+import kakaotech.task4.domain.articleVote.repository.ArticleVoteCountRepository;
 import kakaotech.task4.domain.comment.entity.ArticleComment;
 import kakaotech.task4.domain.comment.repository.ArticleCommentRepository;
 import kakaotech.task4.domain.member.entity.Member;
@@ -9,6 +13,7 @@ import kakaotech.task4.domain.member.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
+import org.springframework.context.annotation.Profile;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -17,16 +22,20 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Component
+@Profile("!prod")
 @RequiredArgsConstructor
 public class DataInitializer implements ApplicationRunner {
     private static final int MEMBER_COUNT = 10;
     private static final int ARTICLE_COUNT = 100;
     private static final int MAX_COMMENTS_PER_ARTICLE = 5;
+    private static final int MAX_INITIAL_COUNT = 30;
 
     private final MemberRepository memberRepository;
     private final ArticleRepository articleRepository;
     private final ArticleCommentRepository commentRepository;
+    private final ArticleVoteCountRepository articleVoteCountRepository;
     private final PasswordEncoder passwordEncoder;
+    private final EntityManager entityManager;
 
     @Override
     @Transactional
@@ -38,6 +47,23 @@ public class DataInitializer implements ApplicationRunner {
         List<Member> members = createMembers();
         List<Article> articles = createArticles(members);
         createComments(members, articles);
+        createVoteCounts(articles);
+        initLikedCounts();
+    }
+
+    /**
+     * likedCount에 setter가 없으므로 벌크 UPDATE로 심는다.
+     * 벌크 UPDATE는 영속성 컨텍스트를 갱신하지 않으므로 이후 clear()로 이전 값을 버린다.
+     */
+    private void initLikedCounts() {
+        entityManager.flush();
+
+        entityManager.createQuery(
+                        "update Article a set a.likedCount = mod(a.articleId, :max) + 1")
+                .setParameter("max", MAX_INITIAL_COUNT)
+                .executeUpdate();
+
+        entityManager.clear();
     }
 
     private List<Member> createMembers() {
@@ -80,7 +106,8 @@ public class DataInitializer implements ApplicationRunner {
                 Article.builder()
                         .articleUuid("jade_article_uuid_1")
                         .title("안녕하세요, Jade의 첫 게시글입니다.")
-                        .content("테스트 계정 Jade가 작성한 첫 번째 게시글입니다.")
+                        .optionA("반갑습니다")
+                        .optionB("환영합니다")
                         .member(jade)
                         .build()
         );
@@ -89,7 +116,8 @@ public class DataInitializer implements ApplicationRunner {
                 Article.builder()
                         .articleUuid("jade_article_uuid_2")
                         .title("오늘의 점심 추천 받아요")
-                        .content("회사 근처에서 먹을 만한 점심 메뉴를 추천해주세요.")
+                        .optionA("김치찌개")
+                        .optionB("돈까스")
                         .member(jade)
                         .build()
         );
@@ -98,7 +126,8 @@ public class DataInitializer implements ApplicationRunner {
                 Article.builder()
                         .articleUuid("jade_article_uuid_3")
                         .title("프로젝트 진행 상황 공유")
-                        .content("게시글, 댓글, 마이페이지 기능 구현을 진행 중입니다.")
+                        .optionA("기능 먼저")
+                        .optionB("성능 먼저")
                         .member(jade)
                         .build()
         );
@@ -110,7 +139,8 @@ public class DataInitializer implements ApplicationRunner {
                     Article.builder()
                             .articleUuid("article_uuid" + i)
                             .title(author.getNickname() + " 게시글 " + i)
-                            .content(author.getNickname() + "이(가) 작성한 " + i + "번째 게시글 내용")
+                            .optionA("A 선택지 " + i)
+                            .optionB("B 선택지 " + i)
                             .member(author)
                             .build()
             );
@@ -203,5 +233,27 @@ public class DataInitializer implements ApplicationRunner {
         }
 
         commentRepository.saveAll(toSave);
+    }
+
+    private void createVoteCounts(List<Article> articles) {
+        List<ArticleVoteCount> toSave = new ArrayList<>();
+
+        for (int i = 0; i < articles.size(); i++) {
+            ArticleVoteCount voteCount = ArticleVoteCount.of(articles.get(i).getArticleId());
+
+            int countA = ((i * 11) % MAX_INITIAL_COUNT) + 1;
+            int countB = ((i * 7) % MAX_INITIAL_COUNT) + 1;
+
+            for (int a = 0; a < countA; a++) {
+                voteCount.increase(VoteOption.A);
+            }
+            for (int b = 0; b < countB; b++) {
+                voteCount.increase(VoteOption.B);
+            }
+
+            toSave.add(voteCount);
+        }
+
+        articleVoteCountRepository.saveAll(toSave);
     }
 }

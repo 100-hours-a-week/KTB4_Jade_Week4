@@ -31,7 +31,7 @@ public class ArticleController implements ArticleApi {
     public ResponseEntity<?> createArticle(@CurrentMember Member member,
                                            @Valid @RequestBody CreateArticleRequest request) {
         CreateArticleResponse response = articleFacadeService.createArticle(member, request);
-        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(response));
+        return ApiResponse.created(response).toEntity();
     }
 
     @PatchMapping("/{article-uuid}")
@@ -60,10 +60,10 @@ public class ArticleController implements ArticleApi {
             @RequestParam(required = false) String cursor,
             @RequestParam(defaultValue = "10")
             @Min(value = 1, message = "조회 개수는 최소 1개입니다.")
-            @Max(value = 100, message = "조회 개수는 최대 100개입니다.")
+            @Max(value = 10, message = "조회 개수는 최대 10개입니다.")
             int size) {
-        ArticleListResponse response = articleFacadeService.getArticleList(cursor, size);
-        return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(response));
+        ArticleListResponse response = articleFacadeService.getArticleList(member, cursor, size);
+        return ApiResponse.success(response).toEntity();
     }
 
     @GetMapping("/{uuid}")
@@ -72,6 +72,6 @@ public class ArticleController implements ArticleApi {
             @CurrentMember Member member,
             @PathVariable("uuid") String articleUuid) {
         ArticleDetailResponse response = articleFacadeService.getArticleDetail(member, articleUuid);
-        return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(response));
+        return ApiResponse.success(response).toEntity();
     }
 }

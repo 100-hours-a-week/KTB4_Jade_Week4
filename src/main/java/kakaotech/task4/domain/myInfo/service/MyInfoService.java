@@ -32,7 +32,7 @@ public class MyInfoService {
     @Transactional
     public UpdateMyBasicInfoResponse updateMyBasicInfo(Member member, UpdateMyBasicInfoRequest request) {
         validateAllNull(request);
-        validateDuplicateNickname(request.nickname());
+        validateDuplicateNickname(member, request.nickname());
 
         member.updateBasicInfo(request);
         return UpdateMyBasicInfoResponse.from(member);
@@ -53,12 +53,15 @@ public class MyInfoService {
     }
 
     private void validateAllNull(UpdateMyBasicInfoRequest request) {
-        if (request.isAllNull()) {
+        if (request.hasNoChanges()) {
             throw new CustomException(MyInfoExceptionCode.BAD_REQUEST);
         }
     }
 
-    private void validateDuplicateNickname(String nickname) {
+    private void validateDuplicateNickname(Member member, String nickname) {
+        if (nickname == null || nickname.equals(member.getNickname())) {
+            return;
+        }
         if (memberService.existsByNickname(nickname)) {
             throw new CustomException(MyInfoExceptionCode.DUPLICATE_NICKNAME);
         }

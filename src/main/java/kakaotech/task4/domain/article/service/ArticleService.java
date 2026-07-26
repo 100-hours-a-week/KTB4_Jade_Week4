@@ -55,12 +55,18 @@ public class ArticleService {
 
     @Transactional
     public int increaseLikedCount(Long articleId) {
-        return articleRepository.increaseLikedCount(articleId);
+        articleRepository.increaseLikedCount(articleId);
+        return articleRepository.findLikedCount(articleId);
     }
 
     @Transactional
     public int decreaseLikedCount(Long articleId) {
-       return articleRepository.decreaseLikedCount(articleId);
+        articleRepository.decreaseLikedCount(articleId);
+        return articleRepository.findLikedCount(articleId);
+    }
+
+    public int findLikedCount(Long articleId) {
+        return articleRepository.findLikedCount(articleId);
     }
 
     public Article findArticleByUuid(String articleUuid) {

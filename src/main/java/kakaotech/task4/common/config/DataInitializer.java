@@ -1,8 +1,10 @@
 package kakaotech.task4.common.config;
 
+import jakarta.persistence.EntityManager;
 import kakaotech.task4.domain.article.entity.Article;
 import kakaotech.task4.domain.article.repository.ArticleRepository;
 import kakaotech.task4.domain.articleVote.entity.ArticleVoteCount;
+import kakaotech.task4.domain.articleVote.entity.VoteOption;
 import kakaotech.task4.domain.articleVote.repository.ArticleVoteCountRepository;
 import kakaotech.task4.domain.comment.entity.ArticleComment;
 import kakaotech.task4.domain.comment.repository.ArticleCommentRepository;
@@ -26,12 +28,14 @@ public class DataInitializer implements ApplicationRunner {
     private static final int MEMBER_COUNT = 10;
     private static final int ARTICLE_COUNT = 100;
     private static final int MAX_COMMENTS_PER_ARTICLE = 5;
+    private static final int MAX_INITIAL_COUNT = 30;
 
     private final MemberRepository memberRepository;
     private final ArticleRepository articleRepository;
     private final ArticleCommentRepository commentRepository;
     private final ArticleVoteCountRepository articleVoteCountRepository;
     private final PasswordEncoder passwordEncoder;
+    private final EntityManager entityManager;
 
     @Override
     @Transactional
@@ -44,6 +48,22 @@ public class DataInitializer implements ApplicationRunner {
         List<Article> articles = createArticles(members);
         createComments(members, articles);
         createVoteCounts(articles);
+        initLikedCounts();
+    }
+
+    /**
+     * likedCount에 setter가 없으므로 벌크 UPDATE로 심는다.
+     * 벌크 UPDATE는 영속성 컨텍스트를 갱신하지 않으므로 이후 clear()로 이전 값을 버린다.
+     */
+    private void initLikedCounts() {
+        entityManager.flush();
+
+        entityManager.createQuery(
+                        "update Article a set a.likedCount = mod(a.articleId, :max) + 1")
+                .setParameter("max", MAX_INITIAL_COUNT)
+                .executeUpdate();
+
+        entityManager.clear();
     }
 
     private List<Member> createMembers() {
@@ -216,9 +236,23 @@ public class DataInitializer implements ApplicationRunner {
     }
 
     private void createVoteCounts(List<Article> articles) {
-        List<ArticleVoteCount> toSave = articles.stream()
-                .map(article -> ArticleVoteCount.of(article.getArticleId()))
-                .toList();
+        List<ArticleVoteCount> toSave = new ArrayList<>();
+
+        for (int i = 0; i < articles.size(); i++) {
+            ArticleVoteCount voteCount = ArticleVoteCount.of(articles.get(i).getArticleId());
+
+            int countA = ((i * 11) % MAX_INITIAL_COUNT) + 1;
+            int countB = ((i * 7) % MAX_INITIAL_COUNT) + 1;
+
+            for (int a = 0; a < countA; a++) {
+                voteCount.increase(VoteOption.A);
+            }
+            for (int b = 0; b < countB; b++) {
+                voteCount.increase(VoteOption.B);
+            }
+
+            toSave.add(voteCount);
+        }
 
         articleVoteCountRepository.saveAll(toSave);
     }

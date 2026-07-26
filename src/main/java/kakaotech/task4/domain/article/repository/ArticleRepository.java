@@ -50,4 +50,11 @@ public interface ArticleRepository extends JpaRepository<Article, Long> {
             "where a.articleId = :id and a.likedCount > 0")
     int decreaseLikedCount(@Param("id") Long id);
 
+    /**
+     * 벌크 UPDATE 직후의 카운트를 읽기 위한 스칼라 조회.
+     * 엔티티가 아니라 컬럼 하나만 뽑으므로 1차 캐시의 이전 값이 반환되지 않는다.
+     */
+    @Query("select a.likedCount from Article a where a.articleId = :id")
+    int findLikedCount(@Param("id") Long id);
+
 }

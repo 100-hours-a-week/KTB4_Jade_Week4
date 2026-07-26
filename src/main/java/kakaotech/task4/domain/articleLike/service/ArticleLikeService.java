@@ -25,12 +25,11 @@ public class ArticleLikeService {
 
     @Transactional
     public ArticleLikeResponse like(Member member, Article article) {
-        int likeCount = article.getLikedCount();
-        if (!articleLikeRepository.existsByArticleAndMember(article, member)) {
-            articleLikeRepository.save(ArticleLike.of(article, member));
-            likeCount = articleService.increaseLikedCount(article.getArticleId());
+        if (articleLikeRepository.existsByArticleAndMember(article, member)) {
+            return ArticleLikeResponse.of(true, articleService.findLikedCount(article.getArticleId()));
         }
-        return ArticleLikeResponse.of(true, likeCount);
+        articleLikeRepository.save(ArticleLike.of(article, member));
+        return ArticleLikeResponse.of(true, articleService.increaseLikedCount(article.getArticleId()));
     }
 
     @Transactional

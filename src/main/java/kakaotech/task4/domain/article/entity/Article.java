@@ -22,7 +22,6 @@ public class Article extends BaseEntity {
     private Long articleId;
 
     @Column(nullable = false, unique = true, updatable = false)
-
     private String articleUuid;
 
     @Column(nullable = false, length = 26)
@@ -61,11 +60,10 @@ public class Article extends BaseEntity {
     }
 
     public void update(UpdateArticleRequest request) {
-        this.title = request.title();
+        if (request.title() != null) this.title = request.title();
         if (request.optionA() != null) this.optionA = request.optionA();
         if (request.optionB() != null) this.optionB = request.optionB();
     }
-
 
     @Override
     public boolean equals(Object o) {

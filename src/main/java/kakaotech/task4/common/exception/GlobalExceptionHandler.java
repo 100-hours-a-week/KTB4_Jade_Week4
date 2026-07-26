@@ -1,24 +1,26 @@
 package kakaotech.task4.common.exception;
 
 import jakarta.validation.Path;
-import kakaotech.task4.common.exception.ExceptionCode.ExceptionCode;
-import kakaotech.task4.common.exception.ExceptionCode.GlobalExceptionCode;
 import kakaotech.task4.common.response.ApiResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.servlet.NoHandlerFoundException;
 
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 @Slf4j
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+
+    private static final String MISSING_VALUE_CODE = "NotBlank";
 
     @ExceptionHandler(CustomException.class)
     protected ResponseEntity<?> handleCustomException(final CustomException e) {
@@ -28,18 +30,25 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     protected ResponseEntity<?> handleMethodArgumentNotValid(final MethodArgumentNotValidException e) {
-        Map<String, Object> fields = new LinkedHashMap<>();
-        e.getBindingResult().getFieldErrors()
-                .forEach(error -> fields.put(error.getField(), error.getDefaultMessage()));
+        Map<String, Object> fields = toFieldMessages(e.getBindingResult().getFieldErrors());
 
         ExceptionCode error = resolveValidationErrorCode(e);
         log.warn("[Validation] code={}, fields={}", error.getCode(), fields);
         return toErrorResponse(error, fields);
     }
 
+    private Map<String, Object> toFieldMessages(List<org.springframework.validation.FieldError> fieldErrors) {
+        Map<String, Object> fields = new LinkedHashMap<>();
+        fieldErrors.stream()
+                .filter(error -> MISSING_VALUE_CODE.equals(error.getCode()))
+                .forEach(error -> fields.put(error.getField(), error.getDefaultMessage()));
+        fieldErrors.forEach(error -> fields.putIfAbsent(error.getField(), error.getDefaultMessage()));
+        return fields;
+    }
+
     private ExceptionCode resolveValidationErrorCode(MethodArgumentNotValidException e) {
         boolean hasMissing = e.getBindingResult().getFieldErrors().stream()
-                .anyMatch(error -> "NotBlank".equals(error.getCode()));
+                .anyMatch(error -> MISSING_VALUE_CODE.equals(error.getCode()));
         return hasMissing ? GlobalExceptionCode.BAD_REQUEST : GlobalExceptionCode.VALIDATION_ERROR;
     }
 
@@ -54,6 +63,13 @@ public class GlobalExceptionHandler {
         log.warn("[ConstraintViolation] fields={}", fields);
         ExceptionCode error = GlobalExceptionCode.VALIDATION_ERROR;
         return toErrorResponse(error, fields);
+    }
+
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    protected ResponseEntity<?> handleMessageNotReadable(final HttpMessageNotReadableException e) {
+        log.warn("[MessageNotReadable] {}", e.getMessage());
+        ExceptionCode error = GlobalExceptionCode.MALFORMED_REQUEST;
+        return toErrorResponse(error);
     }
 
     @ExceptionHandler(NoHandlerFoundException.class)

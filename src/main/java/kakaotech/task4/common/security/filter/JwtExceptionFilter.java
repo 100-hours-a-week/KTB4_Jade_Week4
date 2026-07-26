@@ -6,7 +6,7 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import kakaotech.task4.common.exception.CustomException;
-import kakaotech.task4.common.exception.ExceptionCode.ExceptionCode;
+import kakaotech.task4.common.exception.ExceptionCode;
 import kakaotech.task4.common.response.ApiResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;

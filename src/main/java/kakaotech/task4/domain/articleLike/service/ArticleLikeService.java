@@ -12,6 +12,10 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
+
 @Service
 @Transactional(readOnly = true)
 @RequiredArgsConstructor
@@ -21,12 +25,11 @@ public class ArticleLikeService {
 
     @Transactional
     public ArticleLikeResponse like(Member member, Article article) {
-        int likeCount = article.getLikedCount();
-        if (!articleLikeRepository.existsByArticleAndMember(article, member)) {
-            articleLikeRepository.save(ArticleLike.of(article, member));
-            likeCount = articleService.increaseLikedCount(article.getArticleId());
+        if (articleLikeRepository.existsByArticleAndMember(article, member)) {
+            return ArticleLikeResponse.of(true, articleService.findLikedCount(article.getArticleId()));
         }
-        return ArticleLikeResponse.of(true, likeCount);
+        articleLikeRepository.save(ArticleLike.of(article, member));
+        return ArticleLikeResponse.of(true, articleService.increaseLikedCount(article.getArticleId()));
     }
 
     @Transactional
@@ -40,5 +43,12 @@ public class ArticleLikeService {
 
     public boolean isLiked(Member member, Article article) {
         return articleLikeRepository.existsByArticleAndMember(article, member);
+    }
+
+    public Set<Long> findLikedArticleIds(Member member, List<Article> articles) {
+        return articleLikeRepository.findAllByMemberAndArticleIn(member, articles)
+                .stream()
+                .map(articleLike -> articleLike.getArticle().getArticleId())
+                .collect(Collectors.toSet());
     }
 }

@@ -7,10 +7,10 @@ import kakaotech.task4.domain.article.code.ArticleExceptionCode;
 import kakaotech.task4.domain.article.dto.cursor.ArticleCursor;
 import kakaotech.task4.domain.article.dto.req.CreateArticleRequest;
 import kakaotech.task4.domain.article.dto.req.UpdateArticleRequest;
-import kakaotech.task4.domain.article.dto.res.ArticleListResponse;
-import kakaotech.task4.domain.article.dto.res.ArticleSummaryResponse;
 import kakaotech.task4.domain.article.entity.Article;
 import kakaotech.task4.domain.article.repository.ArticleRepository;
+import kakaotech.task4.domain.articleVote.entity.ArticleVoteCount;
+import kakaotech.task4.domain.articleVote.repository.ArticleVoteCountRepository;
 import kakaotech.task4.domain.member.entity.Member;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -19,30 +19,31 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 @AllArgsConstructor
 @Transactional(readOnly = true)
 public class ArticleService {
     private final ArticleRepository articleRepository;
+    private final ArticleVoteCountRepository articleVoteCountRepository;
 
     @Transactional
-    public Article createArticle(Member member, CreateArticleRequest request) {
+    public String createArticle(Member member, CreateArticleRequest request) {
         String articleUuid = UuidCreator.create(UuidPrefix.ARTICLE);
         Article article = Article.of(articleUuid, member, request);
+
         articleRepository.save(article);
-        return article;
+        articleVoteCountRepository.save(ArticleVoteCount.of(article.getArticleId()));
+        return article.getArticleUuid();
     }
 
     @Transactional
-    public Article updateArticle(Member member, String articleUuid, UpdateArticleRequest request) {
+    public void updateArticle(Member member, String articleUuid, UpdateArticleRequest request) {
         Article article = findArticleByUuid(articleUuid);
         validateOwner(member, article, ArticleExceptionCode.FORBIDDEN_UPDATE);
         validateAllNull(request);
 
         article.update(request);
-        return article;
     }
 
     @Transactional
@@ -54,27 +55,18 @@ public class ArticleService {
 
     @Transactional
     public int increaseLikedCount(Long articleId) {
-        return articleRepository.increaseLikedCount(articleId);
+        articleRepository.increaseLikedCount(articleId);
+        return articleRepository.findLikedCount(articleId);
     }
 
     @Transactional
     public int decreaseLikedCount(Long articleId) {
-       return articleRepository.decreaseLikedCount(articleId);
+        articleRepository.decreaseLikedCount(articleId);
+        return articleRepository.findLikedCount(articleId);
     }
 
-    @Transactional
-    public void increaseViewCount(Long articleId) {
-        articleRepository.increaseViewCount(articleId);
-    }
-
-    @Transactional
-    public void increaseCommentCount(Long articleId ) {
-        articleRepository.increaseCommentCount(articleId);
-    }
-
-    @Transactional
-    public void decreaseCommentCount(Long articleId) {
-        articleRepository.decreaseCommentCount(articleId);
+    public int findLikedCount(Long articleId) {
+        return articleRepository.findLikedCount(articleId);
     }
 
     public Article findArticleByUuid(String articleUuid) {
@@ -82,23 +74,13 @@ public class ArticleService {
                 .orElseThrow(() -> new CustomException(ArticleExceptionCode.NOT_FOUND));
     }
 
-    public ArticleListResponse getArticleList(String cursor, int size) {
-        Pageable pageable = PageRequest.ofSize(size + 1);
+    public List<Article> findArticlePage(String cursor, int limit) {
+        Pageable pageable = PageRequest.ofSize(limit);
 
-        List<Article> articles = (cursor == null)
-                ? articleRepository.findFirstPage(pageable)
-                : findNextPage(cursor, pageable);
-
-        boolean hasNext = articles.size() > size;
-        if (hasNext) articles = articles.subList(0, size);
-
-        List<ArticleSummaryResponse> responses = articles.stream()
-                .map(ArticleSummaryResponse::from)
-                .toList();
-
-        String nextCursor = hasNext ? ArticleCursor.encode(articles.getLast()) : null;
-
-        return ArticleListResponse.of(responses, hasNext, nextCursor);
+        if (cursor == null) {
+            return articleRepository.findFirstPage(pageable);
+        }
+        return findNextPage(cursor, pageable);
     }
 
     private List<Article> findNextPage(String cursor, Pageable pageable) {
@@ -113,7 +95,7 @@ public class ArticleService {
     }
 
     private void validateAllNull(UpdateArticleRequest request) {
-        if (request.isAllNull()) {
+        if (request.hasNoChanges()) {
             throw new CustomException(ArticleExceptionCode.BAD_REQUEST);
         }
     }

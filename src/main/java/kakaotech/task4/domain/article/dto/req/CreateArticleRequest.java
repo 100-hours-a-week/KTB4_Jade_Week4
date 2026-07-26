@@ -10,10 +10,13 @@ public record CreateArticleRequest(
         @Size(max = 26, message = "제목의 최대 길이는 26자 입니다.")
         String title,
 
-        @Schema(description = "내용", example = "내용입니다.")
-        @NotBlank(message = "내용을 입력해주세요.")
-        String content,
+        @Schema(description = "선택지 A", example = "치킨")
+        @NotBlank(message = "선택지 A를 입력해주세요.")
+        @Size(max = 15, message = "선택지 A의 최대 길이는 15자 입니다.")
+        String optionA,
 
-        @Schema(description = "이미지 URL", example = "이미지url")
-        String imageUrl
+        @Schema(description = "선택지 B", example = "피자")
+        @NotBlank(message = "선택지 B를 입력해주세요.")
+        @Size(max = 15, message = "선택지 B의 최대 길이는 15자 입니다.")
+        String optionB
 ) {}

@@ -1,6 +1,6 @@
 package kakaotech.task4.domain.auth.code;
 
-import kakaotech.task4.common.exception.ExceptionCode.ExceptionCode;
+import kakaotech.task4.common.exception.ExceptionCode;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.springframework.http.HttpStatus;
@@ -8,7 +8,6 @@ import org.springframework.http.HttpStatus;
 @Getter
 @AllArgsConstructor
 public enum AuthExceptionCode implements ExceptionCode {
-    MISSING_AUTH_HEADER(HttpStatus.BAD_REQUEST, "AUTH-400-001", "Authorization 헤더가 없습니다."),
     UNAUTHORIZED(HttpStatus.UNAUTHORIZED, "AUTH-401-001", "인증되지 않은 사용자입니다."),
     INVALID_CREDENTIALS(HttpStatus.UNAUTHORIZED, "AUTH-401-002", "이메일 또는 비밀번호가 다릅니다."),
     ACCESS_DENIED(HttpStatus.FORBIDDEN, "AUTH-403-001", "접근 권한이 없습니다."),

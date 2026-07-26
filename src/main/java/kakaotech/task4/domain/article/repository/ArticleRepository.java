@@ -7,7 +7,7 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 
@@ -37,13 +37,9 @@ public interface ArticleRepository extends JpaRepository<Article, Long> {
            or (a.createdAt = :cursorCreatedAt and a.articleId < :cursorArticleId))
     order by a.createdAt desc, a.articleId desc
     """)
-    List<Article> findNextPage(@Param("cursorCreatedAt") LocalDateTime cursorCreatedAt,
+    List<Article> findNextPage(@Param("cursorCreatedAt") Instant cursorCreatedAt,
                                @Param("cursorArticleId") Long cursorArticleId,
                                Pageable pageable);
-
-    @Modifying(clearAutomatically = true)
-    @Query("update Article a set a.viewCount = a.viewCount + 1 where a.articleId = :id")
-    void increaseViewCount(@Param("id") Long id);
 
     @Modifying
     @Query("update Article a set a.likedCount = a.likedCount + 1 where a.articleId = :id")
@@ -54,12 +50,11 @@ public interface ArticleRepository extends JpaRepository<Article, Long> {
             "where a.articleId = :id and a.likedCount > 0")
     int decreaseLikedCount(@Param("id") Long id);
 
-    @Modifying
-    @Query("update Article a set a.commentCount = a.commentCount + 1 where a.articleId = :id")
-    void increaseCommentCount(@Param("id") Long id);
+    /**
+     * 벌크 UPDATE 직후의 카운트를 읽기 위한 스칼라 조회.
+     * 엔티티가 아니라 컬럼 하나만 뽑으므로 1차 캐시의 이전 값이 반환되지 않는다.
+     */
+    @Query("select a.likedCount from Article a where a.articleId = :id")
+    int findLikedCount(@Param("id") Long id);
 
-    @Modifying
-    @Query("update Article a set a.commentCount = a.commentCount - 1 " +
-            "where a.articleId = :id and a.commentCount > 0")
-    void decreaseCommentCount(@Param("id") Long id);
 }

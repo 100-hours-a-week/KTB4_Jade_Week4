@@ -5,6 +5,8 @@ import kakaotech.task4.domain.articleLike.entity.ArticleLike;
 import kakaotech.task4.domain.member.entity.Member;
 import org.springframework.data.jpa.repository.JpaRepository;
 
+import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
 
 public interface ArticleLikeRepository extends JpaRepository<ArticleLike, Long> {
@@ -12,4 +14,6 @@ public interface ArticleLikeRepository extends JpaRepository<ArticleLike, Long> 
     Optional<ArticleLike> findByArticleAndMember(Article article, Member member);
 
     boolean existsByArticleAndMember(Article article, Member member);
+
+    List<ArticleLike> findAllByMemberAndArticleIn(Member member, Collection<Article> articles);
 }

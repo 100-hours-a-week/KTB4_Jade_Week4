@@ -14,7 +14,7 @@ public record UpdateMyBasicInfoRequest(
         @Schema(description = "프로필 이미지 URL", example = "https://example.com/image.jpg")
         String profileImageUrl
 ) {
-        public boolean isAllNull() {
+        public boolean hasNoChanges() {
                 return nickname == null && profileImageUrl == null;
         }
 }

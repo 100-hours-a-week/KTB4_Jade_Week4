@@ -1,36 +1,48 @@
 package kakaotech.task4.domain.article.dto.res;
 
 import kakaotech.task4.domain.article.entity.Article;
+import kakaotech.task4.domain.articleVote.entity.ArticleVoteCount;
+import kakaotech.task4.domain.articleVote.entity.VoteOption;
+import kakaotech.task4.domain.member.entity.Member;
 import lombok.Builder;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.List;
 
 @Builder
 public record ArticleDetailResponse(
         String title,
+        String optionA,
+        String optionB,
+        int voteCountA,
+        int voteCountB,
+        VoteOption myVote,
         String writer,
-        String userUuid,
-        LocalDateTime createdAt,
-        String imageUrl,
-        String content,
+        boolean isMine,
+        String profileImageUrl,
+        Instant createdAt,
         int likeCount,
-        int viewCount,
-        int commentCount,
         boolean isLiked,
         List<CommentDetailResponse> comments
 ) {
-    public static ArticleDetailResponse of(Article article, String imageUrl, boolean isLiked, List<CommentDetailResponse> comments) {
+    public static ArticleDetailResponse of(Article article,
+                                           Member viewer,
+                                           ArticleVoteCount voteCount,
+                                           VoteOption myVote,
+                                           boolean isLiked,
+                                           List<CommentDetailResponse> comments) {
         return ArticleDetailResponse.builder()
                 .title(article.getTitle())
+                .optionA(article.getOptionA())
+                .optionB(article.getOptionB())
+                .voteCountA(voteCount.getCountA())
+                .voteCountB(voteCount.getCountB())
+                .myVote(myVote)
                 .writer(article.getMember().getNickname())
-                .userUuid(article.getMember().getMemberUuid())
+                .isMine(article.getMember().equals(viewer))
+                .profileImageUrl(article.getMember().getProfileImageUrl())
                 .createdAt(article.getCreatedAt())
-                .imageUrl(imageUrl)
-                .content(article.getContent())
                 .likeCount(article.getLikedCount())
-                .viewCount(article.getViewCount())
-                .commentCount(article.getCommentCount())
                 .isLiked(isLiked)
                 .comments(comments)
                 .build();

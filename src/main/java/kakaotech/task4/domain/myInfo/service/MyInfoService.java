@@ -53,7 +53,7 @@ public class MyInfoService {
     }
 
     private void validateAllNull(UpdateMyBasicInfoRequest request) {
-        if (request.isAllNull()) {
+        if (request.hasNoChanges()) {
             throw new CustomException(MyInfoExceptionCode.BAD_REQUEST);
         }
     }

@@ -6,7 +6,7 @@ import kakaotech.task4.domain.articleVote.entity.VoteOption;
 import kakaotech.task4.domain.member.entity.Member;
 import lombok.Builder;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 @Builder
 public record ArticleSummaryResponse(
@@ -20,7 +20,7 @@ public record ArticleSummaryResponse(
         String writer,
         boolean isMine,
         String profileImageUrl,
-        LocalDateTime createdAt,
+        Instant createdAt,
         int likeCount,
         boolean isLiked
 ) {

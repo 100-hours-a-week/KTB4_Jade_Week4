@@ -132,7 +132,7 @@ public interface ArticleApi {
     ResponseEntity<?> getArticleList(
             @Parameter(hidden = true) @CurrentMember Member member,
             @Parameter(description = "이전 응답의 nextCursor 값 (첫 페이지는 생략)",
-                    example = "MjAyNi0wMS0wMVQwODowMDowMHwxMg==")
+                    example = "MjAyNi0wMS0wMVQwODowMDowMFp8MTI=")
             @RequestParam(required = false) String cursor,
             @Parameter(description = "조회 개수 (1~10)", example = "10")
             @RequestParam(defaultValue = "10")

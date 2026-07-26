@@ -4,7 +4,7 @@ import kakaotech.task4.domain.comment.entity.ArticleComment;
 import kakaotech.task4.domain.member.entity.Member;
 import lombok.Builder;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 @Builder
 public record CommentDetailResponse(
@@ -12,7 +12,7 @@ public record CommentDetailResponse(
         String writer,
         String profileImageUrl,
         boolean isMine,
-        LocalDateTime createdAt,
+        Instant createdAt,
         String content
 ) {
     public static CommentDetailResponse of(ArticleComment articleComment, Member viewer) {

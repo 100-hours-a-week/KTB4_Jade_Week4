@@ -16,7 +16,7 @@ public record UpdateArticleRequest(
         @Size(max = 15, message = "선택지 B의 최대 길이는 15자 입니다.")
         String optionB
 ) {
-        public boolean isAllNull() {
+        public boolean hasNoChanges() {
                 return title == null && optionA == null && optionB == null;
         }
 }

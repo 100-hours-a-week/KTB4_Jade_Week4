@@ -7,7 +7,7 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 
@@ -37,7 +37,7 @@ public interface ArticleRepository extends JpaRepository<Article, Long> {
            or (a.createdAt = :cursorCreatedAt and a.articleId < :cursorArticleId))
     order by a.createdAt desc, a.articleId desc
     """)
-    List<Article> findNextPage(@Param("cursorCreatedAt") LocalDateTime cursorCreatedAt,
+    List<Article> findNextPage(@Param("cursorCreatedAt") Instant cursorCreatedAt,
                                @Param("cursorArticleId") Long cursorArticleId,
                                Pageable pageable);
 

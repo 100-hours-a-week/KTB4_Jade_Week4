@@ -30,7 +30,7 @@ public final class ArticleSwaggerSuccessExamples {
                         "writer": "작성자1",
                         "isMine": true,
                         "profileImageUrl": "프로필이미지url",
-                        "createdAt": "2026-01-01T09:00:00",
+                        "createdAt": "2026-01-01T09:00:00Z",
                         "likeCount": 129,
                         "isLiked": true
                     },
@@ -45,13 +45,13 @@ public final class ArticleSwaggerSuccessExamples {
                         "writer": "작성자2",
                         "isMine": false,
                         "profileImageUrl": "프로필이미지url",
-                        "createdAt": "2026-01-01T08:00:00",
+                        "createdAt": "2026-01-01T08:00:00Z",
                         "likeCount": 0,
                         "isLiked": false
                     }
                 ],
                 "hasNext": true,
-                "nextCursor": "MjAyNi0wMS0wMVQwODowMDowMHwxMg=="
+                "nextCursor": "MjAyNi0wMS0wMVQwODowMDowMFp8MTI="
             }
         }
         """;
@@ -70,7 +70,7 @@ public final class ArticleSwaggerSuccessExamples {
                 "writer": "게시글 작성자1",
                 "isMine": true,
                 "profileImageUrl": "프로필 이미지url",
-                "createdAt": "2026-01-01T09:00:00",
+                "createdAt": "2026-01-01T09:00:00Z",
                 "likeCount": 129,
                 "isLiked": true,
                 "comments": [
@@ -79,7 +79,7 @@ public final class ArticleSwaggerSuccessExamples {
                         "writer": "댓글 작성자1",
                         "profileImageUrl": "프로필 이미지url",
                         "isMine": false,
-                        "createdAt": "2026-01-01T09:10:00",
+                        "createdAt": "2026-01-01T09:10:00Z",
                         "content": "댓글내용"
                     }
                 ]

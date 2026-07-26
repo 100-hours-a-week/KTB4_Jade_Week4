@@ -15,6 +15,7 @@ import kakaotech.task4.domain.auth.dto.req.SignInRequest;
 import kakaotech.task4.domain.auth.dto.req.SignUpRequest;
 import kakaotech.task4.domain.member.entity.Member;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.web.csrf.CsrfToken;
 import org.springframework.web.bind.annotation.RequestBody;
 
 @Tag(name = "[인증 API]", description = "인증 관련 API")
@@ -106,4 +107,11 @@ public interface AuthApi {
     })
     ResponseEntity<?> reissue(@Parameter(hidden = true) HttpServletRequest request,
                               @Parameter(hidden = true) HttpServletResponse response);
+
+    @Operation(summary = "CSRF Token 발급",
+            description = "XSRF-TOKEN 쿠키를 내려준다. 이후 변경 요청은 이 값을 X-XSRF-TOKEN 헤더로 함께 보낸다.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "204", description = "CSRF Token 발급 성공", content = @Content)
+    })
+    ResponseEntity<Void> csrf(@Parameter(hidden = true) CsrfToken csrfToken);
 }

@@ -89,7 +89,7 @@ public class ArticleService {
     }
 
     private void validateAllNull(UpdateArticleRequest request) {
-        if (request.isAllNull()) {
+        if (request.hasNoChanges()) {
             throw new CustomException(ArticleExceptionCode.BAD_REQUEST);
         }
     }

@@ -58,6 +58,7 @@ public class AuthController implements AuthApi {
     }
 
     @GetMapping("/csrf")
+    @Override
     public ResponseEntity<Void> csrf(CsrfToken csrfToken) {
         csrfToken.getToken();
         return ResponseEntity.noContent().build();

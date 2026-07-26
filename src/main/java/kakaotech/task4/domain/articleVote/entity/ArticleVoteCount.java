@@ -20,9 +20,6 @@ public class ArticleVoteCount {
     @Column(nullable = false)
     private int countB = 0;
 
-    @Column(nullable = false)
-    private int version = 0;
-
     private ArticleVoteCount(Long articleId) {
         this.articleId = articleId;
     }

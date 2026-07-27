@@ -31,7 +31,7 @@ public record SignUpRequest(
         )
         String nickname,
 
-        @Schema(description = "프로필 이미지 URL", example = "https://example.com/image.jpg")
+        @Schema(description = "프로필 이미지 URL", example = "https://d28cyp412uo4kv.cloudfront.net/profile/xxx.webp")
         @NotBlank(message = "프로필 사진을 추가해주세요.")
         String profileImageUrl
 ) {

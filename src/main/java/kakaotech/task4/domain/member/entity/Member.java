@@ -40,8 +40,7 @@ public class Member extends BaseEntity {
         this.profileImageUrl = profileImageUrl;
     }
 
-    public static Member of(String memberUuid, SignUpRequest request, String encodedPassword
-    ) {
+    public static Member of(String memberUuid, SignUpRequest request, String encodedPassword) {
         return Member.builder()
                 .memberUuid(memberUuid)
                 .email(request.email())

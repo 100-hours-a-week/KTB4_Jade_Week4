@@ -13,6 +13,7 @@ import jakarta.validation.Valid;
 import kakaotech.task4.common.resolver.CurrentMember;
 import kakaotech.task4.domain.auth.dto.req.SignInRequest;
 import kakaotech.task4.domain.auth.dto.req.SignUpRequest;
+import kakaotech.task4.domain.file.api.FileSwaggerErrorExamples;
 import kakaotech.task4.domain.member.entity.Member;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.web.csrf.CsrfToken;
@@ -26,10 +27,11 @@ public interface AuthApi {
             @ApiResponse(responseCode = "201", description = "회원가입 성공",
                     content = @Content(mediaType = "application/json",
                             examples = @ExampleObject(value = AuthSwaggerSuccessExamples.SIGN_UP_201))),
-            @ApiResponse(responseCode = "400", description = "필수 값 누락 또는 본문 형식 오류",
+            @ApiResponse(responseCode = "400", description = "필수 값 누락, 프로필 이미지 주소 오류 또는 본문 형식 오류",
                     content = @Content(mediaType = "application/json",
                             examples = {
                                     @ExampleObject(name = "필수 값 누락", value = AuthSwaggerErrorExamples.GLOBAL_400_001_SIGN_UP),
+                                    @ExampleObject(name = "프로필 이미지 주소 오류", value = FileSwaggerErrorExamples.FILE_400_002),
                                     @ExampleObject(name = "본문 형식 오류", value = AuthSwaggerErrorExamples.GLOBAL_400_002)
                             })),
             @ApiResponse(responseCode = "409", description = "중복 데이터",

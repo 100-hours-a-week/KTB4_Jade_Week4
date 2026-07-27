@@ -10,6 +10,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import kakaotech.task4.common.resolver.CurrentMember;
 import kakaotech.task4.domain.auth.api.AuthSwaggerErrorExamples;
+import kakaotech.task4.domain.file.api.FileSwaggerErrorExamples;
 import kakaotech.task4.domain.myInfo.dto.req.UpdateMyBasicInfoRequest;
 import kakaotech.task4.domain.myInfo.dto.req.UpdateMySecurityRequest;
 import kakaotech.task4.domain.member.entity.Member;
@@ -40,10 +41,11 @@ public interface MyInfoApi {
             @ApiResponse(responseCode = "200", description = "마이페이지 수정 성공",
                     content = @Content(mediaType = "application/json",
                             examples = @ExampleObject(value = MySwaggerSuccessExamples.MY_200_002))),
-            @ApiResponse(responseCode = "400", description = "변경할 내용 없음 또는 본문 형식 오류",
+            @ApiResponse(responseCode = "400", description = "변경할 내용 없음, 프로필 이미지 주소 오류 또는 본문 형식 오류",
                     content = @Content(mediaType = "application/json",
                             examples = {
                                     @ExampleObject(name = "변경할 내용 없음", value = MySwaggerErrorExamples.MY_400_001),
+                                    @ExampleObject(name = "프로필 이미지 주소 오류", value = FileSwaggerErrorExamples.FILE_400_002),
                                     @ExampleObject(name = "본문 형식 오류", value = AuthSwaggerErrorExamples.GLOBAL_400_002)
                             })),
             @ApiResponse(responseCode = "401", description = "로그인 후 사용 가능",

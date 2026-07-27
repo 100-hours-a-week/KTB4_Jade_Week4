@@ -12,6 +12,7 @@ import kakaotech.task4.domain.auth.dto.req.SignInRequest;
 import kakaotech.task4.domain.auth.dto.req.SignUpRequest;
 import kakaotech.task4.domain.auth.dto.res.SignInResponse;
 import kakaotech.task4.domain.auth.dto.res.TokenReissueResponse;
+import kakaotech.task4.domain.file.service.ProfileImageUrlValidator;
 import kakaotech.task4.domain.member.entity.Member;
 import kakaotech.task4.domain.member.service.MemberService;
 import lombok.AllArgsConstructor;
@@ -28,10 +29,12 @@ public class AuthService {
     private final MemberService memberService;
     private final PasswordEncoder passwordEncoder;
     private final AuthTokenService authTokenService;
+    private final ProfileImageUrlValidator profileImageUrlValidator;
 
     public void signUp(SignUpRequest request) {
         validatePasswordMatch(request);
         validateDuplicate(request);
+        profileImageUrlValidator.validate(request.profileImageUrl());
         memberService.signUp(request);
     }
 

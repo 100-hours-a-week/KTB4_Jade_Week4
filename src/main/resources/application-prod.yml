@@ -1,0 +1,47 @@
+spring:
+  datasource:
+    url: jdbc:mysql://${DATABASE_HOST}:${DATABASE_PORT}/${DATABASE_NAME}
+    username: ${DATABASE_USER}
+    password: ${DATABASE_PASSWORD}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: false
+    properties:
+      hibernate:
+        default_batch_fetch_size: 1000
+
+logging:
+  level:
+    org:
+      springframework:
+        web: info
+      hibernate:
+        SQL: off
+
+server:
+  address: 0.0.0.0
+
+security:
+  jwt:
+    secret: ${JWT_SECRET}
+    access-expiration: ${JWT_ACCESS_EXPIRATION}
+
+  refresh-token:
+    expiration: ${JWT_REFRESH_EXPIRATION}
+
+  cookie:
+    secure: ${COOKIE_SECURE}
+    same-site: ${COOKIE_SAME_SITE}
+
+  cors:
+    allowed-origins: ${CORS_ALLOWED_ORIGINS}
+
+aws:
+  s3:
+    bucket: ${AWS_S3_BUCKET}
+    region: ${AWS_S3_REGION}
+    public-base-url: ${AWS_S3_PUBLIC_BASE_URL}
+    presigned-expiration: ${AWS_S3_PRESIGNED_EXPIRATION}

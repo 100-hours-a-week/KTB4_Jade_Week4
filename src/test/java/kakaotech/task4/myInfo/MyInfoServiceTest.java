@@ -1,6 +1,7 @@
 package kakaotech.task4.myInfo;
 
 import kakaotech.task4.common.exception.CustomException;
+import kakaotech.task4.domain.file.service.ProfileImageUrlValidator;
 import kakaotech.task4.domain.member.entity.Member;
 import kakaotech.task4.domain.member.service.MemberService;
 import kakaotech.task4.domain.myInfo.code.MyInfoExceptionCode;
@@ -31,6 +32,9 @@ class MyInfoServiceTest {
 
     @Mock
     private PasswordEncoder passwordEncoder;
+
+    @Mock
+    private ProfileImageUrlValidator profileImageUrlValidator;
 
     @InjectMocks
     private MyInfoService myInfoService;

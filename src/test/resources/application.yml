@@ -1,0 +1,53 @@
+spring:
+  application:
+    name: task
+
+  web:
+    resources:
+      add-mappings: false
+
+  datasource:
+    url: jdbc:h2:mem:test;DB_CLOSE_DELAY=-1;NON_KEYWORDS=USER
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
+
+  jpa:
+    hibernate:
+      ddl-auto: create
+    properties:
+      hibernate:
+        format_sql: true
+        jdbc:
+          time_zone: UTC
+
+  jackson:
+    time-zone: UTC
+    serialization:
+      write-dates-as-timestamps: false
+
+security:
+  jwt:
+    secret: TestOnlyJwtSecret_NotUsedInDevOrProd_0123456789abcdefghijklmnop
+    issuer: ktb4-jade-api
+    audience: ktb4-jade-api
+    access-expiration: 15m
+
+  refresh-token:
+    expiration: 7d
+
+  cookie:
+    access-name: access_token
+    refresh-name: refresh_token
+    secure: false
+    same-site: Lax
+
+  cors:
+    allowed-origins: http://localhost
+
+aws:
+  s3:
+    bucket: test-bucket
+    region: ap-northeast-2
+    public-base-url: https://test-bucket.s3.ap-northeast-2.amazonaws.com
+    presigned-expiration: 5m

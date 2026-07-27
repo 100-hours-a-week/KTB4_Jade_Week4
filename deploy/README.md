@@ -3,7 +3,7 @@
 CI/CD 없이 **로컬에서 이미지를 빌드해 GHCR에 push**하고, EC2에서 `pull` 후 실행한다.
 
 ```
-        [로컬]                          [GHCR]                [EC2]
+        [로컬]                       [Docker Hub]              [EC2]
   docker build --platform amd64  →  banteum-backend:v0.1.0  →  docker compose pull
                                     banteum-frontend:v0.1.0     docker compose up -d
 ```
@@ -15,8 +15,8 @@ EC2에는 소스가 없고 `docker-compose.yml`, `nginx.conf`, `.env` 3개만 �
 | 서비스 | 이미지 | 외부 노출 |
 |---|---|---|
 | `nginx` | `nginx:1.27-alpine` | **80** |
-| `frontend` | `ghcr.io/.../banteum-frontend:<tag>` | 없음 |
-| `app` | `ghcr.io/.../banteum-backend:<tag>` | 없음 |
+| `frontend` | `jeongminju45/banteum-frontend:<tag>` | 없음 |
+| `app` | `jeongminju45/banteum-backend:<tag>` | 없음 |
 | `mysql` | `mysql:8.4` | 없음 |
 
 `app`과 `mysql`은 호스트 포트를 열지 않는다. 외부에서 DB에 직접 붙을 수 없다.
@@ -29,10 +29,10 @@ EC2에는 소스가 없고 `docker-compose.yml`, `nginx.conf`, `.env` 3개만 �
 
 ## 1. 이미지 빌드 & push (로컬)
 
-GHCR 로그인은 최초 1회. `write:packages` 권한의 Personal Access Token이 필요하다.
+Docker Hub 로그인은 최초 1회. Account settings → Personal access tokens에서 Read/Write 토큰을 만들어 쓴다.
 
 ```bash
-echo $GHCR_TOKEN | docker login ghcr.io -u <github-username> --password-stdin
+docker login -u jeongminju45
 ```
 
 **Apple Silicon이면 `--platform linux/amd64`가 필수다.** 빼면 arm64 이미지가 올라가 EC2(x86)에서 `exec format error`로 실행되지 않는다.
@@ -40,7 +40,7 @@ echo $GHCR_TOKEN | docker login ghcr.io -u <github-username> --password-stdin
 ```bash
 VERSION=v0.1.0
 SHA=$(git rev-parse --short HEAD)
-IMAGE=ghcr.io/100-hours-a-week/banteum-backend
+IMAGE=jeongminju45/banteum-backend
 
 docker build --platform linux/amd64 -t $IMAGE:$VERSION -t $IMAGE:$SHA .
 docker push $IMAGE:$VERSION
@@ -60,13 +60,7 @@ docker push $IMAGE:$SHA
 
 EC2 인스턴스 생성·IAM 역할·Docker 설치는 별도 문서(`ec2-setup.md`)를 따른다. 아래는 그 준비가 끝난 뒤부터다.
 
-GHCR 패키지가 private이므로 EC2에서도 한 번 로그인해야 한다. 서버에는 **`read:packages` 권한만** 가진 토큰을 쓴다. push 권한이 있는 토큰을 서버에 두지 않는다.
-
-```bash
-echo <PAT> | docker login ghcr.io -u <github-username> --password-stdin
-```
-
-토큰 만료(기본 90일)가 되면 `docker compose pull`이 갑자기 실패한다. 만료일을 달력에 적어두거나, 만료 없는 토큰을 쓰되 서버 접근을 엄격히 관리한다.
+이미지가 Docker Hub public이므로 EC2에서는 로그인 없이 pull된다. 서버에 토큰을 두지 않아도 되고, 만료로 배포가 깨질 일도 없다.
 
 ### 파일 배치
 

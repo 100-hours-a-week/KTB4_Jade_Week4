@@ -11,13 +11,13 @@ services:
     restart: unless-stopped
 
   frontend:
-    image: ghcr.io/100-hours-a-week/banteum-frontend:${FRONTEND_TAG}
+    image: jeongminju45/banteum-frontend:${FRONTEND_TAG}
     expose:
       - "80"
     restart: unless-stopped
 
   app:
-    image: ghcr.io/100-hours-a-week/banteum-backend:${BACKEND_TAG}
+    image: jeongminju45/banteum-backend:${BACKEND_TAG}
     expose:
       - "8080"
     environment:

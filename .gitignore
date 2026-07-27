@@ -40,3 +40,4 @@ out/
 ### env ###
 .env
 .env.*
+!deploy/.env.example

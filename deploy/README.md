@@ -60,7 +60,13 @@ docker push $IMAGE:$SHA
 
 EC2 인스턴스 생성·IAM 역할·Docker 설치는 별도 문서(`ec2-setup.md`)를 따른다. 아래는 그 준비가 끝난 뒤부터다.
 
-GHCR 패키지는 public이므로 EC2에서 별도 로그인 없이 pull된다.
+GHCR 패키지가 private이므로 EC2에서도 한 번 로그인해야 한다. 서버에는 **`read:packages` 권한만** 가진 토큰을 쓴다. push 권한이 있는 토큰을 서버에 두지 않는다.
+
+```bash
+echo <PAT> | docker login ghcr.io -u <github-username> --password-stdin
+```
+
+토큰 만료(기본 90일)가 되면 `docker compose pull`이 갑자기 실패한다. 만료일을 달력에 적어두거나, 만료 없는 토큰을 쓰되 서버 접근을 엄격히 관리한다.
 
 ### 파일 배치
 

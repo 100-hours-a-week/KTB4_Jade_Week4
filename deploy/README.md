@@ -60,6 +60,8 @@ docker push $IMAGE:$SHA
 
 EC2 인스턴스 생성·IAM 역할·Docker 설치는 별도 문서(`ec2-setup.md`)를 따른다. 아래는 그 준비가 끝난 뒤부터다.
 
+GHCR 패키지는 public이므로 EC2에서 별도 로그인 없이 pull된다.
+
 ### 파일 배치
 
 ```bash

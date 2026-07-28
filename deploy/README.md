@@ -1,5 +1,7 @@
 # 배포 가이드 — EC2 1대 + Docker Compose + Nginx
 
+서비스 주소: **https://banteum.click**
+
 CI/CD 없이 **로컬에서 이미지를 빌드해 GHCR에 push**하고, EC2에서 `pull` 후 실행한다.
 
 ```
@@ -14,16 +16,18 @@ EC2에는 소스가 없고 `docker-compose.yml`, `nginx.conf`, `.env` 3개만 �
 
 | 서비스 | 이미지 | 외부 노출 |
 |---|---|---|
-| `nginx` | `nginx:1.27-alpine` | **80** |
+| `nginx` | `nginx:1.27-alpine` | **80, 443** |
 | `frontend` | `jeongminju45/banteum-frontend:<tag>` | 없음 |
 | `app` | `jeongminju45/banteum-backend:<tag>` | 없음 |
 | `mysql` | `mysql:8.4` | 없음 |
+| `certbot` | `certbot/certbot` | 없음 |
 
 `app`과 `mysql`은 호스트 포트를 열지 않는다. 외부에서 DB에 직접 붙을 수 없다.
 
 라우팅:
 - `/api/**` → `app:8080` (Spring `context-path: /api`)
 - 그 외 → `frontend:80` (React)
+- HTTP(80) 요청은 전부 HTTPS(443)로 301 리다이렉트. 단 `/.well-known/acme-challenge/`는 예외(인증서 갱신용)
 
 ---
 
@@ -117,9 +121,43 @@ docker compose up -d app
 ### 확인
 
 ```bash
-curl -i http://localhost/api/auth/csrf     # 204
-curl -i http://localhost/                  # React
+curl -i https://banteum.click/api/auth/csrf   # 204, Secure 쿠키
+curl -i https://banteum.click/                # React
+curl -i http://banteum.click/                 # 301 → https
 ```
+
+---
+
+## HTTPS (Let's Encrypt)
+
+ALB가 없어 ACM을 쓸 수 없으므로 certbot으로 발급한다. `certbot` 컨테이너가 12시간마다 깨어나 만료가 가까우면 자동 갱신한다.
+
+**최초 발급 순서** (인증서가 없는 상태에서 443 설정을 올리면 nginx가 파일을 못 찾아 죽는다)
+
+1. 80만 있는 설정으로 nginx 기동
+2. 인증서 발급
+   ```bash
+   docker compose run --rm --entrypoint certbot certbot certonly \
+     --webroot -w /var/www/certbot -d banteum.click \
+     --email <메일> --agree-tos --no-eff-email --non-interactive
+   ```
+3. `nginx-ssl.conf`를 `nginx.conf`로 복사 후 nginx 재기동
+
+**인증서 상태 확인**
+
+```bash
+docker compose run --rm --entrypoint certbot certbot certificates
+echo | openssl s_client -connect banteum.click:443 -servername banteum.click 2>/dev/null \
+  | openssl x509 -noout -dates
+```
+
+**도메인을 바꾸거나 추가할 때 손봐야 하는 곳**
+
+1. Route 53 A 레코드
+2. certbot 발급 (`-d` 추가)
+3. `nginx.conf`의 `server_name`
+4. `.env`의 `CORS_ALLOWED_ORIGINS`
+5. **S3 prod 버킷 CORS의 `AllowedOrigins`** ← 빠뜨리면 이미지 업로드만 실패한다
 
 ---
 
@@ -177,9 +215,11 @@ docker compose exec mysql mysqldump -u root -p"$MYSQL_ROOT_PASSWORD" banteum > b
 aws s3 cp backup-$(date +%F).sql s3://ktb-banteum-prod/backup/
 ```
 
-### HTTPS
+### 쿠키
 
-`COOKIE_SECURE=true`는 HTTPS에서만 동작한다. IP로만 접속하는 초기 단계에서는 `.env`에 `COOKIE_SECURE=false`, `COOKIE_SAME_SITE=Lax`로 두고, 도메인 + 인증서를 붙인 뒤 `true`/`None`으로 바꾼다. HTTP에서 `true`로 두면 쿠키가 저장되지 않아 로그인이 되지 않는다.
+현재 `COOKIE_SECURE=true`, `COOKIE_SAME_SITE=Lax`.
+
+`Secure` 쿠키는 HTTPS에서만 전송된다. HTTP로만 접속하는 환경에서 `true`로 두면 브라우저가 쿠키를 저장하지 않아 **로그인이 되지 않는다.** 프론트와 API가 Nginx 뒤에서 같은 오리진이므로 `SameSite`는 `Lax`로 충분하다.
 
 ### 메모리
 

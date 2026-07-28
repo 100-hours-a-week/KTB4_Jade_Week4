@@ -7,6 +7,7 @@ import kakaotech.task4.domain.myInfo.dto.req.UpdateMyBasicInfoRequest;
 import kakaotech.task4.domain.myInfo.dto.req.UpdateMySecurityRequest;
 import kakaotech.task4.domain.myInfo.dto.res.MyBasicInfoResponse;
 import kakaotech.task4.domain.myInfo.dto.res.UpdateMyBasicInfoResponse;
+import kakaotech.task4.domain.file.service.ProfileImageUrlValidator;
 import kakaotech.task4.domain.member.entity.Member;
 import kakaotech.task4.domain.member.service.MemberService;
 import lombok.AllArgsConstructor;
@@ -24,6 +25,7 @@ import java.util.Map;
 public class MyInfoService {
     private final MemberService memberService;
     private final PasswordEncoder passwordEncoder;
+    private final ProfileImageUrlValidator profileImageUrlValidator;
 
     public MyBasicInfoResponse getMyBasicInfo(Member member) {
         return MyBasicInfoResponse.from(member);
@@ -33,6 +35,7 @@ public class MyInfoService {
     public UpdateMyBasicInfoResponse updateMyBasicInfo(Member member, UpdateMyBasicInfoRequest request) {
         validateAllNull(request);
         validateDuplicateNickname(member, request.nickname());
+        profileImageUrlValidator.validate(request.profileImageUrl());
 
         member.updateBasicInfo(request);
         return UpdateMyBasicInfoResponse.from(member);

@@ -11,6 +11,7 @@ import kakaotech.task4.domain.auth.dto.req.SignUpRequest;
 import kakaotech.task4.domain.auth.dto.res.SignInResponse;
 import kakaotech.task4.domain.auth.dto.res.TokenReissueResponse;
 import kakaotech.task4.domain.auth.service.AuthService;
+import kakaotech.task4.domain.file.service.ProfileImageUrlValidator;
 import kakaotech.task4.domain.member.entity.Member;
 import kakaotech.task4.domain.member.service.MemberService;
 import org.junit.jupiter.api.DisplayName;
@@ -40,6 +41,8 @@ class AuthServiceTest {
     private PasswordEncoder passwordEncoder;
     @Mock
     private AuthTokenService authTokenService;
+    @Mock
+    private ProfileImageUrlValidator profileImageUrlValidator;
     @InjectMocks
     private AuthService authService;
 

@@ -41,6 +41,8 @@ out/
 .env
 .env.*
 !deploy/.env.example
+!deploy/app.env.example
+!deploy/mysql.env.example
 
 ### local docs ###
 docs/

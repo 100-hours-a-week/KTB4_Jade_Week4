@@ -1,0 +1,197 @@
+# CI/CD 설정 가이드
+
+GitHub Actions에서 이미지를 빌드해 Docker Hub에 push하고, **AWS SSM으로 EC2에 배포**한다.
+
+SSH를 쓰지 않는다. Actions 러너는 IP가 매번 바뀌어서 보안 그룹 22번을 열어야 하는데, SSM은 포트를 열지 않고도 명령을 보낼 수 있고 실행 기록이 CloudTrail에 남는다.
+
+```text
+PR 또는 develop push
+  → CI: 테스트
+
+master push
+  → 테스트
+  → sha-{커밋 SHA} 이미지 빌드(linux/amd64)
+  → Docker Hub push
+  → OIDC로 AWS 임시 권한 획득
+  → SSM으로 EC2 배포
+  → app 컨테이너만 재시작
+  → 헬스체크
+```
+
+## 워크플로 2개
+
+| 파일 | 언제 | 하는 일 |
+|---|---|---|
+| `ci.yml` | PR, develop push | 테스트만 |
+| `deploy.yml` | master push, 수동 실행 | SHA 이미지 빌드·push → 배포 → 헬스체크 |
+
+## 프론트엔드와의 분담
+
+레포가 분리되어 있어 **각자 자기 컨테이너만 배포**한다.
+
+| | 백엔드 레포 | 프론트 레포 |
+|---|---|---|
+| 이미지 | `banteum-backend` | `banteum-frontend` |
+| `.env`에서 바꾸는 줄 | `BACKEND_TAG` | `FRONTEND_TAG` |
+| 재시작하는 컨테이너 | `app` | `frontend` |
+| IAM 역할 | `ktb-banteum-github-actions` | 별도 생성 |
+
+두 워크플로는 태그만 있는 `.env`에서 각자 담당하는 한 줄만 변경한다. IAM 역할을 분리한 이유는 나중에 한쪽 권한만 회수할 수 있게 하기 위해서다.
+
+`docker-compose.yml`, `nginx.conf`와 서버의 환경 파일 구조는 백엔드 레포가 관리한다.
+
+```text
+/home/ubuntu/deploy/
+├── .env       # BACKEND_TAG, FRONTEND_TAG
+├── app.env    # Spring 운영 설정과 JWT_SECRET
+└── mysql.env  # MySQL 계정과 비밀번호
+```
+
+프론트 워크플로는 `app.env`, `mysql.env`에 접근하지 않는다.
+
+프론트 담당에게 넘길 설정 가이드는 `docs/frontend-cicd.md`에 있다.
+
+---
+
+## [공통] 1. EC2 IAM 역할에 SSM 권한 추가
+
+아래 1~2번은 **계정에 한 번만** 하면 된다. 프론트도 같은 것을 쓴다.
+
+
+SSM 에이전트는 Ubuntu AMI에 이미 설치·실행 중이다. 권한만 주면 된다.
+
+```
+IAM → 역할 → ktb-banteum-ec2-role → 권한 추가 → 정책 연결
+→ AmazonSSMManagedInstanceCore
+```
+
+연결 후 확인:
+
+```
+Systems Manager → 플릿 관리자
+```
+
+인스턴스가 목록에 뜨면 준비 완료. 안 뜨면 몇 분 기다리거나 SSM 에이전트를 재시작한다.
+
+## [공통] 2. GitHub OIDC 공급자 등록
+
+```
+IAM → 자격 증명 공급자 → 공급자 추가
+```
+
+| 항목 | 값 |
+|---|---|
+| 공급자 유형 | OpenID Connect |
+| 공급자 URL | `https://token.actions.githubusercontent.com` |
+| 대상(Audience) | `sts.amazonaws.com` |
+
+## [백엔드] 3. Actions용 IAM 역할 생성
+
+```
+IAM → 역할 → 역할 생성 → 웹 자격 증명
+→ 공급자: token.actions.githubusercontent.com
+→ Audience: sts.amazonaws.com
+```
+
+역할 이름: `ktb-banteum-github-actions`
+
+### 신뢰 정책
+
+**이 레포에서만** 역할을 쓸 수 있도록 제한한다. `repo:` 조건이 없으면 다른 레포에서도 이 역할을 가져갈 수 있다.
+
+```json
+{
+  "Version": "2012-10-17",
+  "Statement": [{
+    "Effect": "Allow",
+    "Principal": {
+      "Federated": "arn:aws:iam::770457184239:oidc-provider/token.actions.githubusercontent.com"
+    },
+    "Action": "sts:AssumeRoleWithWebIdentity",
+    "Condition": {
+      "StringEquals": {
+        "token.actions.githubusercontent.com:aud": "sts.amazonaws.com"
+      },
+      "StringLike": {
+        "token.actions.githubusercontent.com:sub": "repo:100-hours-a-week/KTB4_Jade_Week4:*"
+      }
+    }
+  }]
+}
+```
+
+### 권한 정책
+
+특정 인스턴스에 셸 명령을 보내는 것만 허용한다.
+
+```json
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Action": "ssm:SendCommand",
+      "Resource": [
+        "arn:aws:ec2:ap-northeast-2:770457184239:instance/i-007698519a37efb9c",
+        "arn:aws:ssm:ap-northeast-2::document/AWS-RunShellScript"
+      ]
+    },
+    {
+      "Effect": "Allow",
+      "Action": ["ssm:GetCommandInvocation", "ssm:ListCommandInvocations"],
+      "Resource": "*"
+    }
+  ]
+}
+```
+
+역할 ARN을 복사해 둔다. (`arn:aws:iam::770457184239:role/ktb-banteum-github-actions`)
+
+## [백엔드] 4. GitHub Secrets 등록
+
+```
+레포 → Settings → Secrets and variables → Actions → New repository secret
+```
+
+| Name | Value |
+|---|---|
+| `AWS_ROLE_ARN` | 3번에서 만든 역할 ARN |
+| `EC2_INSTANCE_ID` | `i-007698519a37efb9c` |
+| `DOCKERHUB_USERNAME` | `jeongminju45` |
+| `DOCKERHUB_TOKEN` | Docker Hub → Account settings → Personal access tokens (Read/Write) |
+
+**AWS 액세스 키는 등록하지 않는다.** OIDC로 매번 임시 자격증명을 받는다.
+
+`BACKEND_TAG`는 Secrets에 넣지 않는다. GitHub Actions가 현재 커밋에서 `sha-a1b2c3d` 형태로 자동 생성한다.
+
+---
+
+## 배포하는 법
+
+`master`에 코드가 push 또는 merge되면 자동으로 배포된다. 개발자가 버전 태그를 직접 만들 필요가 없다.
+
+```text
+master commit: a1b2c3d...
+Docker image: jeongminju45/banteum-backend:sha-a1b2c3d
+EC2 .env: BACKEND_TAG=sha-a1b2c3d
+```
+
+Actions 탭에서 진행 상황을 볼 수 있다. 완료되면 외부 헬스체크까지 통과한 상태다.
+
+## 롤백
+
+Actions → Backend CD → Run workflow에서 이전 SHA 이미지 태그를 입력한다. 수동 실행은 이미지를 다시 빌드하지 않고 기존 이미지를 재배포한다.
+
+```text
+image_tag: sha-123abcd
+```
+
+**주의**: 스키마를 바꾼 배포를 롤백하면 구버전 코드가 새 스키마를 만나 `validate`에 실패할 수 있다.
+
+---
+
+## 확인할 점
+
+**엔티티를 변경했다면** 배포 전에 스키마를 먼저 맞춘다. `validate` 상태에서는 컬럼이 자동 생성되지 않아 부팅에 실패한다.
+
+**`.env`는 서버에만 있다.** 워크플로는 `BACKEND_TAG` 한 줄만 바꾼다. 다른 환경변수를 바꾸려면 서버에서 직접 수정해야 한다.

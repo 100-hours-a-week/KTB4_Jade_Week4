@@ -44,3 +44,5 @@ out/
 
 ### local docs ###
 docs/
+.docs
+.docs.*

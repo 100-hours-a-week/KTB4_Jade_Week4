@@ -25,6 +25,7 @@ env:
 
 jobs:
   deploy:
+    name: Build and deploy backend
     runs-on: ubuntu-latest
 
     steps:

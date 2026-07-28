@@ -40,5 +40,9 @@ out/
 ### env ###
 .env
 .env.*
+!deploy/.env.example
+
+### local docs ###
+docs/
 .docs
 .docs.*

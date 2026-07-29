@@ -53,6 +53,23 @@ master push
 
 ---
 
+## 플레이스홀더
+
+이 레포는 공개 저장소라 계정·리소스 식별자를 문서에 직접 쓰지 않는다.
+
+| 플레이스홀더 | 어디서 확인 |
+|---|---|
+| `<AWS_ACCOUNT_ID>` | AWS 콘솔 오른쪽 위 계정 메뉴 |
+| `<EC2_INSTANCE_ID>` | EC2 → 인스턴스 목록 |
+
+실제 값은 커밋하지 않는 로컬 문서(`docs/`, gitignore 대상)에 둔다.
+
+자격증명은 아니지만 표적 공격의 단서가 되므로 굳이 공개하지 않는다. 실제
+비밀값(DB 비밀번호, JWT 시크릿, Docker Hub 토큰, AWS 키)은 이 문서는 물론
+어떤 커밋에도 넣지 않는다.
+
+---
+
 ## [공통] 1. EC2 IAM 역할에 SSM 권한 추가
 
 아래 1~2번은 **계정에 한 번만** 하면 된다. 프론트도 같은 것을 쓴다.
@@ -97,7 +114,9 @@ IAM → 역할 → 역할 생성 → 웹 자격 증명
 
 ### 신뢰 정책
 
-**이 레포에서만** 역할을 쓸 수 있도록 제한한다. `repo:` 조건이 없으면 다른 레포에서도 이 역할을 가져갈 수 있다.
+**이 레포의 `master` 브랜치에서만** 역할을 쓸 수 있도록 제한한다.
+
+`sub` 조건이 아예 없으면 다른 레포에서도 이 역할을 가져갈 수 있다. 레포까지만 제한하고 `repo:...:*` 처럼 와일드카드를 쓰면 그 레포의 아무 브랜치에서나 역할을 가져갈 수 있어서, 브랜치 하나 푸시하는 것만으로 배포 권한을 얻는다. `ref:refs/heads/master`까지 명시한다.
 
 ```json
 {
@@ -105,15 +124,13 @@ IAM → 역할 → 역할 생성 → 웹 자격 증명
   "Statement": [{
     "Effect": "Allow",
     "Principal": {
-      "Federated": "arn:aws:iam::770457184239:oidc-provider/token.actions.githubusercontent.com"
+      "Federated": "arn:aws:iam::<AWS_ACCOUNT_ID>:oidc-provider/token.actions.githubusercontent.com"
     },
     "Action": "sts:AssumeRoleWithWebIdentity",
     "Condition": {
       "StringEquals": {
-        "token.actions.githubusercontent.com:aud": "sts.amazonaws.com"
-      },
-      "StringLike": {
-        "token.actions.githubusercontent.com:sub": "repo:100-hours-a-week/KTB4_Jade_Week4:*"
+        "token.actions.githubusercontent.com:aud": "sts.amazonaws.com",
+        "token.actions.githubusercontent.com:sub": "repo:100-hours-a-week/KTB4_Jade_Week4:ref:refs/heads/master"
       }
     }
   }]
@@ -132,7 +149,7 @@ IAM → 역할 → 역할 생성 → 웹 자격 증명
       "Effect": "Allow",
       "Action": "ssm:SendCommand",
       "Resource": [
-        "arn:aws:ec2:ap-northeast-2:770457184239:instance/i-007698519a37efb9c",
+        "arn:aws:ec2:ap-northeast-2:<AWS_ACCOUNT_ID>:instance/<EC2_INSTANCE_ID>",
         "arn:aws:ssm:ap-northeast-2::document/AWS-RunShellScript"
       ]
     },
@@ -145,7 +162,7 @@ IAM → 역할 → 역할 생성 → 웹 자격 증명
 }
 ```
 
-역할 ARN을 복사해 둔다. (`arn:aws:iam::770457184239:role/ktb-banteum-github-actions`)
+역할 ARN을 복사해 둔다. (`arn:aws:iam::<AWS_ACCOUNT_ID>:role/ktb-banteum-github-actions`)
 
 ## [백엔드] 4. GitHub Secrets 등록
 
@@ -156,7 +173,7 @@ IAM → 역할 → 역할 생성 → 웹 자격 증명
 | Name | Value |
 |---|---|
 | `AWS_ROLE_ARN` | 3번에서 만든 역할 ARN |
-| `EC2_INSTANCE_ID` | `i-007698519a37efb9c` |
+| `EC2_INSTANCE_ID` | `<EC2_INSTANCE_ID>` |
 | `DOCKERHUB_USERNAME` | `jeongminju45` |
 | `DOCKERHUB_TOKEN` | Docker Hub → Account settings → Personal access tokens (Read/Write) |
 

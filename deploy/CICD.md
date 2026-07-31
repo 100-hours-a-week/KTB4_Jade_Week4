@@ -14,8 +14,10 @@ master push
   → Docker Hub push
   → OIDC로 AWS 임시 권한 획득
   → SSM으로 EC2 배포
-  → app 컨테이너만 재시작
-  → 헬스체크
+  → inactive 색상(app-blue 또는 app-green)에 새 이미지 배포
+  → 내부 헬스체크
+  → Nginx upstream 전환
+  → 외부 헬스체크
 ```
 
 ## 워크플로 2개
@@ -32,17 +34,23 @@ master push
 | | 백엔드 레포 | 프론트 레포 |
 |---|---|---|
 | 이미지 | `banteum-backend` | `banteum-frontend` |
-| `.env`에서 바꾸는 줄 | `BACKEND_TAG` | `FRONTEND_TAG` |
-| 재시작하는 컨테이너 | `app` | `frontend` |
+| `.env`에서 바꾸는 줄 | `BACKEND_BLUE_TAG` 또는 `BACKEND_GREEN_TAG` | `FRONTEND_BLUE_TAG` 또는 `FRONTEND_GREEN_TAG` |
+| 재시작하는 컨테이너 | inactive 색상의 `app-blue` 또는 `app-green` | inactive 색상의 `frontend-blue` 또는 `frontend-green` |
 | IAM 역할 | `ktb-banteum-github-actions` | 별도 생성 |
 
-두 워크플로는 태그만 있는 `.env`에서 각자 담당하는 한 줄만 변경한다. IAM 역할을 분리한 이유는 나중에 한쪽 권한만 회수할 수 있게 하기 위해서다.
+두 워크플로는 태그만 있는 `.env`에서 각자 담당하는 줄만 변경한다. 백엔드는 현재 active가 아닌 색상의 태그만 변경한다. IAM 역할을 분리한 이유는 나중에 한쪽 권한만 회수할 수 있게 하기 위해서다.
 
-`docker-compose.yml`, `nginx.conf`와 서버의 환경 파일 구조는 백엔드 레포가 관리한다.
+공용 `compose.yml`과 Nginx 기본 설정은 백엔드 레포가 관리한다. 각 워크플로는 자기 upstream과 상태 파일만 변경한다.
 
 ```text
 /home/ubuntu/deploy/
-├── .env       # BACKEND_TAG, FRONTEND_TAG
+├── .env                    # 프론트·백엔드 색상별 이미지 태그
+├── active-color-backend    # 백엔드 active 색상
+├── active-color-frontend   # 프론트 active 색상
+├── nginx/conf.d/
+│   ├── default.conf
+│   ├── backend-upstream.conf
+│   └── frontend-upstream.conf
 ├── app.env    # Spring 운영 설정과 JWT_SECRET
 └── mysql.env  # MySQL 계정과 비밀번호
 ```
@@ -179,7 +187,7 @@ IAM → 역할 → 역할 생성 → 웹 자격 증명
 
 **AWS 액세스 키는 등록하지 않는다.** OIDC로 매번 임시 자격증명을 받는다.
 
-`BACKEND_TAG`는 Secrets에 넣지 않는다. GitHub Actions가 현재 커밋에서 `sha-a1b2c3d` 형태로 자동 생성한다.
+`BACKEND_BLUE_TAG`, `BACKEND_GREEN_TAG`는 Secrets에 넣지 않는다. GitHub Actions가 현재 커밋에서 `sha-a1b2c3d` 형태로 자동 생성하고 inactive 색상의 태그만 갱신한다.
 
 ---
 
@@ -190,22 +198,23 @@ IAM → 역할 → 역할 생성 → 웹 자격 증명
 ```text
 master commit: a1b2c3d...
 Docker image: jeongminju45/banteum-backend:sha-a1b2c3d
-EC2 .env: BACKEND_TAG=sha-a1b2c3d
+EC2 .env: inactive 색상의 BACKEND_*_TAG=sha-a1b2c3d
 ```
 
 Actions 탭에서 진행 상황을 볼 수 있다. 완료되면 외부 헬스체크까지 통과한 상태다.
 
 ## 롤백
 
-배포 직전 `.env`는 EC2의 `.env.bak`에 보관된다. 백엔드 CD 실패 로그에
-출력되는 절차에 따라 이전 태그를 복원하고 기존 이미지를 다시 실행한다.
+블루-그린 배포에서는 전환에 성공해도 이전 컨테이너를 바로 종료하지 않는다.
+문제가 확인되면 Nginx upstream만 이전 색상으로 되돌린다.
 
 ```bash
 cd /home/ubuntu/deploy
-cp .env.bak .env
-docker compose pull app
-docker compose up -d app
-docker compose restart nginx
+cat active-color-backend.bak
+cp nginx/conf.d/backend-upstream.conf.bak nginx/conf.d/backend-upstream.conf
+docker compose exec -T nginx nginx -t
+docker compose exec -T nginx nginx -s reload
+cp active-color-backend.bak active-color-backend
 ```
 
 **주의**: 스키마를 바꾼 배포를 롤백하면 구버전 코드가 새 스키마를 만나 `validate`에 실패할 수 있다.
@@ -216,4 +225,4 @@ docker compose restart nginx
 
 **엔티티를 변경했다면** 배포 전에 스키마를 먼저 맞춘다. `validate` 상태에서는 컬럼이 자동 생성되지 않아 부팅에 실패한다.
 
-**`.env`는 서버에만 있다.** 워크플로는 `BACKEND_TAG` 한 줄만 바꾼다. 다른 환경변수를 바꾸려면 서버에서 직접 수정해야 한다.
+**`.env`는 서버에만 있다.** 워크플로는 inactive 색상의 백엔드 태그만 바꾼다. 다른 환경변수를 바꾸려면 서버에서 직접 수정해야 한다.

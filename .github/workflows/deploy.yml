@@ -1,15 +1,9 @@
-name: Backend CD
+name: 백엔드 CD
 
 on:
   push:
     branches:
       - master
-  workflow_dispatch:
-    inputs:
-      image_tag:
-        description: 롤백하거나 재배포할 기존 이미지 태그
-        required: true
-        type: string
 
 permissions:
   contents: read
@@ -25,30 +19,18 @@ env:
 
 jobs:
   deploy:
-    name: Build and deploy backend
+    name: 백엔드 빌드 및 배포
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout
-        if: github.event_name == 'push'
+      - name: 저장소 체크아웃
         uses: actions/checkout@v4
 
-      - name: Determine image tag
+      - name: 이미지 태그 결정
         id: image
         shell: bash
-        env:
-          INPUT_IMAGE_TAG: ${{ inputs.image_tag }}
         run: |
-          if [[ "$GITHUB_EVENT_NAME" == "workflow_dispatch" ]]; then
-            TAG="$INPUT_IMAGE_TAG"
-          else
-            TAG="sha-${GITHUB_SHA::7}"
-          fi
-
-          if [[ ! "$TAG" =~ ^sha-[0-9a-f]{7,40}$ ]]; then
-            echo "Invalid image tag: $TAG"
-            exit 1
-          fi
+          TAG="sha-${GITHUB_SHA::7}"
 
           echo "tag=$TAG" >> "$GITHUB_OUTPUT"
           echo "Image tag: $TAG"
@@ -56,19 +38,16 @@ jobs:
       # 테스트는 CI에서만 실행한다. master는 브랜치 보호로 CI 통과한 코드만
       # merge되므로 여기서 다시 실행하지 않는다.
 
-      - name: Setup Docker Buildx
-        if: github.event_name == 'push'
+      - name: Docker Buildx 설정
         uses: docker/setup-buildx-action@v3
 
-      - name: Login to Docker Hub
-        if: github.event_name == 'push'
+      - name: Docker Hub 로그인
         uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Build and push image
-        if: github.event_name == 'push'
+      - name: 이미지 빌드 및 푸시
         uses: docker/build-push-action@v6
         with:
           context: .
@@ -78,72 +57,269 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-      - name: Configure AWS credentials
+      - name: AWS 임시 자격증명 설정
         uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
           aws-region: ${{ env.AWS_REGION }}
 
-      # 배포 실패 시 어떤 태그로 되돌려야 하는지 로그에 남기기 위해
-      # 바꾸기 전 태그를 먼저 읽는다.
-      - name: Read current backend tag
-        id: previous
-        env:
-          INSTANCE_ID: ${{ secrets.EC2_INSTANCE_ID }}
-        shell: bash
-        run: |
-          COMMAND_ID=$(aws ssm send-command \
-            --instance-ids "$INSTANCE_ID" \
-            --document-name "AWS-RunShellScript" \
-            --comment "read current backend tag" \
-            --parameters commands="[
-              \"set -e\",
-              \"cd /home/ubuntu/deploy\",
-              \"grep '^BACKEND_TAG=' .env\"
-            ]" \
-            --query "Command.CommandId" \
-            --output text)
-
-          aws ssm wait command-executed \
-            --command-id "$COMMAND_ID" \
-            --instance-id "$INSTANCE_ID"
-
-          OUTPUT=$(aws ssm get-command-invocation \
-            --command-id "$COMMAND_ID" \
-            --instance-id "$INSTANCE_ID" \
-            --query "StandardOutputContent" \
-            --output text)
-
-          PREVIOUS_TAG="${OUTPUT#*BACKEND_TAG=}"
-          PREVIOUS_TAG="${PREVIOUS_TAG//[$'\r\n']/}"
-
-          echo "tag=$PREVIOUS_TAG" >> "$GITHUB_OUTPUT"
-          echo "Previous backend tag: $PREVIOUS_TAG"
-
-      - name: Deploy backend through SSM
+      - name: SSM으로 백엔드 배포
         env:
           INSTANCE_ID: ${{ secrets.EC2_INSTANCE_ID }}
           IMAGE_TAG: ${{ steps.image.outputs.tag }}
         shell: bash
         run: |
+          cat > deploy-backend-blue-green.sh <<'SCRIPT'
+          #!/usr/bin/env bash
+          set -euo pipefail
+
+          : "${IMAGE_TAG:?IMAGE_TAG is required}"
+
+          DEPLOY_DIR=/home/ubuntu/deploy
+          NGINX_CONF_DIR="$DEPLOY_DIR/nginx/conf.d"
+          ACTIVE_COLOR_FILE="$DEPLOY_DIR/active-color-backend"
+          FRONTEND_COLOR_FILE="$DEPLOY_DIR/active-color-frontend"
+          ACTIVE_UPSTREAM_FILE="$NGINX_CONF_DIR/backend-upstream.conf"
+          FRONTEND_UPSTREAM_FILE="$NGINX_CONF_DIR/frontend-upstream.conf"
+          NGINX_DEFAULT_FILE="$NGINX_CONF_DIR/default.conf"
+          HEALTH_URL="https://banteum.click/api/auth/csrf"
+
+          exec 9>/var/lock/banteum-deploy.lock
+          flock -w 300 9
+
+          cd "$DEPLOY_DIR"
+
+          : "${DEPLOY_COMPOSE_B64:?DEPLOY_COMPOSE_B64 is required}"
+          : "${DEPLOY_NGINX_DEFAULT_B64:?DEPLOY_NGINX_DEFAULT_B64 is required}"
+          : "${DEPLOY_BACKEND_UPSTREAM_B64:?DEPLOY_BACKEND_UPSTREAM_B64 is required}"
+          : "${DEPLOY_FRONTEND_UPSTREAM_B64:?DEPLOY_FRONTEND_UPSTREAM_B64 is required}"
+
+          if [[ -f compose.yml ]]; then
+            cp compose.yml compose.yml.bak
+          elif [[ -f docker-compose.yml ]]; then
+            cp docker-compose.yml docker-compose.yml.bak
+          fi
+          cp .env .env.bak
+
+          mkdir -p "$NGINX_CONF_DIR" "$DEPLOY_DIR/.rollback/backend" "$DEPLOY_DIR/.rollback/frontend"
+          printf '%s' "$DEPLOY_COMPOSE_B64" | base64 -d > compose.yml
+          if [[ -f docker-compose.yml ]]; then
+            mv docker-compose.yml docker-compose.yml.legacy
+          fi
+          printf '%s' "$DEPLOY_NGINX_DEFAULT_B64" | base64 -d > "$NGINX_DEFAULT_FILE"
+          if [[ ! -f "$ACTIVE_UPSTREAM_FILE" ]]; then
+            printf '%s' "$DEPLOY_BACKEND_UPSTREAM_B64" | base64 -d > "$ACTIVE_UPSTREAM_FILE"
+          fi
+          if [[ ! -f "$FRONTEND_UPSTREAM_FILE" ]]; then
+            printf '%s' "$DEPLOY_FRONTEND_UPSTREAM_B64" | base64 -d > "$FRONTEND_UPSTREAM_FILE"
+          fi
+          if [[ ! -f "$FRONTEND_COLOR_FILE" ]]; then
+            if grep -q 'frontend-green:80' "$FRONTEND_UPSTREAM_FILE"; then
+              printf 'green\n' > "$FRONTEND_COLOR_FILE"
+            else
+              printf 'blue\n' > "$FRONTEND_COLOR_FILE"
+            fi
+          fi
+
+          migrated_from_single_app=false
+          if ! grep -q '^BACKEND_BLUE_TAG=' .env || ! grep -q '^BACKEND_GREEN_TAG=' .env; then
+            legacy_tag=$(grep '^BACKEND_TAG=' .env | tail -n 1 | cut -d= -f2-)
+            if [[ -z "$legacy_tag" ]]; then
+              echo "BACKEND_BLUE_TAG/BACKEND_GREEN_TAG are missing and legacy BACKEND_TAG was not found"
+              exit 1
+            fi
+
+            grep -v '^BACKEND_TAG=' .env > .env.next
+            if grep -q '^BACKEND_BLUE_TAG=' .env.next; then
+              sed -i "s/^BACKEND_BLUE_TAG=.*/BACKEND_BLUE_TAG=${legacy_tag}/" .env.next
+            else
+              printf 'BACKEND_BLUE_TAG=%s\n' "$legacy_tag" >> .env.next
+            fi
+            if grep -q '^BACKEND_GREEN_TAG=' .env.next; then
+              sed -i "s/^BACKEND_GREEN_TAG=.*/BACKEND_GREEN_TAG=${legacy_tag}/" .env.next
+            else
+              printf 'BACKEND_GREEN_TAG=%s\n' "$legacy_tag" >> .env.next
+            fi
+            mv .env.next .env
+            migrated_from_single_app=true
+          fi
+
+          migrated_from_single_frontend=false
+          if ! grep -q '^FRONTEND_BLUE_TAG=' .env || ! grep -q '^FRONTEND_GREEN_TAG=' .env; then
+            legacy_frontend_tag=$(grep '^FRONTEND_TAG=' .env | tail -n 1 | cut -d= -f2-)
+            if [[ -z "$legacy_frontend_tag" ]]; then
+              echo "FRONTEND_BLUE_TAG/FRONTEND_GREEN_TAG are missing and legacy FRONTEND_TAG was not found"
+              exit 1
+            fi
+
+            grep -v '^FRONTEND_TAG=' .env > .env.next
+            printf 'FRONTEND_BLUE_TAG=%s\n' "$legacy_frontend_tag" >> .env.next
+            printf 'FRONTEND_GREEN_TAG=%s\n' "$legacy_frontend_tag" >> .env.next
+            mv .env.next .env
+            migrated_from_single_frontend=true
+          fi
+
+          docker compose config app-blue >/dev/null
+          docker compose config app-green >/dev/null
+          docker compose config frontend-blue >/dev/null
+          docker compose config frontend-green >/dev/null
+          grep -q '^BACKEND_BLUE_TAG=' .env
+          grep -q '^BACKEND_GREEN_TAG=' .env
+          grep -q '^FRONTEND_BLUE_TAG=' .env
+          grep -q '^FRONTEND_GREEN_TAG=' .env
+
+          if [[ -f "$ACTIVE_COLOR_FILE" ]]; then
+            cp "$ACTIVE_COLOR_FILE" "$ACTIVE_COLOR_FILE.bak"
+          fi
+          if [[ -f "$ACTIVE_UPSTREAM_FILE" ]]; then
+            cp "$ACTIVE_UPSTREAM_FILE" "$ACTIVE_UPSTREAM_FILE.bak"
+          fi
+
+          nginx_color=""
+          if [[ -f "$ACTIVE_UPSTREAM_FILE" ]]; then
+            if grep -q 'app-blue:8080' "$ACTIVE_UPSTREAM_FILE"; then
+              nginx_color=blue
+            elif grep -q 'app-green:8080' "$ACTIVE_UPSTREAM_FILE"; then
+              nginx_color=green
+            fi
+          fi
+
+          file_color=""
+          if [[ -f "$ACTIVE_COLOR_FILE" ]]; then
+            file_color=$(tr -d '[:space:]' < "$ACTIVE_COLOR_FILE")
+          fi
+
+          case "$file_color" in
+            blue|green) ;;
+            "") file_color="$nginx_color" ;;
+            *) echo "Invalid active color file: $file_color"; exit 1 ;;
+          esac
+
+          if [[ -z "$file_color" ]]; then
+            file_color=blue
+            printf 'upstream backend_active {\n    server app-blue:8080;\n}\n' > "$ACTIVE_UPSTREAM_FILE"
+            printf 'blue\n' > "$ACTIVE_COLOR_FILE"
+          fi
+
+          if [[ -n "$nginx_color" && "$nginx_color" != "$file_color" ]]; then
+            echo "active-color-backend($file_color) and backend-upstream($nginx_color) mismatch"
+            exit 1
+          fi
+
+          if [[ "$migrated_from_single_app" == "true" ]]; then
+            docker compose pull app-blue
+            docker compose up -d --wait --wait-timeout 150 app-blue
+          fi
+          if [[ "$migrated_from_single_frontend" == "true" ]]; then
+            docker compose pull frontend-blue
+            docker compose up -d --wait --wait-timeout 90 frontend-blue
+          fi
+          if [[ "$migrated_from_single_app" == "true" || "$migrated_from_single_frontend" == "true" ]]; then
+            docker compose up -d --no-deps nginx
+            docker compose exec -T nginx nginx -t
+            docker compose exec -T nginx nginx -s reload
+            legacy_app_container=$(docker ps -aq --filter 'name=^/deploy-app-1$')
+            if [[ -n "$legacy_app_container" ]]; then
+              docker rm -f "$legacy_app_container"
+            fi
+            legacy_frontend_container=$(docker ps -aq --filter 'name=^/deploy-frontend-1$')
+            if [[ -n "$legacy_frontend_container" ]]; then
+              docker rm -f "$legacy_frontend_container"
+            fi
+          fi
+
+          active="$file_color"
+          if [[ "$active" == "blue" ]]; then
+            inactive=green
+            inactive_service=app-green
+            inactive_env_key=BACKEND_GREEN_TAG
+          else
+            inactive=blue
+            inactive_service=app-blue
+            inactive_env_key=BACKEND_BLUE_TAG
+          fi
+
+          sed -i "s/^${inactive_env_key}=.*/${inactive_env_key}=${IMAGE_TAG}/" .env
+
+          docker compose pull "$inactive_service"
+          docker compose up -d --wait --wait-timeout 150 "$inactive_service"
+
+          docker compose exec -T "$inactive_service" wget -q -O /dev/null http://localhost:8080/api/auth/csrf
+
+          tmp_upstream=$(mktemp "$NGINX_CONF_DIR/backend-upstream.XXXXXX")
+          printf 'upstream backend_active {\n    server app-%s:8080;\n}\n' "$inactive" > "$tmp_upstream"
+          mv "$tmp_upstream" "$ACTIVE_UPSTREAM_FILE"
+
+          if ! docker compose exec -T nginx test -f /etc/nginx/conf.d/backend-upstream.conf; then
+            docker compose up -d --no-deps nginx
+          fi
+
+          if ! docker compose exec -T nginx nginx -t; then
+            if [[ -f "$ACTIVE_UPSTREAM_FILE.bak" ]]; then
+              cp "$ACTIVE_UPSTREAM_FILE.bak" "$ACTIVE_UPSTREAM_FILE"
+            fi
+            docker compose exec -T nginx nginx -t
+            exit 1
+          fi
+
+          if ! docker compose exec -T nginx nginx -s reload; then
+            if [[ -f "$ACTIVE_UPSTREAM_FILE.bak" ]]; then
+              cp "$ACTIVE_UPSTREAM_FILE.bak" "$ACTIVE_UPSTREAM_FILE"
+              docker compose exec -T nginx nginx -t
+              docker compose exec -T nginx nginx -s reload
+            fi
+            exit 1
+          fi
+
+          for attempt in {1..12}; do
+            status=$(curl --silent --output /dev/null --write-out "%{http_code}" "$HEALTH_URL" || true)
+            if [[ "$status" == "204" ]]; then
+              printf '%s\n' "$inactive" > "$ACTIVE_COLOR_FILE"
+              docker compose ps "$inactive_service" nginx
+              echo "Backend blue-green deployment succeeded: active=$inactive tag=$IMAGE_TAG"
+              exit 0
+            fi
+            echo "External health check attempt $attempt returned $status"
+            sleep 6
+          done
+
+          echo "External health check failed after switching to $inactive; rolling back to $active"
+          if [[ -f "$ACTIVE_UPSTREAM_FILE.bak" ]]; then
+            cp "$ACTIVE_UPSTREAM_FILE.bak" "$ACTIVE_UPSTREAM_FILE"
+          else
+            printf 'upstream backend_active {\n    server app-%s:8080;\n}\n' "$active" > "$ACTIVE_UPSTREAM_FILE"
+          fi
+          docker compose exec -T nginx nginx -t
+          docker compose exec -T nginx nginx -s reload
+          printf '%s\n' "$active" > "$ACTIVE_COLOR_FILE"
+          exit 1
+          SCRIPT
+
+          DEPLOY_SCRIPT_B64=$(base64 -w0 deploy-backend-blue-green.sh)
+          DEPLOY_COMPOSE_B64=$(base64 -w0 deploy/compose.yml)
+          DEPLOY_NGINX_DEFAULT_B64=$(base64 -w0 deploy/nginx/conf.d/default.conf)
+          DEPLOY_BACKEND_UPSTREAM_B64=$(base64 -w0 deploy/nginx/conf.d/backend-upstream.conf)
+          DEPLOY_FRONTEND_UPSTREAM_B64=$(base64 -w0 deploy/nginx/conf.d/frontend-upstream.conf)
+          COMMANDS=$(jq -n \
+            --arg script "$DEPLOY_SCRIPT_B64" \
+            --arg tag "$IMAGE_TAG" \
+            --arg compose "$DEPLOY_COMPOSE_B64" \
+            --arg nginx_default "$DEPLOY_NGINX_DEFAULT_B64" \
+            --arg backend_upstream "$DEPLOY_BACKEND_UPSTREAM_B64" \
+            --arg frontend_upstream "$DEPLOY_FRONTEND_UPSTREAM_B64" \
+            '[
+              "set -e",
+              "cat > /tmp/banteum-backend-deploy.b64 <<'"'"'EOF'"'"'\n\($script)\nEOF",
+              "base64 -d /tmp/banteum-backend-deploy.b64 > /tmp/banteum-backend-deploy.sh",
+              "chmod +x /tmp/banteum-backend-deploy.sh",
+              "IMAGE_TAG=\($tag) DEPLOY_COMPOSE_B64=\($compose) DEPLOY_NGINX_DEFAULT_B64=\($nginx_default) DEPLOY_BACKEND_UPSTREAM_B64=\($backend_upstream) DEPLOY_FRONTEND_UPSTREAM_B64=\($frontend_upstream) /tmp/banteum-backend-deploy.sh"
+            ]')
+
           COMMAND_ID=$(aws ssm send-command \
             --instance-ids "$INSTANCE_ID" \
             --document-name "AWS-RunShellScript" \
             --comment "deploy backend $IMAGE_TAG" \
-            --parameters commands="[
-              \"set -e\",
-              \"exec 9>/var/lock/banteum-deploy.lock\",
-              \"flock -w 300 9\",
-              \"cd /home/ubuntu/deploy\",
-              \"docker compose config -q\",
-              \"docker compose config app | grep -q healthcheck\",
-              \"grep -q '^BACKEND_TAG=' .env\",
-              \"sed -i 's/^BACKEND_TAG=.*/BACKEND_TAG=${IMAGE_TAG}/' .env\",
-              \"grep '^BACKEND_TAG=' .env\",
-              \"docker compose pull app\",
-              \"docker compose up -d --wait --wait-timeout 120 app\",
-              \"docker compose ps app\"
-            ]" \
+            --parameters "commands=$COMMANDS" \
             --query "Command.CommandId" \
             --output text)
 
@@ -175,55 +351,24 @@ jobs:
             exit 1
           fi
 
-      - name: Health check
-        shell: bash
-        run: |
-          for attempt in {1..12}; do
-            STATUS=$(curl \
-              --silent \
-              --output /dev/null \
-              --write-out "%{http_code}" \
-              https://banteum.click/api/auth/csrf || true)
-
-            if [[ "$STATUS" == "204" ]]; then
-              echo "Backend deployment succeeded"
-              exit 0
-            fi
-
-            echo "Health check attempt $attempt returned $STATUS"
-            sleep 6
-          done
-
-          echo "Backend health check failed"
-          exit 1
-
-      - name: Report deployment failure
+      - name: 배포 실패 안내
         if: failure()
         env:
-          PREVIOUS_TAG: ${{ steps.previous.outputs.tag }}
           NEW_TAG: ${{ steps.image.outputs.tag }}
         shell: bash
         run: |
           echo "Backend deployment failed"
           echo "New image tag: ${NEW_TAG:-unknown}"
-
-          if [[ -z "$PREVIOUS_TAG" ]]; then
-            echo "Previous image tag: unknown (배포 시작 전에 실패)"
-            echo "EC2 상태는 변경되지 않았을 가능성이 높다."
-            exit 0
-          fi
-
-          echo "Previous image tag: $PREVIOUS_TAG"
           echo ""
-          echo "이 시점에 .env는 새 태그, 컨테이너는 이전 이미지일 수 있다."
-          echo ""
-          echo "수동 롤백 (권장): Actions 탭 -> Backend CD -> Run workflow"
-          echo "  Branch:    master"
-          echo "  image_tag: $PREVIOUS_TAG"
+          echo "블루-그린 배포는 전환 전 실패 시 기존 active를 유지한다."
+          echo "전환 후 외부 헬스체크 실패 시 backend-upstream.conf를 이전 색상으로 복원한다."
+          echo "배포 직전 파일은 .env.bak, active-color-backend.bak, nginx/conf.d/backend-upstream.conf.bak 에 백업되어 있다."
           echo ""
           echo "EC2에서 직접 롤백:"
           echo "  cd /home/ubuntu/deploy"
-          echo "  sed -i 's/^BACKEND_TAG=.*/BACKEND_TAG=$PREVIOUS_TAG/' .env"
-          echo "  docker compose pull app"
-          echo "  docker compose up -d app"
-          echo "  docker compose ps app"
+          echo "  cat active-color-backend.bak"
+          echo "  cp nginx/conf.d/backend-upstream.conf.bak nginx/conf.d/backend-upstream.conf"
+          echo "  docker compose exec -T nginx nginx -t"
+          echo "  docker compose exec -T nginx nginx -s reload"
+          echo "  cp active-color-backend.bak active-color-backend"
+          echo "  docker compose ps app-blue app-green nginx"

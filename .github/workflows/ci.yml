@@ -1,4 +1,4 @@
-name: CI
+name: 백엔드 CI
 
 on:
   pull_request:
@@ -8,17 +8,18 @@ on:
 
 jobs:
   test:
-    name: Backend build and test
+    name: 백엔드 빌드 및 테스트
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - name: 저장소 체크아웃
+        uses: actions/checkout@v4
 
-      - name: Set up JDK 21
+      - name: JDK 21 설정
         uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: '21'
           cache: gradle
 
-      - name: Run tests
+      - name: 테스트 실행
         run: ./gradlew test --no-daemon

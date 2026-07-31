@@ -84,7 +84,8 @@ jobs:
               \"sed -i 's/^BACKEND_TAG=.*/BACKEND_TAG=${IMAGE_TAG}/' .env\",
               \"docker compose pull app\",
               \"docker compose up -d --wait --wait-timeout 120 app\",
-              \"docker compose ps app\"
+              \"docker compose restart nginx\",
+              \"docker compose ps app nginx\"
             ]" \
             --query "Command.CommandId" \
             --output text)
@@ -157,4 +158,5 @@ jobs:
           echo "  cp .env.bak .env"
           echo "  docker compose pull app"
           echo "  docker compose up -d app"
-          echo "  docker compose ps app"
+          echo "  docker compose restart nginx"
+          echo "  docker compose ps app nginx"

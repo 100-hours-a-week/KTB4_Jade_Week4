@@ -197,10 +197,15 @@ Actions 탭에서 진행 상황을 볼 수 있다. 완료되면 외부 헬스체
 
 ## 롤백
 
-Actions → Backend CD → Run workflow에서 이전 SHA 이미지 태그를 입력한다. 수동 실행은 이미지를 다시 빌드하지 않고 기존 이미지를 재배포한다.
+배포 직전 `.env`는 EC2의 `.env.bak`에 보관된다. 백엔드 CD 실패 로그에
+출력되는 절차에 따라 이전 태그를 복원하고 기존 이미지를 다시 실행한다.
 
-```text
-image_tag: sha-123abcd
+```bash
+cd /home/ubuntu/deploy
+cp .env.bak .env
+docker compose pull app
+docker compose up -d app
+docker compose restart nginx
 ```
 
 **주의**: 스키마를 바꾼 배포를 롤백하면 구버전 코드가 새 스키마를 만나 `validate`에 실패할 수 있다.

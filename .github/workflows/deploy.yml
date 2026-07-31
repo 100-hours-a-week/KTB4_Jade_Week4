@@ -314,12 +314,13 @@ jobs:
               "chmod +x /tmp/banteum-backend-deploy.sh",
               "IMAGE_TAG=\($tag) DEPLOY_COMPOSE_B64=\($compose) DEPLOY_NGINX_DEFAULT_B64=\($nginx_default) DEPLOY_BACKEND_UPSTREAM_B64=\($backend_upstream) DEPLOY_FRONTEND_UPSTREAM_B64=\($frontend_upstream) /tmp/banteum-backend-deploy.sh"
             ]')
+          jq -n --argjson commands "$COMMANDS" '{commands: $commands}' > ssm-parameters.json
 
           COMMAND_ID=$(aws ssm send-command \
             --instance-ids "$INSTANCE_ID" \
             --document-name "AWS-RunShellScript" \
             --comment "deploy backend $IMAGE_TAG" \
-            --parameters "commands=$COMMANDS" \
+            --parameters file://ssm-parameters.json \
             --query "Command.CommandId" \
             --output text)
 

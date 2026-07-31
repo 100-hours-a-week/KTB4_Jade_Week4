@@ -1,13 +1,14 @@
 package kakaotech.task4.domain.articleVote.service;
 
+import kakaotech.task4.common.exception.CustomException;
 import kakaotech.task4.domain.article.entity.Article;
+import kakaotech.task4.domain.articleVote.code.ArticleVoteExceptionCode;
 import kakaotech.task4.domain.articleVote.dto.res.ArticleVoteResponse;
 import kakaotech.task4.domain.articleVote.entity.ArticleVote;
 import kakaotech.task4.domain.articleVote.entity.ArticleVoteCount;
 import kakaotech.task4.domain.articleVote.entity.VoteOption;
 import kakaotech.task4.domain.articleVote.repository.ArticleVoteCountRepository;
 import kakaotech.task4.domain.articleVote.repository.ArticleVoteRepository;
-import kakaotech.task4.domain.articleVote.service.count.VoteCountUpdater;
 import kakaotech.task4.domain.member.entity.Member;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -24,24 +25,29 @@ import java.util.Optional;
 public class ArticleVoteService {
     private final ArticleVoteRepository articleVoteRepository;
     private final ArticleVoteCountRepository articleVoteCountRepository;
-    private final VoteCountUpdater voteCountUpdater;
 
     @Transactional
     public ArticleVoteResponse vote(Member member, Article article, VoteOption option) {
         Long articleId = article.getArticleId();
+        ArticleVoteCount voteCount = articleVoteCountRepository
+                .findByIdForUpdate(articleId)
+                .orElseThrow(() -> new CustomException(ArticleVoteExceptionCode.VOTE_COUNT_NOT_FOUND));
+
         Optional<ArticleVote> found = articleVoteRepository.findByArticleAndMember(article, member);
 
         if (found.isEmpty()) {
             articleVoteRepository.save(ArticleVote.of(article, member, option));
-            return ArticleVoteResponse.of(voteCountUpdater.increase(articleId, option), option, true, true);
+            voteCount.increase(option);
+            return ArticleVoteResponse.of(voteCount, option, true, true);
         }
 
         ArticleVote articleVote = found.get();
         if (!articleVote.changeOptionTo(option)) {
-            return ArticleVoteResponse.of(findVoteCount(article), option, false, false);
+            return ArticleVoteResponse.of(voteCount, option, false, false);
         }
 
-        return ArticleVoteResponse.of(voteCountUpdater.moveTo(articleId, option), option, true, false);
+        voteCount.moveTo(option);
+        return ArticleVoteResponse.of(voteCount, option, true, false);
     }
 
     public ArticleVoteCount findVoteCount(Article article) {

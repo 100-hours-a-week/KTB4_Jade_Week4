@@ -10,7 +10,7 @@ CI/CD 없이 **로컬에서 이미지를 빌드해 GHCR에 push**하고, EC2에�
                                     banteum-frontend:v0.1.0     docker compose up -d
 ```
 
-EC2에는 소스가 없고 `docker-compose.yml`, `nginx.conf`, `.env` 3개만 둔다.
+EC2에는 애플리케이션 소스 대신 Compose 설정, nginx 설정, 환경 파일만 둔다.
 
 ## 컨테이너 구성
 
@@ -69,13 +69,17 @@ EC2 인스턴스 생성·IAM 역할·Docker 설치는 별도 문서(`ec2-setup.m
 ### 파일 배치
 
 ```bash
-scp -i <키>.pem docker-compose.yml nginx.conf .env.example ubuntu@<IP>:~/deploy/
+scp -i <키>.pem docker-compose.yml nginx.conf nginx-http-only.conf .env.example ubuntu@<IP>:~/deploy/
 ```
 
 ```bash
 cd ~/deploy
 mv .env.example .env && chmod 600 .env
 nano .env
+
+# 최초 인증서 발급 전에는 443 설정으로 nginx를 띄울 수 없다.
+cp nginx.conf nginx-https.conf
+cp nginx-http-only.conf nginx.conf
 ```
 
 `JWT_SECRET`, `MYSQL_PASSWORD`, `MYSQL_ROOT_PASSWORD`는 새로 생성한다. 로컬 값을 재사용하지 않는다.
@@ -134,14 +138,22 @@ ALB가 없어 ACM을 쓸 수 없으므로 certbot으로 발급한다. `certbot` 
 
 **최초 발급 순서** (인증서가 없는 상태에서 443 설정을 올리면 nginx가 파일을 못 찾아 죽는다)
 
-1. 80만 있는 설정으로 nginx 기동
+1. HTTP-only 설정으로 nginx 기동
+   ```bash
+   cp nginx-http-only.conf nginx.conf
+   docker compose up -d nginx
+   ```
 2. 인증서 발급
    ```bash
    docker compose run --rm --entrypoint certbot certbot certonly \
      --webroot -w /var/www/certbot -d banteum.click \
      --email <메일> --agree-tos --no-eff-email --non-interactive
    ```
-3. `nginx-ssl.conf`를 `nginx.conf`로 복사 후 nginx 재기동
+3. HTTPS 설정을 복원하고 nginx 재기동
+   ```bash
+   cp nginx-https.conf nginx.conf
+   docker compose restart nginx
+   ```
 
 **인증서 상태 확인**
 

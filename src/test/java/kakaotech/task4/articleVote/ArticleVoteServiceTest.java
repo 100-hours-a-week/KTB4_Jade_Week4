@@ -8,12 +8,12 @@ import kakaotech.task4.domain.articleVote.entity.VoteOption;
 import kakaotech.task4.domain.articleVote.repository.ArticleVoteCountRepository;
 import kakaotech.task4.domain.articleVote.repository.ArticleVoteRepository;
 import kakaotech.task4.domain.articleVote.service.ArticleVoteService;
-import kakaotech.task4.domain.articleVote.service.count.VoteCountUpdater;
 import kakaotech.task4.domain.member.entity.Member;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
+import org.mockito.InOrder;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -21,6 +21,7 @@ import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -38,9 +39,6 @@ class ArticleVoteServiceTest {
     @Mock
     private ArticleVoteCountRepository articleVoteCountRepository;
 
-    @Mock
-    private VoteCountUpdater voteCountUpdater;
-
     @InjectMocks
     private ArticleVoteService articleVoteService;
 
@@ -51,17 +49,17 @@ class ArticleVoteServiceTest {
         Article article = createArticle();
         Member member = createMember();
         ArticleVoteCount voteCount = ArticleVoteCount.of(ARTICLE_ID);
-        voteCount.increase(VoteOption.A);
 
+        when(articleVoteCountRepository.findByIdForUpdate(ARTICLE_ID)).thenReturn(Optional.of(voteCount));
         when(articleVoteRepository.findByArticleAndMember(article, member)).thenReturn(Optional.empty());
-        when(voteCountUpdater.increase(ARTICLE_ID, VoteOption.A)).thenReturn(voteCount);
 
         // when
         ArticleVoteResponse response = articleVoteService.vote(member, article, VoteOption.A);
 
         // then
         verify(articleVoteRepository).save(any(ArticleVote.class));
-        verify(voteCountUpdater).increase(ARTICLE_ID, VoteOption.A);
+        assertThat(voteCount.getCountA()).isEqualTo(1);
+        assertThat(voteCount.getCountB()).isZero();
         assertThat(response.voteCountA()).isEqualTo(1);
         assertThat(response.myVote()).isEqualTo(VoteOption.A);
         assertThat(response.changed()).isTrue();
@@ -75,17 +73,20 @@ class ArticleVoteServiceTest {
         Article article = createArticle();
         Member member = createMember();
         ArticleVote articleVote = ArticleVote.of(article, member, VoteOption.A);
+        ArticleVoteCount voteCount = ArticleVoteCount.of(ARTICLE_ID);
+        voteCount.increase(VoteOption.A);
 
+        when(articleVoteCountRepository.findByIdForUpdate(ARTICLE_ID)).thenReturn(Optional.of(voteCount));
         when(articleVoteRepository.findByArticleAndMember(article, member)).thenReturn(Optional.of(articleVote));
-        when(articleVoteCountRepository.findById(ARTICLE_ID)).thenReturn(Optional.of(ArticleVoteCount.of(ARTICLE_ID)));
 
         // when
         ArticleVoteResponse response = articleVoteService.vote(member, article, VoteOption.A);
 
         // then
         verify(articleVoteRepository, never()).save(any(ArticleVote.class));
-        verifyNoInteractions(voteCountUpdater);
         assertThat(articleVote.getVoteOption()).isEqualTo(VoteOption.A);
+        assertThat(voteCount.getCountA()).isEqualTo(1);
+        assertThat(voteCount.getCountB()).isZero();
         assertThat(response.changed()).isFalse();
         assertThat(response.wasFirst()).isFalse();
     }
@@ -99,18 +100,22 @@ class ArticleVoteServiceTest {
         ArticleVote articleVote = ArticleVote.of(article, member, VoteOption.A);
         ArticleVoteCount voteCount = ArticleVoteCount.of(ARTICLE_ID);
         voteCount.increase(VoteOption.A);
-        voteCount.moveTo(VoteOption.B);
 
+        when(articleVoteCountRepository.findByIdForUpdate(ARTICLE_ID)).thenReturn(Optional.of(voteCount));
         when(articleVoteRepository.findByArticleAndMember(article, member)).thenReturn(Optional.of(articleVote));
-        when(voteCountUpdater.moveTo(ARTICLE_ID, VoteOption.B)).thenReturn(voteCount);
 
         // when
         ArticleVoteResponse response = articleVoteService.vote(member, article, VoteOption.B);
 
         // then
+        InOrder inOrder = inOrder(articleVoteCountRepository, articleVoteRepository);
+        inOrder.verify(articleVoteCountRepository).findByIdForUpdate(ARTICLE_ID);
+        inOrder.verify(articleVoteRepository).findByArticleAndMember(article, member);
+
         verify(articleVoteRepository, never()).save(any(ArticleVote.class));
-        verify(voteCountUpdater).moveTo(ARTICLE_ID, VoteOption.B);
         assertThat(articleVote.getVoteOption()).isEqualTo(VoteOption.B);
+        assertThat(voteCount.getCountA()).isZero();
+        assertThat(voteCount.getCountB()).isEqualTo(1);
         assertThat(response.voteCountA()).isZero();
         assertThat(response.voteCountB()).isEqualTo(1);
         assertThat(response.myVote()).isEqualTo(VoteOption.B);

@@ -80,20 +80,5 @@ services:
       -f /mnt/locust/locustfile.py
       --host http://app:8080/api
 
-  # 교차 검증용. locust 수치가 의심스러울 때 같은 시나리오를 k6로 돌려 비교한다.
-  k6:
-    image: grafana/k6:latest
-    profiles: ["k6"]
-    depends_on:
-      - app
-    environment:
-      BASE_URL: http://app:8080/api
-      VUS: ${VUS:-20}
-      DURATION: ${DURATION:-3m}
-    volumes:
-      # summary-export 결과를 loadtest/results에 쓰므로 읽기전용 아님
-      - ./loadtest:/scripts
-    entrypoint: ["k6"]
-
 volumes:
   loadtest-mysql-data:

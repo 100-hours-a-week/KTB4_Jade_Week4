@@ -18,7 +18,7 @@
 | JIT 로그 | `-XX:+UnlockDiagnosticVMOptions -XX:+LogCompilation` |
 | 호스트 | Docker Engine 29.6.2, VM 11 core / 7.75 GB |
 | 데이터 | 게시글 10,000건 (`created_at` 1년 범위 분산) |
-| 부하 도구 | Locust (k6 스크립트도 유지, 교차 검증용) |
+| 부하 도구 | Locust |
 | 대상 API | `GET /api/articles?size=10` |
 
 데이터를 1만 건으로 잡은 이유는 buffer pool 256M에 전부 상주시키기 위해서다.

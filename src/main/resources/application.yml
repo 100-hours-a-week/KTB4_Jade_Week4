@@ -25,6 +25,26 @@ spring:
     serialization:
       write-dates-as-timestamps: false
 
+# 배포 시 트래픽 전환 전에 주요 API를 미리 호출해 JIT 컴파일을 유도한다.
+# secret이 비어 있으면 엔드포인트가 동작하지 않는다.
+warmup:
+  secret: ${WARMUP_SECRET:}
+  default-count: ${WARMUP_COUNT:1000}
+  concurrency: ${WARMUP_CONCURRENCY:10}
+  base-url: ${WARMUP_BASE_URL:http://127.0.0.1:8080/api}
+  # API마다 지나는 코드 경로가 달라 하나를 데운다고 다른 API가 데워지지 않는다.
+  # 자주 호출되면서 서로 다른 경로를 타는 것만 고른다.
+  # {articleUuid}는 호출 시점에 실제 게시글 UUID로 치환된다.
+  #
+  # 아래는 제외했다.
+  #   /auth/csrf     토큰 발급은 CsrfFilter가 하고 컨트롤러는 한 줄이다.
+  #                  게다가 컨테이너 healthcheck가 이미 반복 호출하고 있다.
+  #   /me/basic-info 회원 엔티티는 JWT 필터가 이미 로딩해 넘긴다. 서비스는 DTO 매핑만
+  #                  하므로 고유한 코드 경로가 거의 없다.
+  targets:
+    - /articles?size=10
+    - /articles/{articleUuid}
+
 security:
   jwt:
     issuer: ktb4-jade-api

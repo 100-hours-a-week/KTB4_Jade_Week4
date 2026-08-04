@@ -49,7 +49,8 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf
                         .csrfTokenRepository(csrfTokenRepository())
                         .csrfTokenRequestHandler(new CsrfTokenHandler())
-                        .ignoringRequestMatchers(SecurityPaths.SIGN_UP, SecurityPaths.SIGN_IN, SecurityPaths.IMAGE_UPLOAD)
+                        .ignoringRequestMatchers(SecurityPaths.SIGN_UP, SecurityPaths.SIGN_IN,
+                                SecurityPaths.IMAGE_UPLOAD, SecurityPaths.WARMUP)
                 )
                 .headers(headers -> headers.frameOptions(frame -> frame.sameOrigin()))
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))

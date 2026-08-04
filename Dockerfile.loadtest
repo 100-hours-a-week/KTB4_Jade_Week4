@@ -1,0 +1,24 @@
+## 로컬 부하테스트 전용 이미지. 배포용 Dockerfile은 건드리지 않는다.
+FROM eclipse-temurin:21-jdk AS build
+WORKDIR /workspace
+
+COPY gradlew settings.gradle build.gradle ./
+COPY gradle gradle
+RUN chmod +x gradlew && ./gradlew dependencies --no-daemon
+
+COPY src src
+RUN ./gradlew bootJar --no-daemon -x test
+
+# JIT 컴파일 로그(-XX:+LogCompilation)를 보려면 JRE가 아니라 JDK가 필요하지 않지만,
+# hsdis/jcmd 같은 진단 도구를 함께 쓰기 위해 JDK 이미지를 유지한다.
+FROM eclipse-temurin:21-jdk-alpine
+WORKDIR /app
+
+RUN addgroup -S app && adduser -S app -G app
+USER app
+
+COPY --from=build --chown=app:app /workspace/build/libs/*.jar app.jar
+
+EXPOSE 8080
+# JVM 옵션은 compose의 JAVA_TOOL_OPTIONS로 주입한다.
+ENTRYPOINT ["java", "-jar", "app.jar"]

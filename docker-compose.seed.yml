@@ -1,0 +1,16 @@
+# 시드 적재 전용 override. 적재 속도를 위한 설정이며 측정 시에는 쓰지 않는다.
+#
+#   docker compose -f docker-compose.loadtest.yml -f docker-compose.seed.yml up -d mysql app
+#   ./loadtest/seed.sh
+#   docker compose -f docker-compose.loadtest.yml up -d --force-recreate mysql   # 기본 설정으로 복귀
+#
+# flush-log-at-trx-commit=2는 커밋마다 디스크 fsync를 하지 않아 대량 INSERT가 크게 빨라진다.
+# 부하테스트 대상은 읽기 전용이라 측정값에는 영향이 없지만, 운영 기본값과 다르므로 분리해 둔다.
+services:
+  mysql:
+    command:
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
+      - --innodb-buffer-pool-size=256M
+      - --innodb-flush-log-at-trx-commit=2
+      - --innodb-doublewrite=0

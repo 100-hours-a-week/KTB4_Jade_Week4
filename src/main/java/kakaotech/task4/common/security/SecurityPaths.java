@@ -8,6 +8,7 @@ public final class SecurityPaths {
     public static final String TOKEN_REISSUE = "/auth/token/re-issue";
     public static final String CSRF = "/auth/csrf";
     public static final String IMAGE_UPLOAD = "/files/image-uploads";
+    public static final String WARMUP = "/internal/warmup";
 
     public static final String[] PUBLIC_PATHS = {
             SIGN_UP,
@@ -15,6 +16,7 @@ public final class SecurityPaths {
             TOKEN_REISSUE,
             CSRF,
             IMAGE_UPLOAD,
+            WARMUP,
             "/swagger-ui/**",
             "/v3/api-docs/**"
     };
@@ -23,7 +25,8 @@ public final class SecurityPaths {
             SIGN_UP,
             SIGN_IN,
             TOKEN_REISSUE,
-            CSRF
+            CSRF,
+            WARMUP
     );
 
     private SecurityPaths() {

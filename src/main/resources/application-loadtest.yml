@@ -1,0 +1,51 @@
+spring:
+  datasource:
+    url: jdbc:mysql://${MYSQL_HOST:mysql}:${MYSQL_PORT:3306}/${MYSQL_DATABASE:loadtest_db}?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC&characterEncoding=UTF-8
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    username: ${MYSQL_USER:loadtest}
+    password: ${MYSQL_PASSWORD:loadtest}
+    hikari:
+      maximum-pool-size: ${HIKARI_MAX_POOL_SIZE:10}
+      pool-name: loadtest-pool
+
+  jpa:
+    hibernate:
+      # seed 데이터(1000만 건)를 보존해야 하므로 create가 아니라 update를 쓴다.
+      # 스키마를 갈아엎으려면 loadtest/run-scenario.sh를 RESET_DB=1로 실행한다.
+      ddl-auto: update
+    show-sql: false
+    properties:
+      hibernate:
+        default_batch_fetch_size: 1000
+
+logging:
+  level:
+    root: warn
+    org.springframework.web: warn
+    org.hibernate.SQL: off
+    com.zaxxer.hikari: info
+
+warmup:
+  secret: ${WARMUP_SECRET:loadtest-warmup-secret}
+
+security:
+  jwt:
+    secret: ${JWT_SECRET:loadtest-secret-key-loadtest-secret-key-loadtest-secret-key}
+    access-expiration: ${JWT_ACCESS_EXPIRATION:60m}
+
+  refresh-token:
+    expiration: ${JWT_REFRESH_EXPIRATION:7d}
+
+  cookie:
+    secure: false
+    same-site: Lax
+
+  cors:
+    allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:5173}
+
+aws:
+  s3:
+    bucket: ${AWS_S3_BUCKET:loadtest-bucket}
+    region: ${AWS_S3_REGION:ap-northeast-2}
+    public-base-url: ${AWS_S3_PUBLIC_BASE_URL:https://example.invalid}
+    presigned-expiration: ${AWS_S3_PRESIGNED_EXPIRATION:5m}

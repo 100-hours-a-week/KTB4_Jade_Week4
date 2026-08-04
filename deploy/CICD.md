@@ -203,6 +203,35 @@ EC2 .env: inactive 색상의 BACKEND_*_TAG=sha-a1b2c3d
 
 Actions 탭에서 진행 상황을 볼 수 있다. 완료되면 외부 헬스체크까지 통과한 상태다.
 
+### 전환 전 워밍업
+
+EC2에서 실행되는 순서다.
+
+```
+docker compose up -d --wait <inactive>        # 비활성 색상 기동
+docker compose exec <inactive> ... /auth/csrf # 헬스체크
+docker compose exec <inactive> ... /api/internal/warmup   # 약 45초
+mv backend-upstream.conf + nginx -s reload    # 여기서 트래픽이 넘어간다
+```
+
+기동 직후 JVM은 JIT 컴파일 전이라 응답이 느리다(목록 조회 p95 160 ms, 워밍업 후
+16 ms). 워밍업이 끝난 뒤에 전환하므로 그 구간이 사용자에게 노출되지 않는다.
+전환 전까지는 활성 색상이 계속 서비스하므로 무중단이다.
+
+시크릿은 컨테이너 안의 `WARMUP_SECRET`을 컨테이너 안에서 읽는다. 호스트로 꺼내지
+않으므로 SSM 실행 로그에 남지 않는다.
+
+`app.env`에 `WARMUP_SECRET`이 없으면 엔드포인트가 404를 반환하고, 배포는 경고만
+남기고 계속 진행된다. 워밍업을 켜려면 서버에서 직접 넣는다.
+
+```bash
+cd /home/ubuntu/deploy
+openssl rand -base64 32 | tr -d '\n' | sed 's/^/WARMUP_SECRET=/' >> app.env
+echo 'WARMUP_COUNT=500' >> app.env
+```
+
+다음 배포부터 적용된다. 측정 근거는 `loadtest/RESULTS.md`에 있다.
+
 ## 롤백
 
 블루-그린 배포에서는 전환에 성공해도 이전 컨테이너를 바로 종료하지 않는다.
@@ -224,5 +253,8 @@ cp active-color-backend.bak active-color-backend
 ## 확인할 점
 
 **엔티티를 변경했다면** 배포 전에 스키마를 먼저 맞춘다. `validate` 상태에서는 컬럼이 자동 생성되지 않아 부팅에 실패한다.
+
+**`/api/internal/`은 nginx에서 404로 막는다.** 워밍업 엔드포인트는 컨테이너 안에서만
+호출된다. 외부에서 접근할 경로를 열어 두지 않는다.
 
 **`.env`는 서버에만 있다.** 워크플로는 inactive 색상의 백엔드 태그만 바꾼다. 다른 환경변수를 바꾸려면 서버에서 직접 수정해야 한다.

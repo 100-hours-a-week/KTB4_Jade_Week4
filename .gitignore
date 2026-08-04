@@ -48,3 +48,11 @@ out/
 docs/
 .docs
 .docs.*
+
+### claude ###
+CLAUDE.md
+.claude/settings.local.json
+
+### loadtest ###
+loadtest/results/
+loadtest/__pycache__/

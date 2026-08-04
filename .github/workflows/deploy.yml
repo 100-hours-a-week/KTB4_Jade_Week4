@@ -275,6 +275,7 @@ jobs:
             status=$(curl --silent --output /dev/null --write-out "%{http_code}" "$HEALTH_URL" || true)
             if [[ "$status" == "204" ]]; then
               printf '%s\n' "$inactive" > "$ACTIVE_COLOR_FILE"
+              chmod 644 "$ACTIVE_COLOR_FILE" "$FRONTEND_COLOR_FILE" "$ACTIVE_UPSTREAM_FILE" "$FRONTEND_UPSTREAM_FILE" .env
               docker compose ps "$inactive_service" nginx
               echo "Backend blue-green deployment succeeded: active=$inactive tag=$IMAGE_TAG"
               exit 0
@@ -345,10 +346,18 @@ jobs:
 
           aws ssm get-command-invocation \
             --command-id "$COMMAND_ID" \
-            --instance-id "$INSTANCE_ID"
+            --instance-id "$INSTANCE_ID" \
+            > ssm-invocation.json
+          cat ssm-invocation.json
 
           if [[ "$STATUS" != "Success" ]]; then
             echo "SSM command finished with status: $STATUS"
+            exit 1
+          fi
+
+          if ! jq -r '.StandardOutputContent' ssm-invocation.json \
+            | grep -q 'Backend blue-green deployment succeeded:'; then
+            echo "SSM command succeeded but deployment success marker was not found"
             exit 1
           fi
 

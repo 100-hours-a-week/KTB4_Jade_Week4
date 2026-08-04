@@ -1,0 +1,8 @@
+# 컴파일러 스레드 수 비교용 override. C2 큐 적체 여부를 확인할 때 얹는다.
+#
+#   docker compose -f docker-compose.loadtest.yml -f docker-compose.cpu4.yml up -d app
+#
+# JVM은 가용 CPU 수를 보고 CICompilerCount를 정한다. 1코어면 2개, 4코어면 3개다.
+services:
+  app:
+    cpus: 4.0

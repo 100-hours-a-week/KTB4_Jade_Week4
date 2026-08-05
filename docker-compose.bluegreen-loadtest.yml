@@ -1,0 +1,102 @@
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: loadtest-mysql
+    cpus: 1.0
+    mem_limit: 1g
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: loadtest_db
+      MYSQL_USER: loadtest
+      MYSQL_PASSWORD: loadtest
+    ports:
+      - "3307:3306"
+    volumes:
+      - loadtest-mysql-data:/var/lib/mysql
+    command:
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
+      - --innodb-buffer-pool-size=256M
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-uroot", "-proot"]
+      interval: 3s
+      timeout: 3s
+      retries: 30
+
+  app-blue: &loadtest-app
+    build:
+      context: .
+      dockerfile: Dockerfile.loadtest
+    container_name: loadtest-app-blue
+    cpus: 1.0
+    mem_limit: 1g
+    depends_on:
+      mysql:
+        condition: service_healthy
+    expose:
+      - "8080"
+    environment:
+      SPRING_PROFILES_ACTIVE: loadtest
+      MYSQL_HOST: mysql
+      MYSQL_PORT: 3306
+      MYSQL_DATABASE: loadtest_db
+      MYSQL_USER: loadtest
+      MYSQL_PASSWORD: loadtest
+      JWT_SECRET: loadtest-secret-key-loadtest-secret-key-loadtest-secret-key
+      WARMUP_SECRET: loadtest-warmup-secret
+      WARMUP_COUNT: ${WARMUP_COUNT:-500}
+      WARMUP_CONCURRENCY: ${WARMUP_CONCURRENCY:-10}
+      WARMUP_TARGETS: ${WARMUP_TARGETS:-/articles?size=10,/articles/{articleUuid}}
+      AWS_ACCESS_KEY_ID: loadtest
+      AWS_SECRET_ACCESS_KEY: loadtest
+      AWS_REGION: ap-northeast-2
+      JAVA_TOOL_OPTIONS: >-
+        -Xms512m
+        -Xmx512m
+        -XX:+UseSerialGC
+        -XX:ReservedCodeCacheSize=128m
+        -XX:+UnlockDiagnosticVMOptions
+        -XX:+LogCompilation
+        -XX:LogFile=/tmp/jit-compilation.log
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O /dev/null http://localhost:8080/api/auth/csrf || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 60s
+      start_interval: 3s
+
+  app-green:
+    <<: *loadtest-app
+    container_name: loadtest-app-green
+
+  nginx:
+    image: nginx:1.27-alpine
+    container_name: loadtest-nginx
+    depends_on:
+      app-blue:
+        condition: service_healthy
+    ports:
+      - "8090:80"
+    volumes:
+      - ${BLUEGREEN_NGINX_CONF_DIR:-./loadtest/results/blue-green-switch/nginx/conf.d}:/etc/nginx/conf.d:ro
+
+  locust:
+    image: locustio/locust:latest
+    container_name: loadtest-locust-bluegreen
+    profiles: ["locust"]
+    cpus: 2.0
+    mem_limit: 1g
+    depends_on:
+      - nginx
+    ports:
+      - "8089:8089"
+    volumes:
+      - ./loadtest:/mnt/locust
+    command: >-
+      -f /mnt/locust/locustfile-bluegreen.py
+      --host http://nginx/api
+
+volumes:
+  loadtest-mysql-data:
+

@@ -16,7 +16,6 @@ services:
     command:
       - --character-set-server=utf8mb4
       - --collation-server=utf8mb4_unicode_ci
-      # mem_limit 1g에서 MySQL 자체 오버헤드까지 감안한 값.
       - --innodb-buffer-pool-size=256M
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-uroot", "-proot"]
@@ -24,16 +23,18 @@ services:
       timeout: 3s
       retries: 30
 
-  app:
+  app-blue: &loadtest-app
     build:
       context: .
       dockerfile: Dockerfile.loadtest
-    container_name: loadtest-app
+    container_name: loadtest-app-blue
     cpus: 1.0
     mem_limit: 1g
     depends_on:
       mysql:
         condition: service_healthy
+    expose:
+      - "8080"
     environment:
       SPRING_PROFILES_ACTIVE: loadtest
       MYSQL_HOST: mysql
@@ -42,15 +43,13 @@ services:
       MYSQL_USER: loadtest
       MYSQL_PASSWORD: loadtest
       JWT_SECRET: loadtest-secret-key-loadtest-secret-key-loadtest-secret-key
-      # 워밍업 대상을 실행할 때 바꿔가며 비교하려고 밖으로 뺐다.
-      #   WARMUP_TARGETS='/articles?size=10' ./loadtest/run-scenario.sh 500
+      WARMUP_SECRET: loadtest-warmup-secret
+      WARMUP_COUNT: ${WARMUP_COUNT:-500}
+      WARMUP_CONCURRENCY: ${WARMUP_CONCURRENCY:-10}
       WARMUP_TARGETS: ${WARMUP_TARGETS:-/articles?size=10,/articles/{articleUuid}}
-      # S3 presigner는 기동 시점에 자격증명을 조회하지 않지만, 더미 값을 넣어 둔다.
       AWS_ACCESS_KEY_ID: loadtest
       AWS_SECRET_ACCESS_KEY: loadtest
       AWS_REGION: ap-northeast-2
-      # 힙은 고정한다. 시나리오마다 힙 크기가 달라지면 초기 latency 비교의 변수가 늘어난다.
-      # UseSerialGC는 1코어 컨테이너에서 어차피 자동 선택되지만 의도를 남기려고 명시한다.
       JAVA_TOOL_OPTIONS: >-
         -Xms512m
         -Xmx512m
@@ -59,26 +58,45 @@ services:
         -XX:+UnlockDiagnosticVMOptions
         -XX:+LogCompilation
         -XX:LogFile=/tmp/jit-compilation.log
-    ports:
-      - "8080:8080"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O /dev/null http://localhost:8080/api/auth/csrf || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 60s
+      start_interval: 3s
 
-  # 부하 생성기(기본). 웹 UI: http://localhost:8089
-  # 부하 생성기도 같은 호스트에서 돌기 때문에 CPU 상한을 걸어 측정 대상과의 경합을 제한한다.
+  app-green:
+    <<: *loadtest-app
+    container_name: loadtest-app-green
+
+  nginx:
+    image: nginx:1.27-alpine
+    container_name: loadtest-nginx
+    depends_on:
+      app-blue:
+        condition: service_healthy
+    ports:
+      - "8090:80"
+    volumes:
+      - ${BLUEGREEN_NGINX_CONF_DIR:-./loadtest/results/blue-green-switch/nginx/conf.d}:/etc/nginx/conf.d:ro
+
   locust:
     image: locustio/locust:latest
-    container_name: loadtest-locust
+    container_name: loadtest-locust-bluegreen
     profiles: ["locust"]
     cpus: 2.0
     mem_limit: 1g
     depends_on:
-      - app
+      - nginx
     ports:
       - "8089:8089"
     volumes:
       - ./loadtest:/mnt/locust
     command: >-
-      -f /mnt/locust/locustfile.py
-      --host http://app:8080/api
+      -f /mnt/locust/locustfile-bluegreen.py
+      --host http://nginx/api
 
 volumes:
   loadtest-mysql-data:
+

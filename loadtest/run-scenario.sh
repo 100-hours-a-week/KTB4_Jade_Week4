@@ -10,7 +10,6 @@
 #
 # 환경변수:
 #   VUS(기본 5), SPAWN_RATE(기본 5), DURATION(기본 3m)
-#   LOAD_TOOL=locust|k6 (기본 locust)
 #   WARMUP_MODE=external|endpoint (기본 external)
 #   RESET_DB(기본 0)
 #
@@ -23,7 +22,6 @@ set -euo pipefail
 
 WARMUP_COUNT="${1:-0}"
 RESET_DB="${RESET_DB:-0}"
-LOAD_TOOL="${LOAD_TOOL:-locust}"
 VUS="${VUS:-5}"
 SPAWN_RATE="${SPAWN_RATE:-5}"
 WARMUP_CONCURRENCY="${WARMUP_CONCURRENCY:-1}"
@@ -92,23 +90,17 @@ if [ "$WARMUP_COUNT" -gt 0 ]; then
   echo "  워밍업 소요 $(( $(date +%s) - start ))초"
 fi
 
-echo "[5/5] 부하테스트 시작 (${LOAD_TOOL}, VU=${VUS}, ${DURATION})"
-if [ "$LOAD_TOOL" = "locust" ]; then
-  # --csv는 ${STAMP}_stats_history.csv를 2초 간격으로 남긴다. 구간별 latency는 이 파일로 본다.
-  $COMPOSE --profile locust run --rm -T locust \
-    -f /mnt/locust/locustfile.py \
-    --host http://app:8080/api \
-    --headless \
-    --users "$VUS" \
-    --spawn-rate "$SPAWN_RATE" \
-    --run-time "$DURATION" \
-    --csv "/mnt/locust/results/${STAMP}" \
-    | tee "$RESULT_DIR/${STAMP}.log"
-else
-  $COMPOSE --profile k6 run --rm k6 run \
-    --summary-export "/scripts/results/${STAMP}-summary.json" \
-    /scripts/k6-articles.js | tee "$RESULT_DIR/${STAMP}.log"
-fi
+echo "[5/5] 부하테스트 시작 (VU=${VUS}, ${DURATION})"
+# --csv는 ${STAMP}_stats_history.csv를 2초 간격으로 남긴다. 구간별 latency는 이 파일로 본다.
+$COMPOSE --profile locust run --rm -T locust \
+  -f /mnt/locust/locustfile.py \
+  --host http://app:8080/api \
+  --headless \
+  --users "$VUS" \
+  --spawn-rate "$SPAWN_RATE" \
+  --run-time "$DURATION" \
+  --csv "/mnt/locust/results/${STAMP}" \
+  | tee "$RESULT_DIR/${STAMP}.log"
 
 echo "docker stats 스냅샷:"
 docker stats --no-stream loadtest-app loadtest-mysql

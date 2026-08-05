@@ -21,8 +21,8 @@ TARGET_ROWS="${TARGET_ROWS:-10000}"
 BATCH="${BATCH:-20000}"
 # 목표치가 배치보다 작으면 배치를 줄인다. 그대로 두면 목표를 넘겨 적재한다.
 [ "$BATCH" -le "$TARGET_ROWS" ] || BATCH="$TARGET_ROWS"
-COMPOSE="docker compose -f docker-compose.loadtest.yml"
-BASE="http://localhost:8080/api"
+COMPOSE="${COMPOSE:-docker compose -f docker-compose.loadtest.yml}"
+BASE="${BASE:-http://localhost:8080/api}"
 # charset을 지정하지 않으면 클라이언트가 latin1로 붙어 멀티바이트 문자 길이가 잘못 계산된다.
 MYSQL="$COMPOSE exec -T mysql mysql -uroot -proot --database=loadtest_db --default-character-set=utf8mb4 --skip-column-names --silent"
 

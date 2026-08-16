@@ -40,9 +40,6 @@ Front-end Github :
 
 ## 폴더 구조
 
-<details>
-<summary>폴더 구조 보기/숨기기</summary>
-
 ```text
 src/main/java/kakaotech/task4
 ├── common
@@ -68,8 +65,6 @@ src/main/java/kakaotech/task4
     ├── member
     └── myInfo
 ```
-
-</details>
 
 ## 서버 설계
 

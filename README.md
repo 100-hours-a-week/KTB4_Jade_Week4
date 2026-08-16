@@ -34,7 +34,7 @@ Spring Boot 3.4.5와 Java 21로 서버를 구현하고, 운영 DB는 MySQL, 로�
 
 ## Front-end
 
-Front-end Github :
+Front-end Github : https://github.com/100-hours-a-week/KTB4_Jade_Week9/new/master?filename=README.md
 
 ## 서비스 시연 영상
 

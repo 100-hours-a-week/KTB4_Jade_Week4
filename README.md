@@ -186,7 +186,7 @@ src/main/java/kakaotech/task4
 
 ### 모델링 — E-R Diagram
 
-<img width="1196" height="575" alt="image" src="https://github.com/user-attachments/assets/795340f0-71ed-438a-969c-392f6b19a069" />
+![Uploading image.png…]()
 
 
 ## 배포 아키텍처

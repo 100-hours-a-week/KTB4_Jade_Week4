@@ -186,7 +186,7 @@ src/main/java/kakaotech/task4
 
 ### 모델링 — E-R Diagram
 
-![Uploading image.png…]()
+<img width="1164" height="502" alt="image" src="https://github.com/user-attachments/assets/5a9f180b-a60e-4aa8-a591-9099e9171fd1" />
 
 
 ## 배포 아키텍처
@@ -201,7 +201,14 @@ EC2에서는 현재 서비스 중이지 않은 blue 또는 green 컨테이너에
 
 Nginx는 TLS 종료와 `/api` 리버스 프록시를 담당하고, 애플리케이션과 MySQL 컨테이너는 외부 포트를 직접 공개하지 않습니다.
 
-### Architecture / CI·CD
+### Architecture 
+
+<img width="1672" height="941" alt="image" src="https://github.com/user-attachments/assets/974ae2fd-b300-4237-a042-a0edbf52943d" />
+
+### CI/CD
+
+<img width="1672" height="941" alt="image" src="https://github.com/user-attachments/assets/466508f1-5435-4743-9b72-0f4ff055b96f" />
+
 
 ## 트러블 슈팅
 

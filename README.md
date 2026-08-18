@@ -186,6 +186,9 @@ src/main/java/kakaotech/task4
 
 ### 모델링 — E-R Diagram
 
+<img width="1196" height="575" alt="image" src="https://github.com/user-attachments/assets/795340f0-71ed-438a-969c-392f6b19a069" />
+
+
 ## 배포 아키텍처
 
 `master` 브랜치에 변경 사항이 반영되면 GitHub Actions가 테스트를 실행하고 Docker 이미지를 빌드해 레지스트리에 업로드합니다.

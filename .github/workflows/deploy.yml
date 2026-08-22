@@ -253,9 +253,15 @@ jobs:
           # 시크릿은 컨테이너 환경변수(app.env)를 컨테이너 안에서 읽는다. 호스트로 꺼내지
           # 않으므로 SSM 실행 로그에 남지 않는다. 미설정이면 엔드포인트가 404를 반환하고
           # 배포는 워밍업 없이 계속 진행한다.
-          if ! docker compose exec -T "$inactive_service" sh -c \
-            'wget -q -O - -T 180 --post-data= --header="X-Warmup-Secret: $WARMUP_SECRET" http://localhost:8080/api/internal/warmup'; then
-            echo "warmup skipped or failed on ${inactive_service} (WARMUP_SECRET unset returns 404)"
+          # Check the container environment first because wget maps both 404 and 5xx to exit code 8.
+          # Capturing the result also lets set -e stop deployment if docker compose exec itself fails.
+          warmup_enabled=$(docker compose exec -T "$inactive_service" sh -c \
+            'case "${WARMUP_SECRET:-}" in *[![:space:]]*) printf true;; *) printf false;; esac')
+          if [[ "$warmup_enabled" == "true" ]]; then
+            docker compose exec -T "$inactive_service" sh -c \
+              'wget -q -O - -T 180 --post-data= --header="X-Warmup-Secret: $WARMUP_SECRET" http://localhost:8080/api/internal/warmup'
+          else
+            echo "warmup skipped on ${inactive_service}: WARMUP_SECRET is unset"
           fi
 
           tmp_upstream=$(mktemp "$NGINX_CONF_DIR/backend-upstream.XXXXXX")

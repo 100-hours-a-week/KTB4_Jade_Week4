@@ -1,7 +1,9 @@
 package kakaotech.task4.common.warmup;
 
+import kakaotech.task4.common.exception.CustomException;
 import kakaotech.task4.common.security.properties.CookieProperties;
 import kakaotech.task4.common.security.token.AccessTokenProvider;
+import kakaotech.task4.common.warmup.code.WarmupExceptionCode;
 import kakaotech.task4.common.warmup.dto.WarmupResult;
 import kakaotech.task4.domain.article.entity.Article;
 import kakaotech.task4.domain.article.repository.ArticleRepository;
@@ -13,6 +15,8 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
@@ -31,36 +35,56 @@ public class WarmupService {
     private final MemberRepository memberRepository;
     private final ArticleRepository articleRepository;
 
-    public WarmupResult warmUp(Integer requestedCount) {
+    public WarmupResult warmUp(String secret, Integer requestedCount) {
+        validateSecret(secret);
+
         int count = requestedCount == null ? warmupProperties.defaultCount() : requestedCount;
         int concurrency = warmupProperties.concurrency();
 
         String cookie = issueCookie();
+        long startedAt = System.currentTimeMillis();
+        List<WarmupResult.TargetResult> results = warmUpTargets(count, concurrency, cookie);
+        WarmupResult result = createResult(count, concurrency, cookie, startedAt, results);
+
+        log.info("워밍업 완료: {}", result);
+        return result;
+    }
+
+    private List<WarmupResult.TargetResult> warmUpTargets(int count, int concurrency, String cookie) {
         RestClient client = RestClient.builder()
                 .baseUrl(warmupProperties.baseUrl())
                 .build();
-
-        long startedAt = System.currentTimeMillis();
-        List<WarmupResult.TargetResult> results = new ArrayList<>();
-
         ExecutorService executor = Executors.newFixedThreadPool(concurrency);
+        List<WarmupResult.TargetResult> results = new ArrayList<>();
         try {
             for (String path : resolveTargets()) {
                 results.add(warmUpTarget(executor, client, path, count, cookie));
             }
+            return results;
         } finally {
             executor.shutdown();
         }
+    }
 
-        WarmupResult result = new WarmupResult(
+    private WarmupResult createResult(int count,
+                                      int concurrency,
+                                      String cookie,
+                                      long startedAt,
+                                      List<WarmupResult.TargetResult> results) {
+        return new WarmupResult(
                 count,
                 concurrency,
                 System.currentTimeMillis() - startedAt,
                 cookie != null,
                 results);
+    }
 
-        log.info("워밍업 완료: {}", result);
-        return result;
+    private void validateSecret(String secret) {
+        if (!warmupProperties.enabled() || secret == null || !MessageDigest.isEqual(
+                secret.getBytes(StandardCharsets.UTF_8),
+                warmupProperties.secret().getBytes(StandardCharsets.UTF_8))) {
+            throw new CustomException(WarmupExceptionCode.NOT_FOUND);
+        }
     }
 
     private WarmupResult.TargetResult warmUpTarget(ExecutorService executor,
@@ -72,22 +96,48 @@ public class WarmupService {
         AtomicInteger failure = new AtomicInteger();
         long startedAt = System.currentTimeMillis();
 
+        List<Future<?>> futures = submitWarmupTasks(executor, client, path, count, cookie, success, failure);
+        awaitCompletion(futures, failure);
+
+        return new WarmupResult.TargetResult(
+                path,
+                success.get(),
+                failure.get(),
+                System.currentTimeMillis() - startedAt);
+    }
+
+    private List<Future<?>> submitWarmupTasks(ExecutorService executor,
+                                              RestClient client,
+                                              String path,
+                                              int count,
+                                              String cookie,
+                                              AtomicInteger success,
+                                              AtomicInteger failure) {
         List<Future<?>> futures = new ArrayList<>(count);
         for (int i = 0; i < count; i++) {
-            futures.add(executor.submit(() -> {
-                try {
-                    RestClient.RequestHeadersSpec<?> request = client.get().uri(path);
-                    if (cookie != null) {
-                        request = request.header("Cookie", cookie);
-                    }
-                    request.retrieve().toBodilessEntity();
-                    success.incrementAndGet();
-                } catch (Exception e) {
-                    failure.incrementAndGet();
-                }
-            }));
+            futures.add(executor.submit(() -> executeWarmupRequest(client, path, cookie, success, failure)));
         }
+        return futures;
+    }
 
+    private void executeWarmupRequest(RestClient client,
+                                      String path,
+                                      String cookie,
+                                      AtomicInteger success,
+                                      AtomicInteger failure) {
+        try {
+            RestClient.RequestHeadersSpec<?> request = client.get().uri(path);
+            if (cookie != null) {
+                request = request.header("Cookie", cookie);
+            }
+            request.retrieve().toBodilessEntity();
+            success.incrementAndGet();
+        } catch (Exception e) {
+            failure.incrementAndGet();
+        }
+    }
+
+    private void awaitCompletion(List<Future<?>> futures, AtomicInteger failure) {
         for (Future<?> future : futures) {
             try {
                 future.get();
@@ -98,12 +148,6 @@ public class WarmupService {
                 failure.incrementAndGet();
             }
         }
-
-        return new WarmupResult.TargetResult(
-                path,
-                success.get(),
-                failure.get(),
-                System.currentTimeMillis() - startedAt);
     }
 
     private List<String> resolveTargets() {
@@ -129,6 +173,7 @@ public class WarmupService {
         }
         return resolved;
     }
+
     private String issueCookie() {
         List<Member> members = memberRepository.findAll(PageRequest.of(0, 1)).getContent();
         if (members.isEmpty()) {

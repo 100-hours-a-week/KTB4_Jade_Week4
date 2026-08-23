@@ -258,8 +258,17 @@ jobs:
           warmup_enabled=$(docker compose exec -T "$inactive_service" sh -c \
             'case "${WARMUP_SECRET:-}" in *[![:space:]]*) printf true;; *) printf false;; esac')
           if [[ "$warmup_enabled" == "true" ]]; then
-            docker compose exec -T "$inactive_service" sh -c \
+            warmup_result=$(docker compose exec -T "$inactive_service" sh -c \
               'wget -q -O - -T 180 --post-data= --header="X-Warmup-Secret: $WARMUP_SECRET" http://localhost:8080/api/internal/warmup'
+            )
+            printf '%s\n' "$warmup_result"
+            if ! jq -e \
+              '.requestedCount > 0 and (.targets | length > 0) and
+               (.requestedCount as $count | all(.targets[]; .failure == 0 and .success == $count))' \
+              <<< "$warmup_result" > /dev/null; then
+              echo "warmup result validation failed on ${inactive_service}"
+              exit 1
+            fi
           else
             echo "warmup skipped on ${inactive_service}: WARMUP_SECRET is unset"
           fi

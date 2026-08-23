@@ -168,6 +168,29 @@ jobs:
           grep -q '^FRONTEND_BLUE_TAG=' .env
           grep -q '^FRONTEND_GREEN_TAG=' .env
 
+          log_memory_state() {
+            local phase="$1"
+            local service container_id
+            local -a container_ids
+
+            echo "Memory snapshot: $phase"
+            free -h || true
+            mapfile -t container_ids < <(docker compose ps -q app-blue app-green mysql nginx)
+            if (( ${#container_ids[@]} > 0 )); then
+              docker stats --no-stream \
+                --format 'table {{.Name}}\t{{.MemUsage}}\t{{.MemPerc}}' \
+                "${container_ids[@]}" || true
+            fi
+            for service in app-blue app-green; do
+              container_id=$(docker compose ps -q "$service")
+              if [[ -n "$container_id" ]]; then
+                docker inspect --format \
+                  '{{.Name}} OOMKilled={{.State.OOMKilled}} RestartCount={{.RestartCount}}' \
+                  "$container_id" || true
+              fi
+            done
+          }
+
           if [[ -f "$ACTIVE_COLOR_FILE" ]]; then
             cp "$ACTIVE_COLOR_FILE" "$ACTIVE_COLOR_FILE.bak"
           fi
@@ -272,6 +295,7 @@ jobs:
           else
             echo "warmup skipped on ${inactive_service}: WARMUP_SECRET is unset"
           fi
+          log_memory_state "after warmup"
 
           tmp_upstream=$(mktemp "$NGINX_CONF_DIR/backend-upstream.XXXXXX")
           printf 'upstream backend_active {\n    server app-%s:8080;\n}\n' "$inactive" > "$tmp_upstream"
@@ -304,6 +328,7 @@ jobs:
               printf '%s\n' "$inactive" > "$ACTIVE_COLOR_FILE"
               chmod 644 "$ACTIVE_COLOR_FILE" "$FRONTEND_COLOR_FILE" "$ACTIVE_UPSTREAM_FILE" "$FRONTEND_UPSTREAM_FILE" .env
               docker compose ps "$inactive_service" nginx
+              log_memory_state "after traffic switch"
               echo "Backend blue-green deployment succeeded: active=$inactive tag=$IMAGE_TAG"
               exit 0
             fi

@@ -175,14 +175,14 @@ public class WarmupService {
     }
 
     private String issueCookie() {
-        List<Member> members = memberRepository.findAll(PageRequest.of(0, 1)).getContent();
-        if (members.isEmpty()) {
+        Member member = memberRepository.findFirstActiveMember().orElse(null);
+        if (member == null) {
             log.warn("워밍업: 회원이 없어 인증 없이 진행한다. 인증이 필요한 경로는 데워지지 않는다.");
             return null;
         }
 
         String token = accessTokenProvider
-                .createAccessToken(members.getFirst().getMemberUuid())
+                .createAccessToken(member.getMemberUuid())
                 .token();
 
         return cookieProperties.accessName() + "=" + token;

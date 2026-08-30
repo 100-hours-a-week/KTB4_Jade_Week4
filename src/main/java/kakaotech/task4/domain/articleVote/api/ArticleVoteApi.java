@@ -9,10 +9,10 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import kakaotech.task4.common.resolver.CurrentMember;
+import kakaotech.task4.common.security.AuthenticatedMember;
 import kakaotech.task4.domain.article.api.ArticleSwaggerErrorExamples;
 import kakaotech.task4.domain.articleVote.dto.req.CreateVoteRequest;
 import kakaotech.task4.domain.auth.api.AuthSwaggerErrorExamples;
-import kakaotech.task4.domain.member.entity.Member;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -57,7 +57,7 @@ public interface ArticleVoteApi {
                             examples = @ExampleObject(value = ArticleVoteSwaggerErrorExamples.GLOBAL_422_001)))
     })
     ResponseEntity<?> vote(
-            @Parameter(hidden = true) @CurrentMember Member member,
+            @Parameter(hidden = true) @CurrentMember AuthenticatedMember member,
             @Parameter(description = "게시글 UUID", required = true) @PathVariable("article-uuid") String articleUuid,
             @Valid @RequestBody CreateVoteRequest request);
 }

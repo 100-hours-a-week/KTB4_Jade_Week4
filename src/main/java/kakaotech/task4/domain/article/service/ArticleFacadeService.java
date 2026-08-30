@@ -1,5 +1,6 @@
 package kakaotech.task4.domain.article.service;
 
+import kakaotech.task4.domain.auth.code.AuthExceptionCode;
 import kakaotech.task4.domain.article.dto.cursor.ArticleCursor;
 import kakaotech.task4.domain.article.dto.req.CreateArticleRequest;
 import kakaotech.task4.domain.article.dto.req.UpdateArticleRequest;
@@ -15,6 +16,7 @@ import kakaotech.task4.domain.articleVote.entity.VoteOption;
 import kakaotech.task4.domain.articleVote.service.ArticleVoteService;
 import kakaotech.task4.domain.comment.service.ArticleCommentService;
 import kakaotech.task4.domain.member.entity.Member;
+import kakaotech.task4.domain.member.service.MemberService;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -30,22 +32,30 @@ public class ArticleFacadeService {
     private final ArticleCommentService articleCommentService;
     private final ArticleLikeService articleLikeService;
     private final ArticleVoteService articleVoteService;
+    private final MemberService memberService;
 
-    public CreateArticleResponse createArticle(Member member, CreateArticleRequest request) {
+    @Transactional
+    public CreateArticleResponse createArticle(String memberUuid, CreateArticleRequest request) {
+        Member member = findCurrentMember(memberUuid);
         String articleUuid = articleService.createArticle(member, request);
         return CreateArticleResponse.from(articleUuid);
     }
 
-    public void updateArticle(Member member, String articleUuid, UpdateArticleRequest request) {
+    @Transactional
+    public void updateArticle(String memberUuid, String articleUuid, UpdateArticleRequest request) {
+        Member member = findCurrentMember(memberUuid);
         articleService.updateArticle(member, articleUuid, request);
     }
 
-    public void deleteArticle(Member member, String articleUuid) {
+    @Transactional
+    public void deleteArticle(String memberUuid, String articleUuid) {
+        Member member = findCurrentMember(memberUuid);
         articleService.deleteArticle(member, articleUuid);
     }
 
     @Transactional(readOnly = true)
-    public ArticleListResponse getArticleList(Member member, String cursor, int size) {
+    public ArticleListResponse getArticleList(String memberUuid, String cursor, int size) {
+        Member member = findCurrentMember(memberUuid);
         List<Article> articles = articleService.findArticlePage(cursor, size + 1);
 
         boolean hasNext = articles.size() > size;
@@ -71,7 +81,8 @@ public class ArticleFacadeService {
     }
 
     @Transactional(readOnly = true)
-    public ArticleDetailResponse getArticleDetail(Member member, String articleUuid) {
+    public ArticleDetailResponse getArticleDetail(String memberUuid, String articleUuid) {
+        Member member = findCurrentMember(memberUuid);
         Article article = articleService.findArticleByUuid(articleUuid);
 
         ArticleVoteCount voteCount = articleVoteService.findVoteCount(article);
@@ -80,5 +91,9 @@ public class ArticleFacadeService {
         List<CommentDetailResponse> comments = articleCommentService.findCommentsByArticle(article, member);
 
         return ArticleDetailResponse.of(article, member, voteCount, myVote, isLiked, comments);
+    }
+
+    private Member findCurrentMember(String memberUuid) {
+        return memberService.findByUuid(memberUuid, AuthExceptionCode.UNAUTHORIZED);
     }
 }

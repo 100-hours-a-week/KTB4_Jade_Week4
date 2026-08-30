@@ -8,9 +8,9 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import kakaotech.task4.common.resolver.CurrentMember;
+import kakaotech.task4.common.security.AuthenticatedMember;
 import kakaotech.task4.domain.article.api.ArticleSwaggerErrorExamples;
 import kakaotech.task4.domain.auth.api.AuthSwaggerErrorExamples;
-import kakaotech.task4.domain.member.entity.Member;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
 
@@ -40,7 +40,7 @@ public interface ArticleLikeApi {
                             examples = @ExampleObject(value = ArticleLikeSwaggerErrorExamples.COMMON_409)))
     })
     ResponseEntity<?> like(
-            @Parameter(hidden = true) @CurrentMember Member member,
+            @Parameter(hidden = true) @CurrentMember AuthenticatedMember member,
             @Parameter(description = "게시글 UUID", required = true) @PathVariable("article-uuid") String articleUuid);
 
     @Operation(summary = "좋아요 취소", description = "게시글 좋아요 취소 api")
@@ -66,6 +66,6 @@ public interface ArticleLikeApi {
                             examples = @ExampleObject(value = ArticleSwaggerErrorExamples.ARTICLE_404_001)))
     })
     ResponseEntity<?> unlike(
-            @Parameter(hidden = true) @CurrentMember Member member,
+            @Parameter(hidden = true) @CurrentMember AuthenticatedMember member,
             @Parameter(description = "게시글 UUID", required = true) @PathVariable("article-uuid") String articleUuid);
 }

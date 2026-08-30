@@ -9,11 +9,11 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import kakaotech.task4.common.resolver.CurrentMember;
+import kakaotech.task4.common.security.AuthenticatedMember;
 import kakaotech.task4.domain.auth.api.AuthSwaggerErrorExamples;
 import kakaotech.task4.domain.file.api.FileSwaggerErrorExamples;
 import kakaotech.task4.domain.myInfo.dto.req.UpdateMyBasicInfoRequest;
 import kakaotech.task4.domain.myInfo.dto.req.UpdateMySecurityRequest;
-import kakaotech.task4.domain.member.entity.Member;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestBody;
 
@@ -34,7 +34,7 @@ public interface MyInfoApi {
                             }))
     })
     ResponseEntity<?> getMyBasicInfo(
-            @Parameter(hidden = true) @CurrentMember Member member);
+            @Parameter(hidden = true) @CurrentMember AuthenticatedMember member);
 
     @Operation(summary = "마이페이지 수정", description = "전달된 필드만 수정한다. 두 필드가 모두 null이면 400을 반환한다.")
     @ApiResponses({
@@ -66,7 +66,7 @@ public interface MyInfoApi {
                             examples = @ExampleObject(value = MySwaggerErrorExamples.GLOBAL_422_001_NICKNAME)))
     })
     ResponseEntity<?> updateMyBasicInfo(
-            @Parameter(hidden = true) @CurrentMember Member member,
+            @Parameter(hidden = true) @CurrentMember AuthenticatedMember member,
             @Valid @RequestBody UpdateMyBasicInfoRequest request);
 
     @Operation(summary = "보안 정보 수정", description = "마이페이지 비밀번호 수정 api")
@@ -98,7 +98,7 @@ public interface MyInfoApi {
                             }))
     })
     ResponseEntity<?> updateMySecurity(
-            @Parameter(hidden = true) @CurrentMember Member member,
+            @Parameter(hidden = true) @CurrentMember AuthenticatedMember member,
             @Valid @RequestBody UpdateMySecurityRequest request);
 
     @Operation(summary = "회원 탈퇴", description = "회원 탈퇴 api")
@@ -117,5 +117,5 @@ public interface MyInfoApi {
                             examples = @ExampleObject(value = AuthSwaggerErrorExamples.AUTH_403_002)))
     })
     ResponseEntity<?> deleteAccount(
-            @Parameter(hidden = true) @CurrentMember Member member);
+            @Parameter(hidden = true) @CurrentMember AuthenticatedMember member);
 }

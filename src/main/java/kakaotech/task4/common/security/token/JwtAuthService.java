@@ -4,11 +4,9 @@ import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.JwtException;
 import kakaotech.task4.common.exception.CustomException;
+import kakaotech.task4.common.security.AuthenticatedMember;
 import kakaotech.task4.common.security.token.code.JwtExceptionCode;
 import kakaotech.task4.common.security.properties.JwtProperties;
-import kakaotech.task4.domain.auth.code.AuthExceptionCode;
-import kakaotech.task4.domain.member.entity.Member;
-import kakaotech.task4.domain.member.service.MemberService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -22,17 +20,16 @@ import java.util.List;
 public class JwtAuthService {
     private final AccessTokenProvider accessTokenProvider;
     private final JwtProperties jwtProperties;
-    private final MemberService memberService;
 
     public Authentication authenticate(String accessToken) {
         try {
             Claims claims = accessTokenProvider.getClaims(accessToken);
             validateClaims(claims);
 
-            Member member = memberService.findByUuid(claims.getSubject(), AuthExceptionCode.UNAUTHORIZED);
             List<SimpleGrantedAuthority> authorities = List.of(new SimpleGrantedAuthority("ROLE_USER"));
 
-            return UsernamePasswordAuthenticationToken.authenticated(member.getMemberUuid(), null, authorities);
+            AuthenticatedMember principal = new AuthenticatedMember(claims.getSubject());
+            return UsernamePasswordAuthenticationToken.authenticated(principal, null, authorities);
         } catch (ExpiredJwtException e) {
             throw new CustomException(JwtExceptionCode.ACCESS_TOKEN_EXPIRED);
         } catch (JwtException | IllegalArgumentException e) {

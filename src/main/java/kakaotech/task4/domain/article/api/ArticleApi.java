@@ -11,10 +11,10 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import kakaotech.task4.common.resolver.CurrentMember;
+import kakaotech.task4.common.security.AuthenticatedMember;
 import kakaotech.task4.domain.article.dto.req.CreateArticleRequest;
 import kakaotech.task4.domain.article.dto.req.UpdateArticleRequest;
 import kakaotech.task4.domain.auth.api.AuthSwaggerErrorExamples;
-import kakaotech.task4.domain.member.entity.Member;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -49,7 +49,7 @@ public interface ArticleApi {
                             examples = @ExampleObject(value = ArticleSwaggerErrorExamples.GLOBAL_422_001)))
     })
     ResponseEntity<?> createArticle(
-            @Parameter(hidden = true) @CurrentMember Member member,
+            @Parameter(hidden = true) @CurrentMember AuthenticatedMember member,
             @Valid @RequestBody CreateArticleRequest request);
 
     @Operation(summary = "게시글 수정", description = "전달된 필드만 수정한다. 세 필드가 모두 null이면 400을 반환한다.")
@@ -83,7 +83,7 @@ public interface ArticleApi {
                             examples = @ExampleObject(value = ArticleSwaggerErrorExamples.GLOBAL_422_001)))
     })
     ResponseEntity<?> updateArticle(
-            @Parameter(hidden = true) @CurrentMember Member member,
+            @Parameter(hidden = true) @CurrentMember AuthenticatedMember member,
             @Parameter(description = "게시글 UUID", required = true) @PathVariable("article-uuid") String articleUuid,
             @Valid @RequestBody UpdateArticleRequest request);
 
@@ -109,7 +109,7 @@ public interface ArticleApi {
                             examples = @ExampleObject(value = ArticleSwaggerErrorExamples.ARTICLE_404_001)))
     })
     ResponseEntity<?> deleteArticle(
-            @Parameter(hidden = true) @CurrentMember Member member,
+            @Parameter(hidden = true) @CurrentMember AuthenticatedMember member,
             @Parameter(description = "게시글 UUID", required = true) @PathVariable("article-uuid") String articleUuid);
 
     @Operation(summary = "게시글 목록 조회",
@@ -130,7 +130,7 @@ public interface ArticleApi {
                             examples = @ExampleObject(value = ArticleSwaggerErrorExamples.GLOBAL_422_001_SIZE)))
     })
     ResponseEntity<?> getArticleList(
-            @Parameter(hidden = true) @CurrentMember Member member,
+            @Parameter(hidden = true) @CurrentMember AuthenticatedMember member,
             @Parameter(description = "이전 응답의 nextCursor 값 (첫 페이지는 생략)",
                     example = "MjAyNi0wMS0wMVQwODowMDowMFp8MTI=")
             @RequestParam(required = false) String cursor,
@@ -157,6 +157,6 @@ public interface ArticleApi {
                             examples = @ExampleObject(value = ArticleSwaggerErrorExamples.ARTICLE_404_001)))
     })
     ResponseEntity<?> getArticleDetail(
-            @Parameter(hidden = true) @CurrentMember Member member,
+            @Parameter(hidden = true) @CurrentMember AuthenticatedMember member,
             @Parameter(description = "게시글 UUID", required = true) @PathVariable("uuid") String articleUuid);
 }

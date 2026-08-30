@@ -2,6 +2,7 @@ package kakaotech.task4.domain.myInfo.service;
 
 import kakaotech.task4.common.exception.CommonFieldError;
 import kakaotech.task4.common.exception.CustomException;
+import kakaotech.task4.domain.auth.code.AuthExceptionCode;
 import kakaotech.task4.domain.myInfo.code.MyInfoExceptionCode;
 import kakaotech.task4.domain.myInfo.dto.req.UpdateMyBasicInfoRequest;
 import kakaotech.task4.domain.myInfo.dto.req.UpdateMySecurityRequest;
@@ -27,12 +28,17 @@ public class MyInfoService {
     private final PasswordEncoder passwordEncoder;
     private final ProfileImageUrlValidator profileImageUrlValidator;
 
-    public MyBasicInfoResponse getMyBasicInfo(Member member) {
+    @Transactional(readOnly = true)
+    public MyBasicInfoResponse getMyBasicInfo(String memberUuid) {
+        Member member = findCurrentMember(memberUuid);
         return MyBasicInfoResponse.from(member);
     }
 
     @Transactional
-    public UpdateMyBasicInfoResponse updateMyBasicInfo(Member member, UpdateMyBasicInfoRequest request) {
+    public UpdateMyBasicInfoResponse updateMyBasicInfo(
+            String memberUuid,
+            UpdateMyBasicInfoRequest request) {
+        Member member = findCurrentMember(memberUuid);
         validateAllNull(request);
         validateDuplicateNickname(member, request.nickname());
         profileImageUrlValidator.validate(request.profileImageUrl());
@@ -42,7 +48,8 @@ public class MyInfoService {
     }
 
     @Transactional
-    public void updateMySecurity(Member member, UpdateMySecurityRequest request) {
+    public void updateMySecurity(String memberUuid, UpdateMySecurityRequest request) {
+        Member member = findCurrentMember(memberUuid);
         validateNowPassword(member, request.nowPassword());
         validatePasswordMatch(request);
 
@@ -51,8 +58,13 @@ public class MyInfoService {
     }
 
     @Transactional
-    public void deleteAccount(Member member) {
+    public void deleteAccount(String memberUuid) {
+        Member member = findCurrentMember(memberUuid);
         member.softDelete();
+    }
+
+    private Member findCurrentMember(String memberUuid) {
+        return memberService.findByUuid(memberUuid, AuthExceptionCode.UNAUTHORIZED);
     }
 
     private void validateAllNull(UpdateMyBasicInfoRequest request) {

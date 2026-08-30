@@ -1,11 +1,11 @@
 package kakaotech.task4.domain.articleLike.controller;
 
 import kakaotech.task4.common.resolver.CurrentMember;
+import kakaotech.task4.common.security.AuthenticatedMember;
 import kakaotech.task4.domain.articleLike.api.ArticleLikeApi;
 import kakaotech.task4.domain.articleLike.dto.ArticleLikeResponse;
 import kakaotech.task4.domain.articleLike.service.ArticleLikeFacadeService;
 import kakaotech.task4.common.response.ApiResponse;
-import kakaotech.task4.domain.member.entity.Member;
 import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -19,18 +19,20 @@ public class ArticleLikeController implements ArticleLikeApi {
     @PostMapping
     @Override
     public ResponseEntity<?> like(
-            @CurrentMember Member member,
+            @CurrentMember AuthenticatedMember member,
             @PathVariable("article-uuid") String articleUuid) {
-        ArticleLikeResponse response = articleLikeFacadeService.like(member, articleUuid);
+        ArticleLikeResponse response =
+                articleLikeFacadeService.like(member.memberUuid(), articleUuid);
         return ApiResponse.success(response).toEntity();
     }
 
     @DeleteMapping
     @Override
     public ResponseEntity<?> unlike(
-            @CurrentMember Member member,
+            @CurrentMember AuthenticatedMember member,
             @PathVariable("article-uuid") String articleUuid) {
-        ArticleLikeResponse response = articleLikeFacadeService.unlike(member, articleUuid);
+        ArticleLikeResponse response =
+                articleLikeFacadeService.unlike(member.memberUuid(), articleUuid);
         return ApiResponse.success(response).toEntity();
     }
 }

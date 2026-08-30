@@ -12,6 +12,13 @@ public interface MemberRepository extends JpaRepository<Member, Long> {
     boolean existsByEmail(String email);
 
     @Query("""
+            select m from Member m
+            where m.deletedAt is null
+              and m.memberId = (select min(active.memberId) from Member active where active.deletedAt is null)
+            """)
+    Optional<Member> findFirstActiveMember();
+
+    @Query("""
             select count(m) > 0 from Member m
             where m.nickname = :nickname
               and m.deletedAt is null

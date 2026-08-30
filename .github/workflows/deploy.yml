@@ -168,6 +168,29 @@ jobs:
           grep -q '^FRONTEND_BLUE_TAG=' .env
           grep -q '^FRONTEND_GREEN_TAG=' .env
 
+          log_memory_state() {
+            local phase="$1"
+            local service container_id
+            local -a container_ids
+
+            echo "Memory snapshot: $phase"
+            free -h || true
+            mapfile -t container_ids < <(docker compose ps -q app-blue app-green mysql nginx)
+            if (( ${#container_ids[@]} > 0 )); then
+              docker stats --no-stream \
+                --format 'table {{.Name}}\t{{.MemUsage}}\t{{.MemPerc}}' \
+                "${container_ids[@]}" || true
+            fi
+            for service in app-blue app-green; do
+              container_id=$(docker compose ps -q "$service")
+              if [[ -n "$container_id" ]]; then
+                docker inspect --format \
+                  '{{.Name}} OOMKilled={{.State.OOMKilled}} RestartCount={{.RestartCount}}' \
+                  "$container_id" || true
+              fi
+            done
+          }
+
           if [[ -f "$ACTIVE_COLOR_FILE" ]]; then
             cp "$ACTIVE_COLOR_FILE" "$ACTIVE_COLOR_FILE.bak"
           fi
@@ -248,15 +271,31 @@ jobs:
 
           # 트래픽을 넘기기 전에 새 색상의 JVM을 데운다. 기동 직후에는 JIT 컴파일 전이라
           # 목록 조회 p95가 160ms까지 튄다(워밍업 후 16ms). 활성 색상이 계속 서비스하는
-          # 동안 비활성 색상만 데우므로 사용자 영향은 없다. 측정 근거는 loadtest/RESULTS.md.
+          # 동안 비활성 색상만 데우므로 사용자 영향은 없다. 측정 근거는 노션 결과 보고서.
           #
           # 시크릿은 컨테이너 환경변수(app.env)를 컨테이너 안에서 읽는다. 호스트로 꺼내지
           # 않으므로 SSM 실행 로그에 남지 않는다. 미설정이면 엔드포인트가 404를 반환하고
           # 배포는 워밍업 없이 계속 진행한다.
-          if ! docker compose exec -T "$inactive_service" sh -c \
-            'wget -q -O - -T 180 --post-data= --header="X-Warmup-Secret: $WARMUP_SECRET" http://localhost:8080/api/internal/warmup'; then
-            echo "warmup skipped or failed on ${inactive_service} (WARMUP_SECRET unset returns 404)"
+          # Check the container environment first because wget maps both 404 and 5xx to exit code 8.
+          # Capturing the result also lets set -e stop deployment if docker compose exec itself fails.
+          warmup_enabled=$(docker compose exec -T "$inactive_service" sh -c \
+            'case "${WARMUP_SECRET:-}" in *[![:space:]]*) printf true;; *) printf false;; esac')
+          if [[ "$warmup_enabled" == "true" ]]; then
+            warmup_result=$(docker compose exec -T "$inactive_service" sh -c \
+              'wget -q -O - -T 180 --post-data= --header="X-Warmup-Secret: $WARMUP_SECRET" http://localhost:8080/api/internal/warmup'
+            )
+            printf '%s\n' "$warmup_result"
+            if ! jq -e \
+              '.requestedCount > 0 and (.targets | length > 0) and
+               (.requestedCount as $count | all(.targets[]; .failure == 0 and .success == $count))' \
+              <<< "$warmup_result" > /dev/null; then
+              echo "warmup result validation failed on ${inactive_service}"
+              exit 1
+            fi
+          else
+            echo "warmup skipped on ${inactive_service}: WARMUP_SECRET is unset"
           fi
+          log_memory_state "after warmup"
 
           tmp_upstream=$(mktemp "$NGINX_CONF_DIR/backend-upstream.XXXXXX")
           printf 'upstream backend_active {\n    server app-%s:8080;\n}\n' "$inactive" > "$tmp_upstream"
@@ -289,6 +328,7 @@ jobs:
               printf '%s\n' "$inactive" > "$ACTIVE_COLOR_FILE"
               chmod 644 "$ACTIVE_COLOR_FILE" "$FRONTEND_COLOR_FILE" "$ACTIVE_UPSTREAM_FILE" "$FRONTEND_UPSTREAM_FILE" .env
               docker compose ps "$inactive_service" nginx
+              log_memory_state "after traffic switch"
               echo "Backend blue-green deployment succeeded: active=$inactive tag=$IMAGE_TAG"
               exit 0
             fi

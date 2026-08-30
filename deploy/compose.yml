@@ -2,6 +2,8 @@
 x-backend-app: &backend-app
   expose:
     - "8080"
+  # MaxRAMPercentage=70의 기준을 고정해 블루-그린 전환 중 두 JVM의 메모리 팽창을 제한한다.
+  mem_limit: 384m
   # 비밀값은 app.env 에 둔다. .env 에는 태그만 남겨 프론트도 안전하게 수정할 수 있게 한다.
   env_file: app.env
   environment:

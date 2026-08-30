@@ -10,7 +10,7 @@ import lombok.*;
 @Entity
 @Table(
         indexes = {
-                @Index(name = "idx_article_created_at", columnList = "created_at, article_id")
+                @Index(name = "idx_article_created_at_id", columnList = "created_at, article_id")
         }
 )
 @Getter

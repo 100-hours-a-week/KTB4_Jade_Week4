@@ -1,0 +1,75 @@
+Enum vote_option {
+  A
+  B
+}
+Table member {
+  member_id bigint [pk, increment]
+  member_uuid varchar(255) [not null, unique]
+  email varchar(255) [not null, unique]
+  password varchar(60) [not null]
+  nickname varchar(20) [not null]
+  profile_image_url varchar(512) [not null]
+  created_at timestamp [not null]
+  updated_at timestamp [not null]
+  deleted_at timestamp
+}
+Table article {
+  article_id bigint [pk, increment]
+  article_uuid varchar(255) [not null, unique]
+  title varchar(26) [not null]
+  option_a varchar(15) [not null]
+  option_b varchar(15) [not null]
+  liked_count int [not null, default: 0]
+  member_id bigint [not null]
+  created_at timestamp [not null]
+  updated_at timestamp [not null]
+  deleted_at timestamp
+  indexes {
+    (created_at, article_id) [name: 'idx_article_created_at_id']
+  }
+}
+Table article_comment {
+  article_comment_id bigint [pk, increment]
+  article_comment_uuid varchar(255) [not null, unique]
+  content varchar(255) [not null]
+  member_id bigint [not null]
+  article_id bigint [not null]
+  created_at timestamp [not null]
+  updated_at timestamp [not null]
+  deleted_at timestamp
+  indexes {
+    (article_id, created_at) [name: 'idx_comment_article_created']
+  }
+}
+Table article_like {
+  article_like_id bigint [pk, increment]
+  article_id bigint [not null]
+  member_id bigint [not null]
+  created_at timestamp [not null]
+  indexes {
+    (member_id, article_id) [unique, name: 'uk_article_like_member_article']
+  }
+}
+Table article_vote {
+  article_vote_id bigint [pk, increment]
+  article_id bigint [not null]
+  member_id bigint [not null]
+  vote_option vote_option [not null]
+  created_at timestamp [not null]
+  indexes {
+    (member_id, article_id) [unique, name: 'uk_article_vote_member_article']
+  }
+}
+Table article_vote_count {
+  article_id bigint [pk]
+  count_a int [not null, default: 0]
+  count_b int [not null, default: 0]
+}
+Ref: article.member_id > member.member_id
+Ref: article_comment.member_id > member.member_id
+Ref: article_comment.article_id > article.article_id
+Ref: article_like.member_id > member.member_id
+Ref: article_like.article_id > article.article_id
+Ref: article_vote.member_id > member.member_id
+Ref: article_vote.article_id > article.article_id
+Ref: article_vote_count.article_id - article.article_id

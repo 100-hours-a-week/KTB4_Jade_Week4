@@ -6,6 +6,7 @@ import kakaotech.task4.common.uuid.UuidPrefix;
 import kakaotech.task4.domain.article.dto.res.CommentDetailResponse;
 import kakaotech.task4.domain.article.entity.Article;
 import kakaotech.task4.domain.article.service.ArticleService;
+import kakaotech.task4.domain.auth.code.AuthExceptionCode;
 import kakaotech.task4.domain.comment.code.CommentExceptionCode;
 import kakaotech.task4.domain.comment.dto.req.CreateCommentRequest;
 import kakaotech.task4.domain.comment.dto.req.UpdateCommentRequest;
@@ -13,6 +14,7 @@ import kakaotech.task4.domain.comment.dto.res.CreateCommentResponse;
 import kakaotech.task4.domain.comment.entity.ArticleComment;
 import kakaotech.task4.domain.comment.repository.ArticleCommentRepository;
 import kakaotech.task4.domain.member.entity.Member;
+import kakaotech.task4.domain.member.service.MemberService;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -26,9 +28,11 @@ import java.util.stream.Collectors;
 public class ArticleCommentService {
     private final ArticleService articleService;
     private final ArticleCommentRepository articleCommentRepository;
+    private final MemberService memberService;
 
     @Transactional
-    public CreateCommentResponse createComment(Member member, String articleUuid, CreateCommentRequest request) {
+    public CreateCommentResponse createComment(String memberUuid, String articleUuid, CreateCommentRequest request) {
+        Member member = findCurrentMember(memberUuid);
         Article article = articleService.findArticleByUuid(articleUuid);
         ArticleComment articleComment = saveComment(member, article, request);
 
@@ -36,7 +40,8 @@ public class ArticleCommentService {
     }
 
     @Transactional
-    public void updateComment(Member member, String articleUuid, String commentUuid, UpdateCommentRequest request) {
+    public void updateComment(String memberUuid, String articleUuid, String commentUuid, UpdateCommentRequest request) {
+        Member member = findCurrentMember(memberUuid);
         Article article = articleService.findArticleByUuid(articleUuid);
         ArticleComment articleComment = findByCommentUuidAndArticle(commentUuid, article);
 
@@ -45,7 +50,8 @@ public class ArticleCommentService {
     }
 
     @Transactional
-    public void deleteComment(Member member, String articleUuid, String commentUuid) {
+    public void deleteComment(String memberUuid, String articleUuid, String commentUuid) {
+        Member member = findCurrentMember(memberUuid);
         Article article = articleService.findArticleByUuid(articleUuid);
         ArticleComment articleComment = findByCommentUuidAndArticle(commentUuid, article);
 
@@ -65,6 +71,10 @@ public class ArticleCommentService {
         ArticleComment articleComment = ArticleComment.of(commentUuid, member, article, request);
         articleCommentRepository.save(articleComment);
         return articleComment;
+    }
+
+    private Member findCurrentMember(String memberUuid) {
+        return memberService.findByUuid(memberUuid, AuthExceptionCode.UNAUTHORIZED);
     }
 
     private ArticleComment findByCommentUuidAndArticle(String commentUuid, Article article) {

@@ -1,10 +1,8 @@
 package kakaotech.task4.common.resolver;
 
 import kakaotech.task4.common.exception.CustomException;
+import kakaotech.task4.common.security.AuthenticatedMember;
 import kakaotech.task4.domain.auth.code.AuthExceptionCode;
-import kakaotech.task4.domain.member.entity.Member;
-import kakaotech.task4.domain.member.service.MemberService;
-import lombok.RequiredArgsConstructor;
 import org.jspecify.annotations.NonNull;
 import org.springframework.core.MethodParameter;
 import org.springframework.security.core.Authentication;
@@ -16,14 +14,12 @@ import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 import org.springframework.web.method.support.ModelAndViewContainer;
 
 @Component
-@RequiredArgsConstructor
 public class CurrentMemberArgumentResolver implements HandlerMethodArgumentResolver {
-    private final MemberService memberService;
 
     @Override
     public boolean supportsParameter(MethodParameter parameter) {
         return parameter.hasParameterAnnotation(CurrentMember.class)
-                && parameter.getParameterType().equals(Member.class);
+                && parameter.getParameterType().equals(AuthenticatedMember.class);
     }
 
     @Override
@@ -33,10 +29,11 @@ public class CurrentMemberArgumentResolver implements HandlerMethodArgumentResol
                                   WebDataBinderFactory binderFactory) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
-        if (authentication == null || !(authentication.getPrincipal() instanceof String memberUuid)) {
+        if (authentication == null
+                || !(authentication.getPrincipal() instanceof AuthenticatedMember principal)) {
             throw new CustomException(AuthExceptionCode.UNAUTHORIZED);
         }
 
-        return memberService.findByUuid(memberUuid, AuthExceptionCode.UNAUTHORIZED);
+        return principal;
     }
 }

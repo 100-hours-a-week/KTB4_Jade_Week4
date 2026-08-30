@@ -1,10 +1,11 @@
 # JVM 워밍업 부하테스트 결과
 
-측정일: 2026-08-03 ~ 2026-08-05
+측정일: 2026-08-03 ~ 2026-08-05, 인덱스 추가 검증 2026-08-23
 
 서버 기동 직후 초기 응답 지연이 발생하는지 확인하고, 원인이 JIT 컴파일 단계와
 어떻게 연결되는지 측정한 기록이다. 1~9절은 초기 로컬 측정, 10절은 운영 적용,
-11절은 실제 블루-그린 전환을 재현한 로컬 A/B 테스트, 12절은 미확인 사항과 측정 한계다.
+11절은 실제 블루-그린 전환을 재현한 로컬 A/B 테스트, 12절은 목록 인덱스 실행 계획
+검증, 13절은 미확인 사항과 측정 한계, 14절은 카운터 갱신 방식의 차이다.
 
 판단 과정과 시계열 그래프는 [노션 회고](https://app.notion.com/p/3b1c255d936b8011ba55d15caf9d91d9)에
 있다. 이 문서는 수치와 재현 절차를 맡는다.
@@ -45,7 +46,7 @@
 
 **주의**
 - **p50은 거의 안 변한다** (10~12 ms). 개선은 전부 꼬리에 있다. "평균이 몇 % 빨라졌다"로 쓰면 틀린 말이 된다
-- 위 수치는 **전부 로컬 측정**이다. 운영에서의 개선 폭은 재지 못했다(12.1)
+- 위 수치는 **전부 로컬 측정**이다. 운영에서의 개선 폭은 재지 못했다(13.1)
 - 요청 실패는 모든 조건에서 0건이었다
 - 두 표의 개선 폭 차이(90% vs 71%)의 원인은 분리해 측정하지 않았다. nginx reload 시점의
   커넥션 재수립, blue·green 두 JVM의 호스트 자원 공유, 0-30초 기준점 차이가 후보다
@@ -568,7 +569,7 @@ docker run --rm --entrypoint java backend-app-blue \
 컴파일러 자원 증가가 아니라 요청 처리 병렬성이 2배가 된 것과 도커로 조인 1코어보다
 실제 CPU가 빠른 쪽이다.
 
-**단, 이 확인은 로컬(aarch64)에서 값 결정 로직만 뽑은 것이고 운영 실측이 아니다**(12절).
+**단, 이 확인은 로컬(aarch64)에서 값 결정 로직만 뽑은 것이고 운영 실측이 아니다**(13절).
 
 ### 10.3 설정
 
@@ -644,9 +645,165 @@ B의 워밍업은 평균 24.3초 걸렸다.
 
 ---
 
-## 12. 미확인 사항과 측정 한계
+## 12. 목록 인덱스 실행 계획 검증 (2026-08-23)
 
-### 12.1 미확인 사항
+1절의 게시글 1만 건은 buffer pool에 전부 올려 JIT 신호만 분리하기 위한 조건이었다.
+이 선택은 부하테스트 응답시간에서 쿼리 플랜 문제를 드러나지 않게 했다. 같은 데이터에서도
+`EXPLAIN`에는 이미 풀스캔과 filesort가 보였으므로, 부하를 걸기 전에 실행 계획을 먼저
+확인했어야 했다.
+
+### 12.1 조건과 재현 순서
+
+MySQL 8.0, InnoDB buffer pool 256 MiB 조건에서 `seed.sh`의 인덱스 검증 경로로
+게시글을 1천만 건까지 늘렸다. 게시글 적재에는 242초가 걸렸고 이후 투표수 행을
+보정했다.
+
+```bash
+docker compose -f docker-compose.loadtest.yml \
+  -f docker-compose.seed.yml up -d mysql
+
+TARGET_ROWS=10000000 \
+COMPOSE='docker compose -f docker-compose.loadtest.yml -f docker-compose.seed.yml' \
+./loadtest/seed.sh
+```
+
+실제 적재 완료 화면은 다음과 같았다.
+
+```text
+9500000건 / 10000000건 (228초 경과)
+10000000건 / 10000000건 (242초 경과)
+[4/4] 투표수 행 보정
+  투표수 누락: 0건
+적재 완료: 10000000건
+10000000  2025-08-03 09:12:45.171533  2026-08-23 11:15:06.363592
+```
+
+실제 Repository 쿼리와 같이 회원을 fetch join하고 게시글 전체 컬럼을 읽는 SQL로
+측정했다. 각 조건에서 대량 적재나 인덱스 변경 후 `ANALYZE TABLE article`을 먼저
+실행했다.
+
+```sql
+EXPLAIN ANALYZE
+SELECT a.*, m.*
+FROM article a
+JOIN member m ON m.member_id = a.member_id
+WHERE a.deleted_at IS NULL
+ORDER BY a.created_at DESC, a.article_id DESC
+LIMIT 10;
+```
+
+### 12.2 1만 건과 잘못된 인덱스
+
+기존 인덱스는 `(article_id, created_at)`이었다. `article_id`는 PK 선두 컬럼이고
+목록은 `created_at`부터 정렬하므로 이 인덱스로 정렬을 처리할 수 없다.
+
+1만 건의 기준 화면은 계획 확인에 필요한 식별자 컬럼만 선택해 실행했다. 실제
+Repository와 선택 컬럼 수는 다르지만, `type=ALL`, `key=NULL`, `Using filesort`로
+나타난 접근·정렬 방식은 동일했다.
+
+```text
+table  type  key   rows  filtered  Extra
+a      ALL   NULL  9643  10.00     Using where; Using filesort
+m      eq_ref PRIMARY 1  100.00    Using index
+```
+
+따라서 문제를 놓친 이유는 MySQL이 좋은 계획을 선택해서가 아니다. 1만 건이 전부
+메모리에 들어가 별도 정렬 비용이 부하테스트의 JIT 지연과 구분될 정도로 크지 않았기
+때문이다.
+
+### 12.3 1천만 건과 잘못된 인덱스
+
+1천만 건에서는 MySQL이 작은 `member` 테이블부터 읽고 `member_id` 인덱스로 모든
+게시글을 조회한 뒤 상위 10건을 정렬했다. 실제 출력은 다음과 같았다.
+
+```text
+-> Limit: 10 row(s) (actual time=18840..18840 rows=10 loops=1)
+   -> Sort: a.created_at DESC, a.article_id DESC
+      (actual time=18840..18840 rows=10 loops=1)
+      -> Stream results (actual time=1.17..17635 rows=10e+6 loops=1)
+         -> Nested loop inner join
+            (actual time=1.15..12531 rows=10e+6 loops=1)
+            -> Table scan on m (actual time=0.773..2.47 rows=111 loops=1)
+            -> Index lookup on a using FK...member_id
+               (actual time=0.0187..106 rows=90090 loops=111)
+```
+
+게시글 1천만 건을 모두 읽고 filesort한 뒤 10건을 반환하는 데 단일 실행 기준 약
+18.84초가 걸렸다. 이 시간은 반복 측정값이 아니므로 성능 대표값이 아니라 실행 계획의
+문제 규모를 확인하는 참고값이다.
+
+### 12.4 인덱스 순서 수정만으로는 부족했다
+
+인덱스를 목록 정렬과 같은 `(created_at, article_id)`로 재생성한 뒤 같은 쿼리를
+실행했다.
+
+```sql
+ALTER TABLE article
+    DROP INDEX idx_article_created_at,
+    ADD INDEX idx_article_created_at (created_at, article_id);
+```
+
+인덱스 컬럼 순서는 올바르게 바뀌었지만 INNER JOIN 쿼리의 실행 계획은 바뀌지 않았다.
+
+```text
+table  type  key                              rows   Extra
+m      ALL   NULL                             109    Using temporary; Using filesort
+a      ref   FK...member_id                   16450  Using where
+
+-> Limit: 10 row(s) (actual time=24546..24546 rows=10 loops=1)
+   -> Sort: a.created_at DESC, a.article_id DESC
+      (actual time=24546..24546 rows=10 loops=1)
+      -> Stream results (actual time=1.32..23271 rows=10e+6 loops=1)
+         -> Nested loop inner join
+            (actual time=1.31..17999 rows=10e+6 loops=1)
+```
+
+단일 실행 시간은 약 24.55초였지만 캐시 상태와 인덱스 재생성 직후라는 조건이 달라
+18.84초와 성능 수치로 비교할 수는 없다. 여기서 확인할 사실은 수정 인덱스가 선택되지
+않았고 1천만 건 조회와 filesort가 그대로 남았다는 점이다. MySQL 옵티마이저가 작은
+`member` 테이블을 선두로 정했기 때문이다.
+
+### 12.5 게시글 선행 조인 검증
+
+원인을 분리하기 위해 회원 조인을 LEFT JOIN으로 바꿔 게시글이 먼저 읽히게 했다.
+`member_id`는 `nullable=false`이므로 현재 데이터에서 반환 결과는 INNER JOIN과 같다.
+
+```sql
+EXPLAIN ANALYZE
+SELECT a.*, m.*
+FROM article a
+LEFT JOIN member m ON m.member_id = a.member_id
+WHERE a.deleted_at IS NULL
+ORDER BY a.created_at DESC, a.article_id DESC
+LIMIT 10;
+```
+
+실제 화면에서는 filesort가 사라지고 수정한 인덱스를 뒤에서부터 10건만 읽었다.
+
+```text
+table  type   key                     rows  Extra
+a      index  idx_article_created_at  10    Using where; Backward index scan
+m      eq_ref PRIMARY                 1     NULL
+
+-> Limit: 10 row(s) (actual time=0.678..0.808 rows=10 loops=1)
+   -> Nested loop left join (actual time=0.672..0.801 rows=10 loops=1)
+      -> Filter: (a.deleted_at is null)
+         (actual time=0.629..0.756 rows=10 loops=1)
+         -> Index scan on a using idx_article_created_at (reverse)
+            (actual time=0.623..0.749 rows=10 loops=1)
+      -> Single-row index lookup on m using PRIMARY
+         (actual time=0.00282..0.00283 rows=1 loops=10)
+```
+
+결론은 두 단계다. `(created_at, article_id)`로 인덱스 순서를 바꾸는 것은 필요하지만,
+현재 `join fetch a.member`가 생성하는 INNER JOIN에서는 그것만으로 filesort가 제거되지
+않는다. Repository의 두 목록 쿼리를 `left join fetch`로 바꾸는 후보가 이번 로컬 실행
+계획에서는 인덱스 역순 스캔을 선택했다. 이 변경은 아직 애플리케이션 코드에 적용하지
+않았으며, 적용 후 Hibernate가 생성한 실제 SQL을 다시 확인해야 한다.
+
+## 13. 미확인 사항과 측정 한계
+
+### 13.1 미확인 사항
 
 재보면 확인할 수 있으나 재지 않은 것들이다.
 
@@ -664,7 +821,7 @@ B의 워밍업은 평균 24.3초 걸렸다.
 (워밍업 유무)는 7회로 충분하지만, 차이가 작은 비교(B vs C)는 회차 편차에 묻힐 여지가
 남는다. 필요 회차 수는 비교하려는 차이의 크기에 따라 달라진다.
 
-### 12.2 측정 한계
+### 13.2 측정 한계
 
 의도적으로 잡은 조건이라 재측정으로 해소되지 않는다. 결과를 읽을 때의 전제다.
 
@@ -674,3 +831,44 @@ B의 워밍업은 평균 24.3초 걸렸다.
   없지만, 조회 결과가 같아 캐시 적중률이 실제보다 높게 나온다
 - **로컬은 운영보다 CPU가 불리하고 메모리가 유리하다.** app을 1코어로 조이고 mysql에
   별도 1 GB를 줬다(1절). 로컬 수치를 운영에 그대로 이식할 수 없다
+- **워밍업은 목록·상세 두 GET 경로만 데운다.** 투표·좋아요·댓글은 필터 체인, JWT 검증,
+  Hibernate, Jackson 같은 공통 경로만 데워지고 각 기능의 고유 경로는 배포 직후 첫
+  요청에서 처음 실행된다. 7.3에서 목록만 데웠을 때 상세가 덜 빨라진 것과 같은 이유다.
+  워밍업이 운영 DB에 쓰기를 일으킬 수 없어 생기는 구조적 한계이므로, **"워밍업했으니
+  배포 직후 지연이 없다"고 읽으면 안 된다.** 이 문서의 개선 수치는 목록·상세 두 경로에
+  한정된다
+
+---
+
+## 14. 카운터 갱신 방식이 두 가지인 이유
+
+같은 코드베이스에 카운터를 고치는 방식이 둘 있다. 인기 게시글에서 경합이 생겼을 때
+어느 쪽 문제인지 가르려면 이 차이를 알아야 하므로 여기에 적어 둔다.
+
+**좋아요 — 벌크 UPDATE로 DB에서 원자적으로 처리한다.**
+
+```java
+@Modifying
+@Query("update Article a set a.likedCount = a.likedCount + 1 where a.articleId = :id")
+int increaseLikedCount(@Param("id") Long id);
+```
+
+읽지 않고 바로 증감한다. 애플리케이션이 현재 값을 알 필요가 없으므로 락을 잡지 않고,
+동시 요청은 DB의 행 단위 원자성으로 직렬화된다.
+
+**투표 — 비관적 락으로 읽고 계산한 뒤 쓴다.**
+
+```java
+@Lock(LockModeType.PESSIMISTIC_WRITE)
+```
+
+투표는 단순 증가가 아니다. A에서 B로 바꾸는 요청은 A를 1 줄이고 B를 1 늘려야 하므로,
+그 회원이 이전에 무엇을 골랐는지 읽어야 판단할 수 있다. 읽고 판단한 뒤 쓰는 사이에
+다른 요청이 끼어들면 집계가 어긋나므로 락으로 막았다.
+
+**차이가 만드는 비용.** 좋아요는 락 구간이 UPDATE 한 문장이지만, 투표는 조회부터
+쓰기까지가 락 구간이다. 인기 게시글에 요청이 몰리면 투표는 그 게시글의 집계 행에서
+한 줄로 직렬화된다. 좋아요보다 먼저 한계에 닿는 쪽은 투표다.
+
+이 문서에서는 두 방식의 처리량을 측정하지 않았다. 부하테스트 대상이 목록·상세 두
+GET 경로였기 때문이다(13.2). 투표 경합을 다루게 되면 여기가 출발점이다.

@@ -14,7 +14,7 @@ import kakaotech.task4.common.resolver.CurrentMember;
 import kakaotech.task4.domain.auth.dto.req.SignInRequest;
 import kakaotech.task4.domain.auth.dto.req.SignUpRequest;
 import kakaotech.task4.domain.file.api.FileSwaggerErrorExamples;
-import kakaotech.task4.domain.member.entity.Member;
+import kakaotech.task4.common.security.AuthenticatedMember;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.web.csrf.CsrfToken;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -85,7 +85,7 @@ public interface AuthApi {
                     content = @Content(mediaType = "application/json",
                             examples = @ExampleObject(value = AuthSwaggerErrorExamples.JWT_404_001)))
     })
-    ResponseEntity<?> signOut(@Parameter(hidden = true) @CurrentMember Member member,
+    ResponseEntity<?> signOut(@Parameter(hidden = true) @CurrentMember AuthenticatedMember member,
                               @Parameter(hidden = true) HttpServletRequest request,
                               @Parameter(hidden = true) HttpServletResponse response);
 

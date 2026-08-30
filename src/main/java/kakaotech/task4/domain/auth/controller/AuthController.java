@@ -12,7 +12,7 @@ import kakaotech.task4.domain.auth.dto.req.SignUpRequest;
 import kakaotech.task4.domain.auth.dto.res.SignInResponse;
 import kakaotech.task4.domain.auth.dto.res.TokenReissueResponse;
 import kakaotech.task4.domain.auth.service.AuthService;
-import kakaotech.task4.domain.member.entity.Member;
+import kakaotech.task4.common.security.AuthenticatedMember;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -45,7 +45,7 @@ public class AuthController implements AuthApi {
 
     @PostMapping("/sign-out")
     @Override
-    public ResponseEntity<?> signOut(@CurrentMember Member member, HttpServletRequest request, HttpServletResponse response) {
+    public ResponseEntity<?> signOut(@CurrentMember AuthenticatedMember member, HttpServletRequest request, HttpServletResponse response) {
         authService.signOut(request, response);
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }

@@ -8,7 +8,7 @@ import kakaotech.task4.domain.comment.dto.req.UpdateCommentRequest;
 import kakaotech.task4.domain.comment.dto.res.CreateCommentResponse;
 import kakaotech.task4.domain.comment.service.ArticleCommentService;
 import kakaotech.task4.common.response.ApiResponse;
-import kakaotech.task4.domain.member.entity.Member;
+import kakaotech.task4.common.security.AuthenticatedMember;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -23,31 +23,31 @@ public class CommentController implements CommentApi {
     @PostMapping
     @Override
     public ResponseEntity<?> createComment(
-            @CurrentMember Member member,
+            @CurrentMember AuthenticatedMember member,
             @PathVariable("article-uuid") String articleUuid,
             @Valid @RequestBody CreateCommentRequest request) {
-        CreateCommentResponse response = articleCommentService.createComment(member, articleUuid, request);
+        CreateCommentResponse response = articleCommentService.createComment(member.memberUuid(), articleUuid, request);
         return ApiResponse.created(response).toEntity();
     }
 
     @PutMapping("/{comment-uuid}")
     @Override
     public ResponseEntity<?> updateComment(
-            @CurrentMember Member member,
+            @CurrentMember AuthenticatedMember member,
             @PathVariable("article-uuid") String articleUuid,
             @PathVariable("comment-uuid") String commentUuid,
             @Valid @RequestBody UpdateCommentRequest request) {
-        articleCommentService.updateComment(member, articleUuid, commentUuid, request);
+        articleCommentService.updateComment(member.memberUuid(), articleUuid, commentUuid, request);
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
 
     @DeleteMapping("/{comment-uuid}")
     @Override
     public ResponseEntity<?> deleteComment(
-            @CurrentMember Member member,
+            @CurrentMember AuthenticatedMember member,
             @PathVariable("article-uuid") String articleUuid,
             @PathVariable("comment-uuid") String commentUuid) {
-        articleCommentService.deleteComment(member, articleUuid, commentUuid);
+        articleCommentService.deleteComment(member.memberUuid(), articleUuid, commentUuid);
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
 }

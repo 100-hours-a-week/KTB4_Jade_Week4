@@ -5,13 +5,12 @@ import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.MalformedJwtException;
 import kakaotech.task4.common.exception.CustomException;
+import kakaotech.task4.common.security.AuthenticatedMember;
 import kakaotech.task4.common.security.properties.JwtProperties;
 import kakaotech.task4.common.security.token.AccessTokenProvider;
 import kakaotech.task4.common.security.token.JwtAuthService;
 import kakaotech.task4.common.security.token.code.JwtExceptionCode;
-import kakaotech.task4.domain.auth.code.AuthExceptionCode;
 import kakaotech.task4.domain.member.entity.Member;
-import kakaotech.task4.domain.member.service.MemberService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -36,33 +35,30 @@ class JwtAuthServiceTest {
     @Mock
     private AccessTokenProvider accessTokenProvider;
 
-    @Mock
-    private MemberService memberService;
-
     private final JwtProperties jwtProperties = new JwtProperties("secret", "task4-issuer", AUDIENCE, Duration.ofMinutes(30));
 
     private JwtAuthService jwtAuthService;
 
     @BeforeEach
     void setUp() {
-        jwtAuthService = new JwtAuthService(accessTokenProvider, jwtProperties, memberService);
+        jwtAuthService = new JwtAuthService(accessTokenProvider, jwtProperties);
     }
 
     @Test
-    @DisplayName("유효한 Access Token이면 회원 UUID를 principal로, ROLE_USER 권한을 가진 인증 객체를 반환한다")
+    @DisplayName("유효한 Access Token이면 회원 조회 없이 인증 전용 principal을 반환한다")
     void authenticateSuccess() {
         // given
         Member member = createMember();
         Claims claims = createValidClaims(member.getMemberUuid());
         when(accessTokenProvider.getClaims("valid-token")).thenReturn(claims);
-        when(memberService.findByUuid(member.getMemberUuid(), AuthExceptionCode.UNAUTHORIZED)).thenReturn(member);
 
         // when
         Authentication authentication = jwtAuthService.authenticate("valid-token");
 
         // then
         assertThat(authentication.isAuthenticated()).isTrue();
-        assertThat(authentication.getPrincipal()).isEqualTo(member.getMemberUuid());
+        assertThat(authentication.getPrincipal())
+                .isEqualTo(new AuthenticatedMember(member.getMemberUuid()));
         assertThat(authentication.getAuthorities())
                 .extracting(GrantedAuthority::getAuthority)
                 .containsExactly("ROLE_USER");
@@ -162,21 +158,6 @@ class JwtAuthServiceTest {
         assertThatThrownBy(() -> jwtAuthService.authenticate("token"))
                 .isInstanceOf(CustomException.class)
                 .hasFieldOrPropertyWithValue("exceptionCode", JwtExceptionCode.INVALID_ACCESS_TOKEN);
-    }
-
-    @Test
-    @DisplayName("토큰은 유효하지만 대상 회원이 존재하지 않으면 UNAUTHORIZED 예외가 발생한다")
-    void authenticateWithNonExistentMember() {
-        // given
-        Claims claims = createValidClaims("ghost_uuid");
-        when(accessTokenProvider.getClaims("token")).thenReturn(claims);
-        when(memberService.findByUuid("ghost_uuid", AuthExceptionCode.UNAUTHORIZED))
-                .thenThrow(new CustomException(AuthExceptionCode.UNAUTHORIZED));
-
-        // when & then
-        assertThatThrownBy(() -> jwtAuthService.authenticate("token"))
-                .isInstanceOf(CustomException.class)
-                .hasFieldOrPropertyWithValue("exceptionCode", AuthExceptionCode.UNAUTHORIZED);
     }
 
     private Claims createValidClaims(String memberUuid) {

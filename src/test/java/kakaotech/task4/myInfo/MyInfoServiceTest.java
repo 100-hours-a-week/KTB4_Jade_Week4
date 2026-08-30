@@ -1,6 +1,7 @@
 package kakaotech.task4.myInfo;
 
 import kakaotech.task4.common.exception.CustomException;
+import kakaotech.task4.domain.auth.code.AuthExceptionCode;
 import kakaotech.task4.domain.file.service.ProfileImageUrlValidator;
 import kakaotech.task4.domain.member.entity.Member;
 import kakaotech.task4.domain.member.service.MemberService;
@@ -44,9 +45,10 @@ class MyInfoServiceTest {
     void getMyBasicInfo() {
         // given
         Member member = createMember();
+        givenCurrentMember(member);
 
         // when
-        MyBasicInfoResponse response = myInfoService.getMyBasicInfo(member);
+        MyBasicInfoResponse response = myInfoService.getMyBasicInfo(member.getMemberUuid());
 
         // then
         assertThat(response.email()).isEqualTo("jade@example.com");
@@ -61,10 +63,12 @@ class MyInfoServiceTest {
         Member member = createMember();
         UpdateMyBasicInfoRequest request = new UpdateMyBasicInfoRequest("newJade", "https://example.com/new-profile.png");
 
+        givenCurrentMember(member);
         when(memberService.existsByNickname("newJade")).thenReturn(false);
 
         // when
-        UpdateMyBasicInfoResponse response = myInfoService.updateMyBasicInfo(member, request);
+        UpdateMyBasicInfoResponse response =
+                myInfoService.updateMyBasicInfo(member.getMemberUuid(), request);
 
         // then
         assertThat(response.nickname()).isEqualTo("newJade");
@@ -79,9 +83,11 @@ class MyInfoServiceTest {
         // given
         Member member = createMember();
         UpdateMyBasicInfoRequest request = new UpdateMyBasicInfoRequest(null, null);
+        givenCurrentMember(member);
 
         // when & then
-        assertThatThrownBy(() -> myInfoService.updateMyBasicInfo(member, request))
+        assertThatThrownBy(() ->
+                myInfoService.updateMyBasicInfo(member.getMemberUuid(), request))
                 .isInstanceOf(CustomException.class)
                 .hasFieldOrPropertyWithValue("exceptionCode", MyInfoExceptionCode.BAD_REQUEST);
 
@@ -94,10 +100,12 @@ class MyInfoServiceTest {
         // given
         Member member = createMember();
         UpdateMySecurityRequest request = new UpdateMySecurityRequest("Password123!", "Password1234!", "Password12345!");
+        givenCurrentMember(member);
         when(passwordEncoder.matches("Password123!", member.getPassword())).thenReturn(true);
 
         // when & then
-        assertThatThrownBy(() -> myInfoService.updateMySecurity(member, request))
+        assertThatThrownBy(() ->
+                myInfoService.updateMySecurity(member.getMemberUuid(), request))
                 .isInstanceOf(CustomException.class)
                 .hasFieldOrPropertyWithValue("exceptionCode", MyInfoExceptionCode.INVALID_PASSWORD);
 
@@ -109,9 +117,10 @@ class MyInfoServiceTest {
     void deleteAccount() {
         // given
         Member member = createMember();
+        givenCurrentMember(member);
 
         // when
-        myInfoService.deleteAccount(member);
+        myInfoService.deleteAccount(member.getMemberUuid());
 
         // then
         assertThat(member.getDeletedAt()).isNotNull();
@@ -125,5 +134,12 @@ class MyInfoServiceTest {
                 .nickname("jade")
                 .profileImageUrl("https://example.com/profile.png")
                 .build();
+    }
+
+    private void givenCurrentMember(Member member) {
+        when(memberService.findByUuid(
+                member.getMemberUuid(),
+                AuthExceptionCode.UNAUTHORIZED
+        )).thenReturn(member);
     }
 }

@@ -230,7 +230,7 @@ openssl rand -base64 32 | tr -d '\n' | sed 's/^/WARMUP_SECRET=/' >> app.env
 echo 'WARMUP_COUNT=500' >> app.env
 ```
 
-다음 배포부터 적용된다. 측정 근거는 `loadtest/RESULTS.md`에 있다.
+다음 배포부터 적용된다. 측정 근거는 [결과 보고서](https://app.notion.com/p/3ccc255d936b80698a60d3974c410621)에 있다.
 
 ## 롤백
 

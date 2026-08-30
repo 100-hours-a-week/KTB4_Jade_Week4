@@ -92,7 +92,7 @@ A/B 각각 7회, 총 14회를 실행했으며 회차당 Locust 실행시간은 4
 
 - B의 0-30초 p95/p99 중앙값이 A보다 낮고 failure count가 늘지 않으면, 전환 전 워밍업이
   사용자에게 노출되는 초기 지연을 줄인 것으로 판단한다.
-- A/B 차이가 작으면 기존 `loadtest/RESULTS.md`의 “cold JVM 직후 부하” 결과와 달리
+- A/B 차이가 작으면 기존 [결과 보고서](https://app.notion.com/p/3ccc255d936b80698a60d3974c410621)의 “cold JVM 직후 부하” 결과와 달리
   nginx reload 전환 자체의 영향이 작거나, Locust 부하가 부족했을 수 있다.
 - 로컬 수치는 운영과 직접 동일하지 않다. 운영은 t3.micro 한 대에서 nginx, frontend,
   app-blue, app-green, mysql이 같이 돈다.
